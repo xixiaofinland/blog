@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Trait - Life Exploration - Xi Xiao</title>
+        <title>Coding - Life Exploration - Xi Xiao</title>
 
 
         <!-- Custom HTML head -->
@@ -179,98 +179,17 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h2 id="traits"><a class="header" href="#traits">Traits</a></h2>
-<p>Types in Rust are powerful and versatile. Traits define shared behavior that
-multiple types can implement.</p>
-<h3 id="default-implementations"><a class="header" href="#default-implementations">Default implementations</a></h3>
-<p>Traits in Rust are similar to interfaces in other languages but can also provide
-default implementations for methods.</p>
-<p>Typically, an interface defines method signatures without any implementation. In
-Rust, however, you can supply default method implementations directly within a
-trait.</p>
-<blockquote>
-<p>Hover over the code below and click " <i class="fa fa-play"></i> " to execute
-and see the result.</p>
-</blockquote>
-<pre><pre class="playground"><code class="language-rust">trait Greet {
-    fn greet(&amp;self) { // Default implementation
-        println!("Hello from the default greeting!");
-    }
-}
-
-struct Person;
-
-impl Greet for Person {} // Uses the default implementation
-
-fn main() {
-    let person = Person;
-    person.greet(); // Outputs: Hello from the default greeting!
-}</code></pre></pre>
-<p>We can, of course, override this default behavior like so:</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">trait Greet {
-</span><span class="boring">    fn greet(&amp;self) {
-</span><span class="boring">        println!("Hello from the default greeting!");
-</span><span class="boring">    }
-</span><span class="boring">}
-</span><span class="boring">
-</span><span class="boring">struct Person;
-</span>// --snip--
-
-impl Greet for Person {
-    fn greet(&amp;self) { // Overwrite the default implementation
-        println!("Hello from Person greeting!");
-    }
-}
-
-fn main() {
-    let person = Person;
-    person.greet();  // Outputs: Hello from Person greeting!
-}</code></pre></pre>
-<h3 id="traits-as-function-parameters-and-return-types"><a class="header" href="#traits-as-function-parameters-and-return-types">Traits as Function Parameters and Return Types</a></h3>
-<p>Once the Greet trait is defined, it can be used as a type for function
-parameters and return values:</p>
-<pre><pre class="playground"><code class="language-rust">fn main() {
-    let person = Person;
-    do_greet(person);
-
-    let returned = return_greet();
-    returned.greet();
-}
-
-fn do_greet(greetable: impl Greet) { // Accepts any type implementing Greet
-    greetable.greet();
-}
-
-fn return_greet() -&gt; impl Greet { // Returns some type implementing Greet
-    Person
-}
-
-// --snip--
-<span class="boring">struct Person;
-</span><span class="boring">
-</span><span class="boring">impl Greet for Person {}
-</span><span class="boring">
-</span><span class="boring">trait Greet {
-</span><span class="boring">    fn greet(&amp;self) {
-</span><span class="boring">        println!("Hello, greeting!");
-</span><span class="boring">    }
-</span><span class="boring">}
-</span></code></pre></pre>
-<p>When reading more and more Rust code, we see that experienced Rust developers
-frequently use standard library traits. Rust provides common traits as both
-guidelines and best practices. This not only helps us learn Rust but also
-provide great references when programming in other languages.</p>
-<p>In the following section, let's have a look at the out-of-box common traits!</p>
+                        <h1 id="coding"><a class="header" href="#coding">Coding</a></h1>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="rust.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="intro.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="trait-common-traits.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="rust.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -280,11 +199,11 @@ provide great references when programming in other languages.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="rust.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="intro.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="trait-common-traits.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="rust.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
