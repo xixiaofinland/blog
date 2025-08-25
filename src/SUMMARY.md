@@ -1,7 +1,13 @@
 # Summary
 
 - [Introduction](intro.md)
-- [Trait](trait.md)
+
+- Rust
+  - [Trait](trait.md)
     - [Common traits](trait-common-traits.md)
-- [Cargo Workspace](workspace.md)
+  - [Cargo Workspace](workspace.md)
+
+- Python
+
+- Others
 

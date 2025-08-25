@@ -1,3 +1,3 @@
-# Rust & Beyond: A Practical Exploration
+# Personal Blog
 
-[Read it here](https://rust.xixiao.info).
+[Read it here](https://xixiaofinland.com).

@@ -3,12 +3,12 @@ authors = ["xi xiao"]
 language = "en"
 multilingual = false
 src = "src"
-title = "Rust & Beyond: A Practical Exploration"
+title = "Life Exploration - Xi Xiao"
 
 [output.html]
-git-repository-url = "https://github.com/xixiaofinland/rust_beyond"
+git-repository-url = "https://github.com/xixiaofinland/blog"
 additional-css = ["ferris.css"]
 additional-js = ["ferris.js"]
 
-[output.html.playground]
-editable = true
+# [output.html.playground]
+# editable = true
