@@ -1,12 +1,8 @@
 # Introduction
 
-Hi there, I'm [Xi Xiao](http://xixiao.info). This is my journey learning
-[Rust][r].
+Hi there, this is my personal blog.
 
 ## How to read
-
-I've organized related concpets together, but it shouldn't puzzle you much if
-you jump around and focus on whatever interests you most.
 
 I love reading with a dark color theme. You can change themes by clicking the
 paint brush icon (<i class="fa fa-paint-brush"></i>) in the top-left menu bar.
@@ -38,14 +34,7 @@ fn main() {
 }
 ```
 
-2. A code block that you can also edit and undo:
-
-```rust, editable
-fn main() {
-    println!("Click on me and edit!");
-}
-```
-3. A code block with a hidden line:
+2. A code block with a hidden line:
 
 ```rust
 fn main() {
@@ -66,13 +55,6 @@ context:
 | <img src="img/ferris/panics.svg" class="ferris-explain" alt="Ferris throwing up their hands"/>                   | This code panics!                                |
 | <img src="img/ferris/not_desired_behavior.svg" class="ferris-explain" alt="Ferris with one claw up, shrugging"/> | This code does not produce the desired behavior. |
 
-## Source Code
 
-The source files from which this book is generated can be found on
-[GitHub][book].
+Thanks for your time!
 
-[book]: https://github.com/xixiaofinland/rust_beyond
-
-That said, let's get on with it!
-
-[r]: https://www.rust-lang.org/
