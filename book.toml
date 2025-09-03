@@ -7,8 +7,6 @@ title = "Life Exploration - Xi Xiao"
 
 [output.html]
 git-repository-url = "https://github.com/xixiaofinland/blog"
-additional-css = ["ferris.css"]
-additional-js = ["ferris.js"]
 
 # [output.html.playground]
 # editable = true
