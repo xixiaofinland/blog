@@ -1,9 +1,9 @@
 # My Ergonomic Keyboard Journey: From Sculpt to Glove80
 
-For years I used a regular keyboard until shoulder and hand tension
-pushed me to try something better. I switched to the **Microsoft Sculpt**, which
-served me well for several years. It was a big step up for comfort, but
-eventually I wanted to explore something even more ergonomic.
+For years I used a regular keyboard until shoulder and hand tension pushed me to
+try something better. I switched to the **Microsoft Sculpt**, which served me
+well for several years. It was a big step up for comfort, but eventually I
+wanted to explore something even more ergonomic.
 
 ---
 
@@ -37,9 +37,10 @@ There are more traditional alternatives like **Dvorak** and **Colemak**, but I
 chose the more modern and thumb-friendly **Hands Down** family—specifically the
 *handsdown-promethium* variant.
 
-You can find more handsdown info [here](https://sites.google.com/alanreiser.com/handsdown).
+You can find more handsdown info
+[here](https://sites.google.com/alanreiser.com/handsdown).
 
-1. Our mostrfamiliar QWERTY layout:
+1. Our most familiar QWERTY layout:
 
 ![QWERTY layout](img/qwert.png)
 
@@ -53,7 +54,10 @@ completely new key layout. Yes, it was brutal, painfully difficult at first.
 That said, I’m very happy with handsdown-promethium. Honestly, I think almost
 any modern layout is a huge step up from QWERTY. [This
 site](https://cyanophage.github.io/) provides useful statistics on different
-layouts to back that up.
+layouts to back that up. For example,
+[QWERTY](https://cyanophage.github.io/#qwerty)'s *Total Word Effort* is 2070.6
+while [handsdown-promethium](https://cyanophage.github.io/#handsdown-promethium)
+is only 763.5.
 
 ---
 
@@ -63,6 +67,8 @@ One of the Glove80’s best features is its **programmability**. I could remap
 keys, add layers, and customize shortcuts directly on the keyboard. These three
 features make it possible to tailor the keyboard to my workflow instead of
 forcing myself to adapt to it.
+
+![Glove80 layouts](img/glove80-layouts.png)
 
 ### Layers
 
@@ -77,8 +83,13 @@ mouse—especially when using a tiling window manager like Hyperland.
 
 Another powerful feature is **Home Row Mods**. With HRM, keys on the home row
 act as normal letters when tapped, but as modifiers (Ctrl, Alt, Shift, etc.)
-when held. This means I don’t need to stretch my fingers awkwardly to reach
-modifier keys, reducing strain and speeding up key combos.
+when held.
+
+In my case, `s`, `n`, `t`, `h` on left hand and `a`, `e`, `i`, `c` on righe hand
+are my modifiers as shown on the glove80-layouts screenshot above.
+
+This means I don’t need to stretch my fingers awkwardly to reach modifier keys,
+reducing strain and speeding up key combos.
 
 ---
 
