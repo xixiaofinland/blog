@@ -3,7 +3,7 @@ authors = ["xi xiao"]
 language = "en"
 multilingual = false
 src = "src"
-title = "Life Exploration - Xi Xiao"
+title = "Personal blog - Xi Xiao"
 
 [output.html]
 git-repository-url = "https://github.com/xixiaofinland/blog"
