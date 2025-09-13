@@ -125,6 +125,16 @@ navigation without forcing my fingers into awkward positions.
 
 ---
 
+## Typing Demo
+
+[Here’s a 1.5-minute typing demo](https://youtu.be/k6qzg6YJ-pY) ~40 WPM (words per min) recorded on 13-09-2025.
+
+Notes:
+- The printed letters on the keycaps are QWERTY, so they don’t match my actual layout.
+- Finger and hand movement is very minimal, which shows the ergonomic advantage.
+
+---
+
 ## Final Thoughts
 
 Switching from the Sculpt to the Glove80—while also changing layouts—was not
