@@ -1,4 +1,5 @@
 # My Ergonomic Keyboard Journey: From Sculpt to Glove80
+*2025-09-13*
 
 For years I used a regular keyboard until shoulder and hand tension pushed me to
 try something better. I switched to the **Microsoft Sculpt**, which served me
