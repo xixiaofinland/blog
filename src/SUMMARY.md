@@ -5,7 +5,7 @@
 - [Coding](coding.md)
   - [Rust](rust.md)
     - [Trait](trait.md)
-      - [Common traits](trait-common-traits.md)
+      - [Common traits](trait_common_traits.md)
     - [Cargo Workspace](workspace.md)
 
 - [Others](others.md)
