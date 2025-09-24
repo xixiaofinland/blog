@@ -10,5 +10,6 @@
 
 - [Others](others.md)
   - [Keyboard](keyboard.md)
+  - [Salesforce developer training](sf_dev_training.md)
 
 
