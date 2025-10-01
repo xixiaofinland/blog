@@ -8,6 +8,9 @@
       - [Common traits](trait_common_traits.md)
     - [Cargo Workspace](workspace.md)
 
+- [AI](ai.md)
+  - [Basic Supervised Machine Learning](basic_supervised_ml.md)
+
 - [Others](others.md)
   - [Keyboard](keyboard.md)
   - [Salesforce developer training](sf_dev_training.md)
