@@ -9,7 +9,7 @@
     - [Cargo Workspace](workspace.md)
 
 - [AI](ai.md)
-  - [Basic Supervised Machine Learning](basic_supervised_ml.md)
+  - [Linear and Logistic Regression](llr.md)
 
 - [Others](others.md)
   - [Keyboard](keyboard.md)
