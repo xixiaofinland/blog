@@ -515,6 +515,99 @@ project in stages, and Rust's tooling (Cargo) makes it smooth.</p>
 and flexibility. In this small CLI project of mine:
 <a href="https://github.com/xixiaofinland/jirun/tree/a0af5d6f76301ff278fac61a4f84e3c497730303">jirun</a>,
 I have transferred it into workspace style to prepare for growing :)!</p>
+<div style="break-before: page; page-break-before: always;"></div><div style="break-before: page; page-break-before: always;"></div><h1 id="linear-and-logistic-regression"><a class="header" href="#linear-and-logistic-regression">Linear and Logistic Regression</a></h1>
+<p>This post summarizes my takeaways from the <strong>first chapter</strong> of the <a href="https://www.deeplearning.ai/courses/machine-learning-specialization/">Machine
+Learning
+Specialization</a>.</p>
+<p>It covers the basics of linear regression, gradient descent, logistic
+regression, and the problem of overfitting. More importantly, I’ll focus on why
+we use these ideas, what they solve, and how they fit together.</p>
+<h2 id="linear-regression"><a class="header" href="#linear-regression">Linear Regression</a></h2>
+<p><strong>What it does?</strong></p>
+<p>Given historic data, it predicts new values (like house price, car mileage, or
+sales revenue). Instead of guessing outcomes, linear regression provides a
+systematic way to estimate them from data.</p>
+<p><strong>How to find the best fit LR model in practice?</strong></p>
+<p>There are two main challenges:</p>
+<ol>
+<li>
+<p><strong>Choosing the right model form</strong> – deciding what features (and
+transformations of features) to include.</p>
+</li>
+<li>
+<p><strong>Finding the best parameters</strong> – estimating the weights associated with
+those features.</p>
+</li>
+</ol>
+<p>The <strong>second problem</strong> is straightforward. Algorithms like gradient descent can
+find the optimal parameters. Given a fixed model, this process is deterministic
+and guarantees the best weights.</p>
+<p>The <strong>first problem</strong> is much harder. No algorithm can directly tell you the
+“correct” polynomial degree, transformations, or feature interactions. This is a
+model selection problem, not just an optimization one. It requires exploration
+and judgment.</p>
+<p>Feature engineering is often considered an art because it involves:</p>
+<ul>
+<li>Domain expertise</li>
+<li>Experimentation</li>
+<li>Iterative refinement</li>
+<li>Human judgment</li>
+</ul>
+<p>In this course, the focus is primarily on the second challenge, introducing
+<strong>Gradient Descent</strong> as a way to optimize parameters.</p>
+<p>Gradient Descent, Loss Function, and Cost Function</p>
+<ul>
+<li><strong>Loss function</strong>: The error for a single training example (“How wrong am I
+here?”).</li>
+<li><strong>Cost function</strong>: The average error across the whole dataset (“How wrong am I
+overall?”).</li>
+</ul>
+<p>Gradient descent works by repeatedly adjusting parameters to reduce the cost
+function.</p>
+<p>Because gradient descent must loop through potentially millions (or billions) of
+features — especially in large-scale models like LLMs — computation speed
+becomes critical. This is why GPU acceleration plays a pivotal role in modern
+machine learning: it dramatically speeds up these large-scale calculations.</p>
+<h2 id="logistic-regression-classification"><a class="header" href="#logistic-regression-classification">Logistic Regression (Classification)</a></h2>
+<p><strong>What it does?</strong></p>
+<p>While linear regression predicts continuous values, logistic regression is used
+for <strong>classification tasks</strong> — predicting categories such as spam vs. not spam,
+disease vs. no disease, etc.</p>
+<p>Instead of fitting a straight line, logistic regression uses the <strong>sigmoid
+function</strong> to squeeze predictions into a range between 0 and 1.</p>
+<ul>
+<li>Output: A probability. Example: 0.9 → very likely spam.</li>
+<li>Decision rule: If probability ≥ 0.5 → predict class 1, otherwise class 0.</li>
+</ul>
+<p><strong>Cost Function for Logistic Regression</strong></p>
+<p>Squared error (used in linear regression) doesn’t work well for classification
+because it doesn’t handle probabilities properly.</p>
+<p>Instead, logistic regression uses log loss (cross-entropy loss):</p>
+<ul>
+<li>Penalizes confident but wrong predictions much more heavily.</li>
+<li>Rewards probabilities that better reflect reality.</li>
+</ul>
+<p>This ensures the model doesn’t just guess classes, but actually learns
+meaningful probabilities.</p>
+<p><strong>Overfitting</strong></p>
+<p>When a model memorizes training data instead of learning general patterns. It
+performs great on training data but poorly on unseen data.</p>
+<p>Common fixes:</p>
+<ul>
+<li>Add more data when possible</li>
+<li>Apply regularization (penalize overly complex models).</li>
+<li>Simplify the model structure (loop back to the first challenge mentioned
+earlier)</li>
+</ul>
+<h2 id="final-thoughts"><a class="header" href="#final-thoughts">Final Thoughts</a></h2>
+<p>This chapter laid the groundwork for supervised learning:</p>
+<ul>
+<li>Linear regression for continuous values vs. logistic regression for
+categories.</li>
+<li>Gradient descent as the universal optimization method.</li>
+<li>Why the right cost function matters.</li>
+<li>How to spot and address overfitting early.</li>
+</ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="others"><a class="header" href="#others">Others</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="my-ergonomic-keyboard-journey-from-sculpt-to-glove80"><a class="header" href="#my-ergonomic-keyboard-journey-from-sculpt-to-glove80">My Ergonomic Keyboard Journey: From Sculpt to Glove80</a></h1>
 <p><em>2025-09-13</em></p>
@@ -618,7 +711,7 @@ navigation without forcing my fingers into awkward positions.</p>
 <li>Finger and hand movement is very minimal, which shows the ergonomic advantage.</li>
 </ul>
 <hr />
-<h2 id="final-thoughts"><a class="header" href="#final-thoughts">Final Thoughts</a></h2>
+<h2 id="final-thoughts-1"><a class="header" href="#final-thoughts-1">Final Thoughts</a></h2>
 <p>Switching from the Sculpt to the Glove80—while also changing layouts—was not
 easy. The transition took multiple weeks of patience and practice.</p>
 <p>But now, three months later, typing feels <strong>lighter, smoother, and more
