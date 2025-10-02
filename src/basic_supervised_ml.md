@@ -1,89 +1,109 @@
-# Notes on Machine Learning Specialization – Chapter 1
+# Linear and Logistic Regression
 
-This post summarizes my takeaways from the **first chapter** of the [Machine Learning Specialization](https://www.deeplearning.ai/courses/machine-learning-specialization/).
-It covers the basics of linear regression, gradient descent, logistic regression, and the problem of overfitting.
+This post summarizes my takeaways from the **first chapter** of the [Machine
+Learning
+Specialization](https://www.deeplearning.ai/courses/machine-learning-specialization/).
 
----
+It covers the basics of linear regression, gradient descent, logistic
+regression, and the problem of overfitting. More importantly, I’ll focus on why
+we use these ideas, what they solve, and how they fit together.
 
-## 1. Linear Regression
+## Linear Regression
 
-- **Goal**: Predict a continuous value (like house price).
-- **Model**: Draw a straight line that best fits the training data.
-- **Parameters**:
-  - Weight (slope): how steep the line is.
-  - Bias (intercept): where the line crosses the y-axis.
-- **Task**: Adjust these parameters so predictions are close to the actual values.
+**What it does?**
 
----
+Given historic data, it predicts new values (like house price, car mileage, or
+sales revenue). Instead of guessing outcomes, linear regression provides a
+systematic way to estimate them from data.
 
-## 2. Gradient Descent in Practice
+**How to find the best fit LR model in practice?**
 
-- **Cost function**: Measures how far predictions are from actual results.
-- **Idea**: Start with random parameters, then repeatedly adjust them to reduce the cost.
-- **Learning rate**: Controls the step size.
-  - Too big → model may jump around and never settle.
-  - Too small → training becomes very slow.
+There are two main challenges:
 
----
+1. **Choosing the right model form** – deciding what features (and
+   transformations of features) to include.
 
-## 3. Cost Function vs Loss Function
+2. **Finding the best parameters** – estimating the weights associated with
+   those features.
 
-- **Loss function**: Error for one training example.
-- **Cost function**: Average error across all examples.
+The **second problem** is straightforward. Algorithms like gradient descent can
+find the optimal parameters. Given a fixed model, this process is deterministic
+and guarantees the best weights.
 
-Think of it like this: loss = “how wrong am I on this one?”, cost = “how wrong am I overall?”.
+The **first problem** is much harder. No algorithm can directly tell you the
+“correct” polynomial degree, transformations, or feature interactions. This is a
+model selection problem, not just an optimization one. It requires exploration
+and judgment.
 
----
+Feature engineering is often considered an art because it involves:
 
-## 4. Logistic Regression (Classification)
+- Domain expertise
+- Experimentation
+- Iterative refinement
+- Human judgment
 
-- **Goal**: Predict categories (like spam vs not spam).
-- **Model**: Instead of a line, use the **sigmoid function** to squash predictions between 0 and 1.
-- **Output**: A probability. Example: 0.9 → very likely spam.
-- **Decision rule**: If probability ≥ 0.5 → class 1, else → class 0.
+In this course, the focus is primarily on the second challenge, introducing
+**Gradient Descent** as a way to optimize parameters.
 
----
+Gradient Descent, Loss Function, and Cost Function
+- **Loss function**: The error for a single training example (“How wrong am I
+  here?”).
+- **Cost function**: The average error across the whole dataset (“How wrong am I
+  overall?”).
 
-## 5. Cost Function for Logistic Regression
+Gradient descent works by repeatedly adjusting parameters to reduce the cost
+function.
 
-- Using squared error (like in linear regression) doesn’t work well here.
-- Instead, we use **log loss (cross-entropy)**, which:
-  - Punishes confident but wrong predictions more.
-  - Encourages probabilities that match reality.
+Because gradient descent must loop through potentially millions (or billions) of
+features — especially in large-scale models like LLMs — computation speed
+becomes critical. This is why GPU acceleration plays a pivotal role in modern
+machine learning: it dramatically speeds up these large-scale calculations.
 
----
+## Logistic Regression (Classification)
 
-## 6. Gradient Descent for Logistic Regression
+**What it does?**
 
-- Same process as before:
-  1. Compute predictions.
-  2. Compare with actual results.
-  3. Adjust parameters to reduce log loss.
+While linear regression predicts continuous values, logistic regression is used
+for **classification tasks** — predicting categories such as spam vs. not spam,
+disease vs. no disease, etc.
 
-Because the sigmoid is smooth and differentiable, gradient descent works well.
+Instead of fitting a straight line, logistic regression uses the **sigmoid
+function** to squeeze predictions into a range between 0 and 1.
 
----
+- Output: A probability. Example: 0.9 → very likely spam.
+- Decision rule: If probability ≥ 0.5 → predict class 1, otherwise class 0.
 
-## 7. Overfitting
+**Cost Function for Logistic Regression**
 
-- **What it is**: The model memorizes training data but performs poorly on new data.
-- **Signs**:
-  - Training error is very low.
-  - Test error is high.
-- **Fixes**:
-  - Get more data.
-  - Use regularization (penalize overly complex models).
-  - Simplify the model.
+Squared error (used in linear regression) doesn’t work well for classification
+because it doesn’t handle probabilities properly.
 
----
+Instead, logistic regression uses log loss (cross-entropy loss):
+
+- Penalizes confident but wrong predictions much more heavily.
+- Rewards probabilities that better reflect reality.
+
+This ensures the model doesn’t just guess classes, but actually learns
+meaningful probabilities.
+
+**Overfitting**
+
+When a model memorizes training data instead of learning general patterns. It
+performs great on training data but poorly on unseen data.
+
+Common fixes:
+
+- Add more data when possible
+- Apply regularization (penalize overly complex models).
+- Simplify the model structure (loop back to the first challenge mentioned
+  earlier)
 
 ## Final Thoughts
 
-This chapter gave me the foundations of supervised learning:
-- Linear vs logistic regression.
-- Gradient descent as the optimization engine.
+This chapter laid the groundwork for supervised learning:
+
+- Linear regression for continuous values vs. logistic regression for
+  categories.
+- Gradient descent as the universal optimization method.
 - Why the right cost function matters.
-- Early warning signs of overfitting.
-
-Next, I’ll move on to regularization and more advanced techniques.
-
+- How to spot and address overfitting early.
