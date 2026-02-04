@@ -10,6 +10,7 @@
 
 - [AI](ai.md)
   - [Linear and Logistic Regression](llr.md)
+  - [Train a Numeric Regression](numeric_reg.md)
 
 - [Others](others.md)
   - [Keyboard](keyboard.md)
