@@ -13,21 +13,20 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
-        <link rel="icon" href="favicon.svg">
-        <link rel="shortcut icon" href="favicon.png">
-        <link rel="stylesheet" href="css/variables.css">
-        <link rel="stylesheet" href="css/general.css">
-        <link rel="stylesheet" href="css/chrome.css">
-        <link rel="stylesheet" href="css/print.css" media="print">
+        <link rel="icon" href="favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="favicon-8114d1fc.png">
+        <link rel="stylesheet" href="css/variables-8adf115d.css">
+        <link rel="stylesheet" href="css/general-2459343d.css">
+        <link rel="stylesheet" href="css/chrome-ae938929.css">
+        <link rel="stylesheet" href="css/print-9e4910d8.css" media="print">
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
-        <link rel="stylesheet" href="fonts/fonts.css">
+        <link rel="stylesheet" href="fonts/fonts-9644e21d.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" id="highlight-css" href="highlight.css">
-        <link rel="stylesheet" id="tomorrow-night-css" href="tomorrow-night.css">
-        <link rel="stylesheet" id="ayu-highlight-css" href="ayu-highlight.css">
+        <link rel="stylesheet" id="mdbook-highlight-css" href="highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="ayu-highlight-3fdfc3ac.css">
 
         <!-- Custom theme stylesheets -->
 
@@ -37,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex.js";
+            window.path_to_searchindex_js = "searchindex-5be783fd.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc.js"></script>
+        <script src="toc-81fa42d3.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -54,7 +53,7 @@
             </div>
         </div>
     </div>
-    <div id="body-container">
+    <div id="mdbook-body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -83,12 +82,12 @@
             html.classList.add("js");
         </script>
 
-        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             let sidebar = null;
-            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -103,39 +102,39 @@
             }
         </script>
 
-        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
             <!-- populated by js -->
             <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
             </noscript>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <div id="page-wrapper" class="page-wrapper">
+        <div id="mdbook-page-wrapper" class="page-wrapper">
 
             <div class="page">
-                <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
-                            <i class="fa fa-bars"></i>
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
                         </label>
-                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
-                            <i class="fa fa-paint-brush"></i>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
                         </button>
-                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
                         </ul>
-                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
-                            <i class="fa fa-search"></i>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
                         </button>
                     </div>
 
@@ -143,60 +142,46 @@
 
                     <div class="right-buttons">
                         <a href="print.html" title="Print this book" aria-label="Print this book">
-                            <i id="print-button" class="fa fa-print"></i>
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
                         </a>
                         <a href="https://github.com/xixiaofinland/blog" title="Git repository" aria-label="Git repository">
-                            <i id="git-repository-button" class="fa fa-github"></i>
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg></span>
                         </a>
 
                     </div>
                 </div>
 
-                <div id="search-wrapper" class="hidden">
-                    <form id="searchbar-outer" class="searchbar-outer">
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
                         <div class="search-wrapper">
-                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
                             <div class="spinner-wrapper">
-                                <i class="fa fa-spinner fa-spin"></i>
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
                             </div>
                         </div>
                     </form>
-                    <div id="searchresults-outer" class="searchresults-outer hidden">
-                        <div id="searchresults-header" class="searchresults-header"></div>
-                        <ul id="searchresults">
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
                         </ul>
                     </div>
                 </div>
 
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script>
-                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
-                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
-                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
                         link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
                     });
                 </script>
 
-                <div id="content" class="content">
+                <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
-<p>Hi there! I am Xi, a freelancer Salesforce developer located in finland-rust-meetup.
-This is my personal blog.</p>
+<p>Hi there! I am Xi, a freelancer software engineer in Finland.</p>
 <p>My <a href="https://www.linkedin.com/in/xixiaofinland/">LinkedIn</a>,
 <a href="https://github.com/xixiaofinland">Github</a></p>
-<p>My email: tdxiaoxi2(a)gmail.com</p>
-<p>I also produce contents below:</p>
-<ul>
-<li>
-<p><a href="sf_dev_training.html">A Salesforce developer training</a></p>
-</li>
-<li>
-<p><a href="http://salesforceway.com/podcast">A Salesforce podcast</a></p>
-</li>
-<li>
-<p><a href="https://www.youtube.com/@salesforceway">A Salesforce YouTube</a></p>
-</li>
-</ul>
 <h2 id="how-to-read"><a class="header" href="#how-to-read">How to read</a></h2>
 <p>I love reading with a dark color theme. You can change themes by clicking the
 paint brush icon (<i class="fa fa-paint-brush"></i>) in the top-left menu bar.</p>
@@ -204,9 +189,13 @@ paint brush icon (<i class="fa fa-paint-brush"></i>) in the top-left menu bar.</
 fa-search"></i>) or hit the <code>S</code> key on the keyboard to open an input box. As you
 type, matching content appears instantly.</p>
 <p>Thanks for your time!</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="coding"><a class="header" href="#coding">Coding</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="rust"><a class="header" href="#rust">Rust</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h2 id="traits"><a class="header" href="#traits">Traits</a></h2>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="coding"><a class="header" href="#coding">Coding</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="rust"><a class="header" href="#rust">Rust</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="trait"><a href="#trait" class="header">Trait</a></h1>
+<h2 id="traits"><a class="header" href="#traits">Traits</a></h2>
 <p>Types in Rust are powerful and versatile. Traits define shared behavior that
 multiple types can implement.</p>
 <h3 id="default-implementations"><a class="header" href="#default-implementations">Default implementations</a></h3>
@@ -216,10 +205,10 @@ default implementations for methods.</p>
 Rust, however, you can supply default method implementations directly within a
 trait.</p>
 <blockquote>
-<p>Hover over the code below and click " <i class="fa fa-play"></i> " to execute
+<p>Hover over the code below and click “ <i class="fa fa-play"></i> “ to execute
 and see the result.</p>
 </blockquote>
-<pre><pre class="playground"><code class="language-rust">trait Greet {
+<pre class="playground"><code class="language-rust">trait Greet {
     fn greet(&amp;self) { // Default implementation
         println!("Hello from the default greeting!");
     }
@@ -232,9 +221,9 @@ impl Greet for Person {} // Uses the default implementation
 fn main() {
     let person = Person;
     person.greet(); // Outputs: Hello from the default greeting!
-}</code></pre></pre>
+}</code></pre>
 <p>We can, of course, override this default behavior like so:</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">trait Greet {
+<pre class="playground"><code class="language-rust"><span class="boring">trait Greet {
 </span><span class="boring">    fn greet(&amp;self) {
 </span><span class="boring">        println!("Hello from the default greeting!");
 </span><span class="boring">    }
@@ -252,11 +241,11 @@ impl Greet for Person {
 fn main() {
     let person = Person;
     person.greet();  // Outputs: Hello from Person greeting!
-}</code></pre></pre>
+}</code></pre>
 <h3 id="traits-as-function-parameters-and-return-types"><a class="header" href="#traits-as-function-parameters-and-return-types">Traits as Function Parameters and Return Types</a></h3>
 <p>Once the Greet trait is defined, it can be used as a type for function
 parameters and return values:</p>
-<pre><pre class="playground"><code class="language-rust">fn main() {
+<pre class="playground"><code class="language-rust">fn main() {
     let person = Person;
     do_greet(person);
 
@@ -282,14 +271,15 @@ fn return_greet() -&gt; impl Greet { // Returns some type implementing Greet
 </span><span class="boring">        println!("Hello, greeting!");
 </span><span class="boring">    }
 </span><span class="boring">}
-</span></code></pre></pre>
+</span></code></pre>
 <p>When reading more and more Rust code, we see that experienced Rust developers
 frequently use standard library traits. Rust provides common traits as both
 guidelines and best practices. This not only helps us learn Rust but also
 provide great references when programming in other languages.</p>
-<p>In the following section, let's have a look at the out-of-box common traits!</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="common-traits"><a class="header" href="#common-traits">Common Traits</a></h1>
-<p>Let's briefly explore some standard library traits to understand their practical
+<p>In the following section, let’s have a look at the out-of-box common traits!</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="common-traits"><a class="header" href="#common-traits">Common Traits</a></h1>
+<p>Let’s briefly explore some standard library traits to understand their practical
 use.</p>
 <ul>
 <li>Debug</li>
@@ -304,10 +294,10 @@ use.</p>
 <p>These traits enable a rich set of tools that work seamlessly across many types.
 Let’s look at a few examples to illustrate their usefulness.</p>
 <h2 id="debug"><a class="header" href="#debug">Debug</a></h2>
-<p>When we build a custom struct, like the <code>Point</code> below, we'd often like to
-display the content to the users. If we <code>println!</code> as below, it doesn't work.
-Click the "run" button in the code below and see what the compiler tells.</p>
-<pre><pre class="playground"><code class="language-rust does_not_compile">struct Point {
+<p>When we build a custom struct, like the <code>Point</code> below, we’d often like to
+display the content to the users. If we <code>println!</code> as below, it doesn’t work.
+Click the “run” button in the code below and see what the compiler tells.</p>
+<pre class="playground"><code class="language-rust does_not_compile">struct Point {
     x: i32,
     y: i32,
 }
@@ -315,14 +305,14 @@ Click the "run" button in the code below and see what the compiler tells.</p>
 fn main() {
     let origin = Point { x: 0, y: 0 };
     println!("{}", origin); // not work
-}</code></pre></pre>
+}</code></pre>
 <p>The compiler error implies that the <code>Point</code> needs to implement <code>std::fmt::Display</code> in
 order for the line <code>println!("{}", origin)</code> to execute. We will discuss
-<code>Display</code> trait in a minute. Now, we'd like to check the more common trait
+<code>Display</code> trait in a minute. Now, we’d like to check the more common trait
 <code>Debug</code>.</p>
 <p>The <code>Debug</code> trait enables us to inspect the content by by allowing types to be
 printed using the <code>{:?}</code> formatter in macros like <code>println!</code>.</p>
-<pre><pre class="playground"><code class="language-rust">#[derive(Debug)]
+<pre class="playground"><code class="language-rust">#[derive(Debug)]
 struct Point {
     x: i32,
     y: i32,
@@ -330,13 +320,13 @@ struct Point {
 
 fn main() {
     let origin = Point { x: 0, y: 0 };
-    println!("{:?}", origin); // Output: Point { x: 0, y: 0 }</code></pre></pre>
+    println!("{:?}", origin); // Output: Point { x: 0, y: 0 }</code></pre>
 <p>As shown in the 1st line, the easist way to implement Debug trait is to derive
 it explicitly with <code>#[derive(Debug)]</code>, and then <code>{:?}</code> works now!</p>
 <h2 id="display"><a class="header" href="#display">Display</a></h2>
-<p>Now it's <code>Display</code>. Unlike Debug, the Display trait is for user-facing output.
+<p>Now it’s <code>Display</code>. Unlike Debug, the Display trait is for user-facing output.
 Implementing it requires us to define how the type should look when printed.</p>
-<pre><pre class="playground"><code class="language-rust">use std::fmt;
+<pre class="playground"><code class="language-rust">use std::fmt;
 
 struct Point {
     x: i32,
@@ -353,7 +343,7 @@ fn main() {
     let p = Point { x: 3, y: 4 };
     println!("{}", p); // Output: (3, 4)
 }
-</code></pre></pre>
+</code></pre>
 <p>You might have noticed that there is no <code>#[derive(Display)]</code> here. This is
 because Rust’s standard library doesn’t provide such a macro, but there are
 external crate like <a href="https://crates.io/crates/derive_more">derive_more</a> to get
@@ -362,9 +352,9 @@ this functionality.</p>
 users, implement <code>Display</code>. If it’s for developers, implement <code>Debug</code>. We can do
 both.</p>
 <h2 id="default"><a class="header" href="#default">Default</a></h2>
-<p>The Default trait defines what it means to create a "default" value of a type.
+<p>The Default trait defines what it means to create a “default” value of a type.
 It is often used when initializing structures with default configurations.</p>
-<pre><pre class="playground"><code class="language-rust">#[derive(Debug,Default)]
+<pre class="playground"><code class="language-rust">#[derive(Debug,Default)]
 struct Config {
     debug_mode: bool,
     max_connections: u32,
@@ -373,18 +363,18 @@ struct Config {
 fn main() {
     let config = Config::default(); // All fields set to their default values
     println!("{:?}", config); // Let's print the content out
-}</code></pre></pre>
+}</code></pre>
 <p>If you run the code above, the result is <code>Config { debug_mode: false, max_connections: 0 }</code>.</p>
-<p>Let's take a close look at the above code.</p>
+<p>Let’s take a close look at the above code.</p>
 <p>We have derived <code>Debug</code> in
 order to prinln with <code>{:?}</code>. And we have also derived <code>Default</code>. Rust
 allows us to derive <code>Default</code> because both of the two fields (<code>bool</code> and <code>u32</code>)
 have implemented <code>Default</code> trait, with values <em>false</em> and <em>0</em> respectively.</p>
 <p>Be aware that many Rust types do not implement Default. It is
-only implemented when it makes sense to define a "reasonable default value". For
+only implemented when it makes sense to define a “reasonable default value”. For
 example, <code>std::fs::File</code>. Opening or creating a file requires a path — no
 default makes sense.</p>
-<pre><pre class="playground"><code class="language-rust does_not_compile">use std::fs::File;
+<pre class="playground"><code class="language-rust does_not_compile">use std::fs::File;
 
 #[derive(Debug, Default)]
 struct Config {
@@ -396,22 +386,23 @@ struct Config {
 fn main() {
     let config = Config::default();
     println!("{:?}", config);
-}</code></pre></pre>
+}</code></pre>
 <h2 id="clone-and-copy"><a class="header" href="#clone-and-copy">Clone and Copy</a></h2>
 <h2 id="frominto"><a class="header" href="#frominto">From/Into</a></h2>
 <h2 id="eq-and-partialeq"><a class="header" href="#eq-and-partialeq">Eq and PartialEq</a></h2>
 <h2 id="ord-and-partialord"><a class="header" href="#ord-and-partialord">Ord and PartialOrd</a></h2>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="single-project-to-workspace"><a class="header" href="#single-project-to-workspace">Single Project to Workspace</a></h1>
-<p>As you build projects in Rust, it's natural to start simple: a binary
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="single-project-to-workspace"><a class="header" href="#single-project-to-workspace">Single Project to Workspace</a></h1>
+<p>As you build projects in Rust, it’s natural to start simple: a binary
 (src/main.rs) or a library (src/lib.rs) sitting neatly in a single Cargo
 project. But as your ideas grow, your project can benefit from a little more
 structure.</p>
-<p>In this chapter, we'll walk through the journey of evolving a simple Rust project
-into a workspace. We'll see why you might want to do it, what changes are
-involved, and what benefits you gain along the way. If you're curious about the
-"next step" in organizing your Rust code, this is for you!</p>
+<p>In this chapter, we’ll walk through the journey of evolving a simple Rust project
+into a workspace. We’ll see why you might want to do it, what changes are
+involved, and what benefits you gain along the way. If you’re curious about the
+“next step” in organizing your Rust code, this is for you!</p>
 <h2 id="the-starting-point-one-project-one-crate"><a class="header" href="#the-starting-point-one-project-one-crate">The Starting Point: One Project, One Crate</a></h2>
-<p>Let's imagine you begin with a simple library and binary combined in one project:</p>
+<p>Let’s imagine you begin with a simple library and binary combined in one project:</p>
 <pre><code>my-project/
 |- Cargo.toml
 |- src/
@@ -434,7 +425,7 @@ name = "my-project"
 path = "src/main.rs"
 
 </code></pre>
-<p>You don't even need the <code>[lib]</code> and <code>[[bin]]</code> sections if you don't overwrite
+<p>You don’t even need the <code>[lib]</code> and <code>[[bin]]</code> sections if you don’t overwrite
 the default settings in the sample above as the name is identical to the project
 name.</p>
 <p>This works beautifully for small programs. You can define reusable code in
@@ -442,15 +433,15 @@ name.</p>
 <p>But what if you want to:</p>
 <ul>
 <li>Add another binary (e.g., a CLI tool and a server)?</li>
-<li>Create internal libraries that aren't part of the public API?</li>
+<li>Create internal libraries that aren’t part of the public API?</li>
 </ul>
 <p>You surely can still put all logic into the lib crate but how about separating
-concerns more cleanly across crates? That's where workspaces shine!</p>
+concerns more cleanly across crates? That’s where workspaces shine!</p>
 <h2 id="moving-to-a-workspace"><a class="header" href="#moving-to-a-workspace">Moving to a Workspace</a></h2>
 <p>A Cargo workspace is a way to manage multiple related crates together. Think of
-it like a "super-project" that coordinates building, testing, and managing
+it like a “super-project” that coordinates building, testing, and managing
 dependencies across multiple packages.</p>
-<p>Let's transform our project step-by-step.</p>
+<p>Let’s transform our project step-by-step.</p>
 <h3 id="create-a-cargotoml-for-the-workspace"><a class="header" href="#create-a-cargotoml-for-the-workspace">Create a Cargo.toml for the workspace</a></h3>
 <p>Move the existing <code>Cargo.toml</code> into a new my-project/ sub-folder. Then, create a top-level <code>Cargo.toml</code>:</p>
 <pre><code>[workspace]
@@ -462,7 +453,7 @@ members = [
 </code></pre>
 <p>The members list tells Cargo which packages belong to the workspace.</p>
 <h3 id="split-the-code-into-crates"><a class="header" href="#split-the-code-into-crates">Split the code into crates</a></h3>
-<p>We'll create two crates inside a new crates/ directory as implied in the above
+<p>We’ll create two crates inside a new crates/ directory as implied in the above
 workspace <code>Cargo.toml</code>.</p>
 <pre><code>my-project/
 |- Cargo.toml (workspace)
@@ -489,7 +480,7 @@ edition = "2024"
 my-project-lib = { path = "../my-project-lib" }
 </code></pre>
 <p>Now your CLI crate can call into the library just like before. Spend some time
-to put the code and tests into the corresponding crate. It's a good brain
+to put the code and tests into the corresponding crate. It’s a good brain
 excercise, with the help of <code>cargo build --workspace</code>, to define the clear crate
 bundary which might not be the case before.</p>
 <h2 id="why-bother"><a class="header" href="#why-bother">Why Bother?</a></h2>
@@ -501,21 +492,24 @@ powerful benefits, even for relatively small projects:</p>
 <li>Multiple Binaries: You can easily add more binaries (tools, servers, utilities) alongside your main app.</li>
 <li>Internal Libraries: Share code across multiple binaries without publishing it externally.</li>
 <li>Testing in Isolation: You can run cargo test per-crate to get faster, more focused feedback.</li>
-<li>Ready for Growth: When you eventually want to split parts into separate published crates (on crates.io) or keep internal libraries private, you're already halfway there.</li>
+<li>Ready for Growth: When you eventually want to split parts into separate published crates (on crates.io) or keep internal libraries private, you’re already halfway there.</li>
 </ul>
 <p>In short, workspaces help your project scale without becoming messy.</p>
 <h2 id="a-natural-evolution"><a class="header" href="#a-natural-evolution">A Natural Evolution</a></h2>
-<p>You don't have to start with a workspace when writing your first Rust project.
+<p>You don’t have to start with a workspace when writing your first Rust project.
 But when your project grows just a little—adding a second binary, needing some
 internal shared code—workspaces offer a clean and powerful way to stay
 organized.</p>
 <p>The best part? Moving to a workspace is an incremental change. You can migrate a
-project in stages, and Rust's tooling (Cargo) makes it smooth.</p>
-<p>If you're curious, give it a try on your next project! You'll gain both clarity
+project in stages, and Rust’s tooling (Cargo) makes it smooth.</p>
+<p>If you’re curious, give it a try on your next project! You’ll gain both clarity
 and flexibility. In this small CLI project of mine:
 <a href="https://github.com/xixiaofinland/jirun/tree/a0af5d6f76301ff278fac61a4f84e3c497730303">jirun</a>,
 I have transferred it into workspace style to prepare for growing :)!</p>
-<div style="break-before: page; page-break-before: always;"></div><div style="break-before: page; page-break-before: always;"></div><h1 id="linear-and-logistic-regression"><a class="header" href="#linear-and-logistic-regression">Linear and Logistic Regression</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="ai"><a href="#ai" class="header">AI</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="linear-and-logistic-regression"><a class="header" href="#linear-and-logistic-regression">Linear and Logistic Regression</a></h1>
 <p>This post summarizes my takeaways from the <strong>first chapter</strong> of the <a href="https://www.deeplearning.ai/courses/machine-learning-specialization/">Machine
 Learning
 Specialization</a>.</p>
@@ -608,14 +602,19 @@ categories.</li>
 <li>Why the right cost function matters.</li>
 <li>How to spot and address overfitting early.</li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="others"><a class="header" href="#others">Others</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="my-ergonomic-keyboard-journey-from-sculpt-to-glove80"><a class="header" href="#my-ergonomic-keyboard-journey-from-sculpt-to-glove80">My Ergonomic Keyboard Journey: From Sculpt to Glove80</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="train-a-simple-numeric-regression-model"><a class="header" href="#train-a-simple-numeric-regression-model">Train a simple numeric regression model</a></h1>
+<p><a href="https://colab.research.google.com/github/xixiaofinland/blog/blob/main/notebooks/numeric_regression.ipynb">▶ Run this notebook on Google Colab</a></p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="others"><a class="header" href="#others">Others</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="my-ergonomic-keyboard-journey-from-sculpt-to-glove80"><a class="header" href="#my-ergonomic-keyboard-journey-from-sculpt-to-glove80">My Ergonomic Keyboard Journey: From Sculpt to Glove80</a></h1>
 <p><em>2025-09-13</em></p>
 <p>For years I used a regular keyboard until shoulder and hand tension pushed me to
 try something better. I switched to the <strong>Microsoft Sculpt</strong>, which served me
 well for several years. It was a big step up for comfort, but eventually I
 wanted to explore something even more ergonomic.</p>
-<hr />
+<hr>
 <h2 id="choosing-the-next-keyboard"><a class="header" href="#choosing-the-next-keyboard">Choosing the Next Keyboard</a></h2>
 <p>I started comparing modern ergonomic split keyboards:</p>
 <ul>
@@ -629,8 +628,8 @@ me.</li>
 believe any of these would have been a massive improvement over my Microsoft
 Sculpt—let alone a standard laptop keyboard.</p>
 <p>My <strong>Glove80</strong> (top) and retired <strong>Sculpt</strong> (bottom).</p>
-<p><img src="img/keyboards.jpg" alt="Keyboards" /></p>
-<hr />
+<p><img src="img/keyboards.jpg" alt="Keyboards"></p>
+<hr>
 <h2 id="changing-the-layout-too"><a class="header" href="#changing-the-layout-too">Changing the Layout Too</a></h2>
 <p>At the same time, I took on another challenge: moving from <strong>QWERTY</strong> to the
 <strong>Hands Down</strong> layout. My motivation was better efficiency, less finger strain,
@@ -643,27 +642,27 @@ chose the more modern and thumb-friendly <strong>Hands Down</strong> family—sp
 <ol>
 <li>Our most familiar QWERTY layout:</li>
 </ol>
-<p><img src="img/qwert.png" alt="QWERTY layout" /></p>
+<p><img src="img/qwert.png" alt="QWERTY layout"></p>
 <ol start="2">
 <li>My chosen handsdown-promethium layout:</li>
 </ol>
-<p><img src="img/hd-p.png" alt="Handsdown Promethium layout" /></p>
+<p><img src="img/hd-p.png" alt="Handsdown Promethium layout"></p>
 <p>So, not only did I have to adjust to a new keyboard shape, but also to a
 completely new key layout. Yes, it was brutal, painfully difficult at first.</p>
 <p>That said, I’m very happy with handsdown-promethium. Honestly, I think almost
 any modern layout is a huge step up from QWERTY. <a href="https://cyanophage.github.io/">This
 site</a> provides useful statistics on different
 layouts to back that up. For example,
-<a href="https://cyanophage.github.io/#qwerty">QWERTY</a>'s <em>Total Word Effort</em> is 2070.6
+<a href="https://cyanophage.github.io/#qwerty">QWERTY</a>’s <em>Total Word Effort</em> is 2070.6
 while <a href="https://cyanophage.github.io/#handsdown-promethium">handsdown-promethium</a>
 is only 763.5.</p>
-<hr />
+<hr>
 <h2 id="programmability-and-practice"><a class="header" href="#programmability-and-practice">Programmability and Practice</a></h2>
 <p>One of the Glove80’s best features is its <strong>programmability</strong>. I could remap
 keys, add layers, and customize shortcuts directly on the keyboard. These three
 features make it possible to tailor the keyboard to my workflow instead of
 forcing myself to adapt to it.</p>
-<p><img src="img/glove80-layouts.png" alt="Glove80 layouts" /></p>
+<p><img src="img/glove80-layouts.png" alt="Glove80 layouts"></p>
 <h3 id="layers"><a class="header" href="#layers">Layers</a></h3>
 <p>A <strong>layer</strong> is like having multiple keyboards in one. Your base layer handles
 normal typing, but with a single key press you can switch to another layer—for
@@ -679,13 +678,13 @@ when held.</p>
 are my modifiers as shown on the glove80-layouts screenshot above.</p>
 <p>This means I don’t need to stretch my fingers awkwardly to reach modifier keys,
 reducing strain and speeding up key combos.</p>
-<hr />
+<hr>
 <h2 id="the-practice-phase"><a class="header" href="#the-practice-phase">The Practice Phase</a></h2>
 <p>The first few weeks were slow. I had to <strong>retrain my muscle memory</strong> while
 learning both a new keyboard shape and a new layout. Daily practice on
 <a href="https://www.keybr.com/">keybr.com</a> was essential. Gradually, my typing speed
 and accuracy started to recover.</p>
-<hr />
+<hr>
 <h2 id="integrating-into-my-workflow"><a class="header" href="#integrating-into-my-workflow">Integrating Into My Workflow</a></h2>
 <p>Once typing felt natural again, the next step was adapting my <strong>dotfiles</strong> and
 tools. For me, that especially meant reconfiguring <strong>Tmux</strong> and <strong>Neovim</strong> to
@@ -702,7 +701,7 @@ Handsdown-Promethium still places <code>hjkl</code> in reasonably accessible spo
 can fall back on them if I want.</p>
 <p>This hybrid approach has worked well: I get the familiarity of Vim-style
 navigation without forcing my fingers into awkward positions.</p>
-<hr />
+<hr>
 <h2 id="typing-demo"><a class="header" href="#typing-demo">Typing Demo</a></h2>
 <p><a href="https://youtu.be/k6qzg6YJ-pY">Here’s a 1.5-minute typing demo</a> ~40 WPM (words per min) recorded on 13-09-2025.</p>
 <p>Notes:</p>
@@ -710,7 +709,7 @@ navigation without forcing my fingers into awkward positions.</p>
 <li>The printed letters on the keycaps are QWERTY, so they don’t match my actual layout.</li>
 <li>Finger and hand movement is very minimal, which shows the ergonomic advantage.</li>
 </ul>
-<hr />
+<hr>
 <h2 id="final-thoughts-1"><a class="header" href="#final-thoughts-1">Final Thoughts</a></h2>
 <p>Switching from the Sculpt to the Glove80—while also changing layouts—was not
 easy. The transition took multiple weeks of patience and practice.</p>
@@ -719,7 +718,8 @@ sustainable</strong>. I no longer feel the same tension in my shoulders and hand
 <p>If you spend hours typing each day, investing in both an ergonomic keyboard and
 a better layout is worth it. The short-term pain pays off in long-term comfort
 and efficiency.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="salesforce-developer-training"><a class="header" href="#salesforce-developer-training">Salesforce Developer Training</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="salesforce-developer-training"><a class="header" href="#salesforce-developer-training">Salesforce Developer Training</a></h1>
 <p>This training aims to coach general software engineering skills for Salesforce
 developers so they can deal with large solutions in the long run.</p>
 <h2 id="the-issue-it-solves"><a class="header" href="#the-issue-it-solves">The Issue it solves</a></h2>
@@ -729,7 +729,7 @@ deteriorate after the first several years.</p>
 actively discussed on LinkedIn:
 <a href="https://www.linkedin.com/posts/xixiaofinland_salesforce-salesforcedeveloper-softwareengineer-activity-7086412746170261504-_KLr">video1</a>,
 <a href="https://www.linkedin.com/posts/xixiaofinland_salesforce-salesforcedeveloper-ohana-activity-7091486354836008960-XJ0D?utm_source=share&amp;utm_medium=member_desktop">video2</a></p>
-<p>It won't fix the problem by throwing more developers or testers. On the
+<p>It won’t fix the problem by throwing more developers or testers. On the
 contrary, a small dev team with the right software engineering skills can manage
 large solutions.</p>
 <h2 id="content"><a class="header" href="#content">Content</a></h2>
@@ -779,6 +779,11 @@ up and feedback sessions after the training are also highly recommended</p>
 
         </div>
 
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
 
 
@@ -787,13 +792,13 @@ up and feedback sessions after the training are also highly recommended</p>
         </script>
 
 
-        <script src="elasticlunr.min.js"></script>
-        <script src="mark.min.js"></script>
-        <script src="searcher.js"></script>
+        <script src="elasticlunr-ef4e11c1.min.js"></script>
+        <script src="mark-09e88c2c.min.js"></script>
+        <script src="searcher-c2a407aa.js"></script>
 
-        <script src="clipboard.min.js"></script>
-        <script src="highlight.js"></script>
-        <script src="book.js"></script>
+        <script src="clipboard-1626706a.min.js"></script>
+        <script src="highlight-abc7f01d.js"></script>
+        <script src="book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
 
