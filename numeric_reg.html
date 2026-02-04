@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-5be783fd.js";
+            window.path_to_searchindex_js = "searchindex-38406d94.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-81fa42d3.js"></script>
@@ -177,7 +177,124 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <h1 id="train-a-simple-numeric-regression-model"><a class="header" href="#train-a-simple-numeric-regression-model">Train a simple numeric regression model</a></h1>
+                        <h1 id="end-to-end-regression-with-scikit-learn-numeric-features-only"><a class="header" href="#end-to-end-regression-with-scikit-learn-numeric-features-only">End-to-End Regression with scikit-learn (Numeric Features Only)</a></h1>
+<p>This chapter demonstrates a complete regression workflow using <strong>scikit-learn</strong> and the <strong>California Housing dataset</strong>.
+All features in this dataset are numeric, which allows us to focus on the core machine learning pipeline without introducing categorical preprocessing.</p>
+<p>The goal is not to optimize performance aggressively, but to build a <strong>correct, leak-free, and reproducible workflow</strong>.</p>
+<hr>
+<h2 id="load-the-dataset"><a class="header" href="#load-the-dataset">Load the Dataset</a></h2>
+<p>We load the California Housing dataset directly from scikit-learn.
+It contains 8 numeric features and one numeric target variable, <code>MedHouseVal</code>.</p>
+<pre><code class="language-python">data = fetch_california_housing(as_frame=True)
+df = data.frame.copy()
+
+target_col = "MedHouseVal"
+df.head()
+</code></pre>
+<hr>
+<h2 id="train--test-split"><a class="header" href="#train--test-split">Train / Test Split</a></h2>
+<p>We split the dataset into training and test sets <strong>before any preprocessing</strong>.
+The test set is treated as <em>hands-off</em> until the final evaluation to prevent data leakage.</p>
+<pre><code class="language-python">train_df, test_df = train_test_split(
+    df,
+    test_size=0.2,
+    random_state=42
+)
+
+train_df.shape, test_df.shape
+</code></pre>
+<hr>
+<h2 id="separate-features-and-target"><a class="header" href="#separate-features-and-target">Separate Features and Target</a></h2>
+<p>We separate input features (<code>X</code>) from the target variable (<code>y</code>) for both training and test data.</p>
+<pre><code class="language-python">X_train = train_df.drop(columns=[target_col])
+y_train = train_df[target_col].copy()
+
+X_test = test_df.drop(columns=[target_col])
+y_test = test_df[target_col].copy()
+</code></pre>
+<hr>
+<h2 id="numeric-feature-preprocessing"><a class="header" href="#numeric-feature-preprocessing">Numeric Feature Preprocessing</a></h2>
+<p>All features in this dataset are numeric.
+We explicitly list the numeric columns and define a preprocessing pipeline that:</p>
+<ul>
+<li>imputes missing values using the median</li>
+<li>standardizes features using <code>StandardScaler</code></li>
+</ul>
+<pre><code class="language-python">num_cols = list(X_train.columns)
+num_cols
+</code></pre>
+<pre><code class="language-python">numeric_pipeline = Pipeline(steps=[
+    ("imputer", SimpleImputer(strategy="median")),
+    ("scaler", StandardScaler()),
+])
+</code></pre>
+<hr>
+<h2 id="build-the-full-pipeline"><a class="header" href="#build-the-full-pipeline">Build the Full Pipeline</a></h2>
+<p>We choose a <code>RandomForestRegressor</code> as the model and combine it with the preprocessing pipeline.
+Keeping preprocessing and modeling inside a single pipeline ensures consistency across training and evaluation.</p>
+<pre><code class="language-python">model = RandomForestRegressor(
+    n_estimators=300,
+    random_state=42,
+    n_jobs=-1
+)
+
+pipe = Pipeline(steps=[
+    ("prep", numeric_pipeline),
+    ("model", model),
+])
+
+print(pipe)
+</code></pre>
+<hr>
+<h2 id="cross-validation-on-the-training-set"><a class="header" href="#cross-validation-on-the-training-set">Cross-Validation on the Training Set</a></h2>
+<p>Before touching the test set, we estimate performance using <strong>5-fold cross-validation</strong> on the training data.
+We use <strong>RMSE (Root Mean Squared Error)</strong> as the evaluation metric.</p>
+<pre><code class="language-python">scores = cross_val_score(
+    pipe,
+    X_train,
+    y_train,
+    scoring="neg_root_mean_squared_error",
+    cv=5
+)
+
+rmse = -scores
+rmse.mean(), rmse.std()
+</code></pre>
+<hr>
+<h2 id="final-evaluation-on-the-test-set"><a class="header" href="#final-evaluation-on-the-test-set">Final Evaluation on the Test Set</a></h2>
+<p>After cross-validation, we fit the pipeline on the full training set and evaluate once on the test set.
+This provides an unbiased estimate of generalization performance.</p>
+<pre><code class="language-python">pipe.fit(X_train, y_train)
+
+y_pred = pipe.predict(X_test)
+test_rmse = root_mean_squared_error(y_test, y_pred)
+
+test_rmse
+</code></pre>
+<hr>
+<h2 id="interpretation"><a class="header" href="#interpretation">Interpretation</a></h2>
+<p>The final test RMSE is approximately <strong>0.50</strong>.</p>
+<p>Since the target variable is measured in <strong>hundreds of thousands of dollars</strong>, this corresponds to an average prediction error of roughly <strong>$50,000</strong>.</p>
+<p>This result is realistic for this dataset and confirms that the workflow is functioning correctly.</p>
+<hr>
+<h2 id="summary"><a class="header" href="#summary">Summary</a></h2>
+<p>In this chapter we:</p>
+<ul>
+<li>split the data before preprocessing to avoid leakage</li>
+<li>built a numeric-only preprocessing pipeline</li>
+<li>combined preprocessing and modeling using <code>Pipeline</code></li>
+<li>evaluated using cross-validation and a final test set</li>
+</ul>
+<p>This structure serves as a clean foundation for future extensions, such as handling categorical features or experimenting with other models.</p>
+<hr>
+<h2 id="reproducibility"><a class="header" href="#reproducibility">Reproducibility</a></h2>
+<ul>
+<li>Python ≥ 3.10</li>
+<li>scikit-learn ≥ 1.6.1</li>
+<li>Fixed random seed (<code>random_state=42</code>)</li>
+</ul>
+<hr>
+<p>🔗 <strong>Full runnable notebook:</strong></p>
 <p><a href="https://colab.research.google.com/github/xixiaofinland/blog/blob/main/notebooks/numeric_regression.ipynb">▶ Run this notebook on Google Colab</a></p>
 
                     </main>
