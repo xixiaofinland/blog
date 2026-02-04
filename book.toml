@@ -1,7 +1,6 @@
 [book]
 authors = ["xi xiao"]
 language = "en"
-multilingual = false
 src = "src"
 title = "Personal blog - Xi Xiao"
 
