@@ -12,6 +12,7 @@
   - [Linear and Logistic Regression](llr.md)
   - [Train a Numeric Regression](numeric_reg.md)
   - [Inspect data before preprocessing](data_inspection.md)
+  - [Classification](classification.md)
 
 - [Others](others.md)
   - [Keyboard](keyboard.md)
