@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Linear and Logistic Regression - Personal blog - Xi Xiao</title>
+        <title>Classification - Personal blog - Xi Xiao</title>
 
 
         <!-- Custom HTML head -->
@@ -177,109 +177,226 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <h1 id="linear-and-logistic-regression"><a class="header" href="#linear-and-logistic-regression">Linear and Logistic Regression</a></h1>
-<p>This post summarizes my takeaways from the <strong>first chapter</strong> of the <a href="https://www.deeplearning.ai/courses/machine-learning-specialization/">Machine
-Learning
-Specialization</a>.</p>
-<p>It covers the basics of linear regression, gradient descent, logistic
-regression, and the problem of overfitting. More importantly, I’ll focus on why
-we use these ideas, what they solve, and how they fit together.</p>
-<h2 id="linear-regression"><a class="header" href="#linear-regression">Linear Regression</a></h2>
-<p><strong>What it does?</strong></p>
-<p>Given historic data, it predicts new values (like house price, car mileage, or
-sales revenue). Instead of guessing outcomes, linear regression provides a
-systematic way to estimate them from data.</p>
-<p><strong>How to find the best fit LR model in practice?</strong></p>
-<p>There are two main challenges:</p>
+                        <h1 id="classification"><a class="header" href="#classification">Classification</a></h1>
+<blockquote>
+<p>Comparing to regression (predict values), classification has more areas to pay attention to.</p>
+</blockquote>
+<hr>
+<h2 id="1-mnist-dataset"><a class="header" href="#1-mnist-dataset">1) MNIST dataset</a></h2>
+<p><strong>MNIST</strong> is used because it’s:</p>
+<ul>
+<li>easy to visualize,</li>
+<li>large enough to see realistic evaluation issues,</li>
+<li>naturally supports binary, multiclass, and beyond.</li>
+</ul>
+<pre><code class="language-python">import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import fetch_openml
+
+mnist = fetch_openml("mnist_784", as_frame=False)
+X, y = mnist.data, mnist.target.astype(np.uint8)
+
+X_train, X_test = X[:60000], X[60000:]
+y_train, y_test = y[:60000], y[60000:]
+
+shuffle_idx = np.random.permutation(60000)
+X_train, y_train = X_train[shuffle_idx], y_train[shuffle_idx]
+
+def plot_digit(image_data):
+    image = image_data.reshape(28, 28)
+    plt.imshow(image, cmap="binary")
+    plt.axis("off")
+
+plot_digit(X[0])
+plt.show()
+</code></pre>
+<hr>
+<h2 id="2-training-a-binary-classifier-a-5-detector"><a class="header" href="#2-training-a-binary-classifier-a-5-detector">2) Training a binary classifier (a “5-detector”)</a></h2>
+<ul>
+<li><strong>positive class</strong>: “is digit 5”</li>
+<li><strong>negative class</strong>: “not 5”</li>
+</ul>
+<pre><code class="language-python">from sklearn.linear_model import SGDClassifier
+
+y_train_5 = (y_train == 5)
+y_test_5 = (y_test == 5)
+
+sgd_clf = SGDClassifier(random_state=42)
+sgd_clf.fit(X_train, y_train_5)
+
+some_digit = X[0]
+print("Prediction:", sgd_clf.predict([some_digit]))
+print("Decision score:", sgd_clf.decision_function([some_digit]))
+</code></pre>
+<hr>
+<h2 id="3-performance-measures-why-accuracy-can-lie"><a class="header" href="#3-performance-measures-why-accuracy-can-lie">3) Performance measures: why accuracy can lie</a></h2>
+<pre><code class="language-python">from sklearn.model_selection import cross_val_score
+from sklearn.dummy import DummyClassifier
+
+print("SGD accuracy:",
+      cross_val_score(sgd_clf, X_train, y_train_5, cv=3, scoring="accuracy"))
+
+dummy_clf = DummyClassifier(strategy="most_frequent")
+print("Dummy accuracy:",
+      cross_val_score(dummy_clf, X_train, y_train_5, cv=3, scoring="accuracy"))
+</code></pre>
+<hr>
+<h2 id="4-confusion-matrix"><a class="header" href="#4-confusion-matrix">4) Confusion matrix</a></h2>
+<pre><code class="language-python">from sklearn.model_selection import cross_val_predict
+from sklearn.metrics import confusion_matrix
+
+y_train_pred = cross_val_predict(sgd_clf, X_train, y_train_5, cv=3)
+confusion_matrix(y_train_5, y_train_pred)
+</code></pre>
+<hr>
+<h2 id="5-precision-recall-f1"><a class="header" href="#5-precision-recall-f1">5) Precision, recall, F1</a></h2>
+<pre><code class="language-python">from sklearn.metrics import precision_score, recall_score, f1_score
+
+precision = precision_score(y_train_5, y_train_pred)
+recall = recall_score(y_train_5, y_train_pred)
+f1 = f1_score(y_train_5, y_train_pred)
+
+precision, recall, f1
+</code></pre>
+<hr>
+<h2 id="6-precisionrecall-trade-off"><a class="header" href="#6-precisionrecall-trade-off">6) Precision/Recall trade-off</a></h2>
+<pre><code class="language-python">from sklearn.metrics import precision_recall_curve
+
+y_scores = cross_val_predict(
+    sgd_clf, X_train, y_train_5,
+    cv=3,
+    method="decision_function"
+)
+
+precisions, recalls, thresholds = precision_recall_curve(
+    y_train_5, y_scores
+)
+
+plt.plot(thresholds, precisions[:-1], label="precision")
+plt.plot(thresholds, recalls[:-1], label="recall")
+plt.legend()
+plt.xlabel("threshold")
+plt.grid(True)
+plt.show()
+</code></pre>
+<hr>
+<h2 id="7-roc-curve"><a class="header" href="#7-roc-curve">7) ROC curve</a></h2>
+<pre><code class="language-python">from sklearn.metrics import roc_curve, roc_auc_score
+
+fpr, tpr, roc_thresholds = roc_curve(y_train_5, y_scores)
+auc = roc_auc_score(y_train_5, y_scores)
+
+plt.plot(fpr, tpr, label=f"SGD (AUC={auc:.4f})")
+plt.plot([0, 1], [0, 1], "--", label="random")
+plt.xlabel("FPR")
+plt.ylabel("TPR")
+plt.legend()
+plt.grid(True)
+plt.show()
+</code></pre>
+<hr>
+<h2 id="8-random-forest-comparison"><a class="header" href="#8-random-forest-comparison">8) Random Forest comparison</a></h2>
+<pre><code class="language-python">from sklearn.ensemble import RandomForestClassifier
+
+forest_clf = RandomForestClassifier(random_state=42, n_estimators=200)
+
+y_probas_forest = cross_val_predict(
+    forest_clf,
+    X_train,
+    y_train_5,
+    cv=3,
+    method="predict_proba"
+)
+
+y_scores_forest = y_probas_forest[:, 1]
+auc_forest = roc_auc_score(y_train_5, y_scores_forest)
+
+auc, auc_forest
+</code></pre>
+<hr>
+<h2 id="9-multiclass-classification"><a class="header" href="#9-multiclass-classification">9) Multiclass classification</a></h2>
+<pre><code class="language-python">from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import make_pipeline
+
+sgd_clf_multi = SGDClassifier(random_state=42)
+print("Multiclass accuracy:",
+      cross_val_score(sgd_clf_multi, X_train, y_train,
+                      cv=3, scoring="accuracy"))
+
+sgd_scaled = make_pipeline(
+    StandardScaler(),
+    SGDClassifier(random_state=42, max_iter=100)
+)
+
+print("Scaled accuracy:",
+      cross_val_score(sgd_scaled, X_train, y_train,
+                      cv=3, scoring="accuracy"))
+</code></pre>
+<hr>
+<h2 id="10-error-analysis"><a class="header" href="#10-error-analysis">10) Error analysis</a></h2>
+<pre><code class="language-python">from sklearn.metrics import ConfusionMatrixDisplay
+
+y_train_pred_multi = cross_val_predict(
+    sgd_scaled, X_train, y_train, cv=3
+)
+
+cm = confusion_matrix(y_train, y_train_pred_multi)
+ConfusionMatrixDisplay(cm).plot(cmap="Blues")
+plt.show()
+</code></pre>
+<hr>
+<h2 id="11-multilabel--multioutput"><a class="header" href="#11-multilabel--multioutput">11) Multilabel &amp; Multioutput</a></h2>
+<h3 id="multilabel"><a class="header" href="#multilabel">Multilabel</a></h3>
+<pre><code class="language-python">from sklearn.neighbors import KNeighborsClassifier
+
+y_train_large = (y_train &gt;= 7)
+y_train_odd = (y_train % 2 == 1)
+y_multilabel = np.c_[y_train_large, y_train_odd]
+
+knn_clf = KNeighborsClassifier()
+knn_clf.fit(X_train, y_multilabel)
+
+knn_clf.predict([some_digit])
+</code></pre>
+<h3 id="multioutput-denoising"><a class="header" href="#multioutput-denoising">Multioutput (denoising)</a></h3>
+<pre><code class="language-python">rng = np.random.RandomState(42)
+
+noise = rng.randint(0, 100, (len(X_train), 784))
+X_train_mod = X_train + noise
+y_train_mod = X_train
+
+knn_denoise = KNeighborsClassifier()
+knn_denoise.fit(X_train_mod, y_train_mod)
+
+clean_digit = knn_denoise.predict([X_train_mod[0]])
+
+plot_digit(clean_digit[0])
+plt.show()
+</code></pre>
+<hr>
+<h2 id="what-we-learned"><a class="header" href="#what-we-learned">What we learned</a></h2>
 <ol>
-<li>
-<p><strong>Choosing the right model form</strong> – deciding what features (and
-transformations of features) to include.</p>
-</li>
-<li>
-<p><strong>Finding the best parameters</strong> – estimating the weights associated with
-those features.</p>
-</li>
+<li>Accuracy is not enough (especially with imbalance).</li>
+<li>Confusion matrix is foundational.</li>
+<li>Precision/recall define different trade-offs.</li>
+<li>Threshold selection matters.</li>
+<li>PR and ROC curves guide operating points.</li>
+<li>Multiclass strategies are standard.</li>
+<li>Error analysis drives improvement.</li>
 </ol>
-<p>The <strong>second problem</strong> is straightforward. Algorithms like gradient descent can
-find the optimal parameters. Given a fixed model, this process is deterministic
-and guarantees the best weights.</p>
-<p>The <strong>first problem</strong> is much harder. No algorithm can directly tell you the
-“correct” polynomial degree, transformations, or feature interactions. This is a
-model selection problem, not just an optimization one. It requires exploration
-and judgment.</p>
-<p>Feature engineering is often considered an art because it involves:</p>
-<ul>
-<li>Domain expertise</li>
-<li>Experimentation</li>
-<li>Iterative refinement</li>
-<li>Human judgment</li>
-</ul>
-<p>In this course, the focus is primarily on the second challenge, introducing
-<strong>Gradient Descent</strong> as a way to optimize parameters.</p>
-<p>Gradient Descent, Loss Function, and Cost Function</p>
-<ul>
-<li><strong>Loss function</strong>: The error for a single training example (“How wrong am I
-here?”).</li>
-<li><strong>Cost function</strong>: The average error across the whole dataset (“How wrong am I
-overall?”).</li>
-</ul>
-<p>Gradient descent works by repeatedly adjusting parameters to reduce the cost
-function.</p>
-<p>Because gradient descent must loop through potentially millions (or billions) of
-features — especially in large-scale models like LLMs — computation speed
-becomes critical. This is why GPU acceleration plays a pivotal role in modern
-machine learning: it dramatically speeds up these large-scale calculations.</p>
-<h2 id="logistic-regression-classification"><a class="header" href="#logistic-regression-classification">Logistic Regression (Classification)</a></h2>
-<p><strong>What it does?</strong></p>
-<p>While linear regression predicts continuous values, logistic regression is used
-for <strong>classification tasks</strong> — predicting categories such as spam vs. not spam,
-disease vs. no disease, etc.</p>
-<p>Instead of fitting a straight line, logistic regression uses the <strong>sigmoid
-function</strong> to squeeze predictions into a range between 0 and 1.</p>
-<ul>
-<li>Output: A probability. Example: 0.9 → very likely spam.</li>
-<li>Decision rule: If probability ≥ 0.5 → predict class 1, otherwise class 0.</li>
-</ul>
-<p><strong>Cost Function for Logistic Regression</strong></p>
-<p>Squared error (used in linear regression) doesn’t work well for classification
-because it doesn’t handle probabilities properly.</p>
-<p>Instead, logistic regression uses log loss (cross-entropy loss):</p>
-<ul>
-<li>Penalizes confident but wrong predictions much more heavily.</li>
-<li>Rewards probabilities that better reflect reality.</li>
-</ul>
-<p>This ensures the model doesn’t just guess classes, but actually learns
-meaningful probabilities.</p>
-<p><strong>Overfitting</strong></p>
-<p>When a model memorizes training data instead of learning general patterns. It
-performs great on training data but poorly on unseen data.</p>
-<p>Common fixes:</p>
-<ul>
-<li>Add more data when possible</li>
-<li>Apply regularization (penalize overly complex models).</li>
-<li>Simplify the model structure (loop back to the first challenge mentioned
-earlier)</li>
-</ul>
-<h2 id="final-thoughts"><a class="header" href="#final-thoughts">Final Thoughts</a></h2>
-<p>This chapter laid the groundwork for supervised learning:</p>
-<ul>
-<li>Linear regression for continuous values vs. logistic regression for
-categories.</li>
-<li>Gradient descent as the universal optimization method.</li>
-<li>Why the right cost function matters.</li>
-<li>How to spot and address overfitting early.</li>
-</ul>
+<hr>
+<p>🔗 <strong>Full runnable notebook:</strong></p>
+<p><a href="https://colab.research.google.com/github/xixiaofinland/blog/blob/main/notebooks/classification.ipynb">▶ Run this notebook on Google Colab</a></p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="ai.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="data_inspection.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
-                            <a rel="next prefetch" href="numeric_reg.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="others.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
@@ -289,11 +406,11 @@ categories.</li>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="ai.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="data_inspection.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
-                    <a rel="next prefetch" href="numeric_reg.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="others.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>

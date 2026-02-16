@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-0f7434df.js";
+            window.path_to_searchindex_js = "searchindex-5780b97b.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-76d2dc22.js"></script>
+        <script src="toc-eae742ac.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -833,6 +833,217 @@ corr["median_house_value"].sort_values(ascending=False)
 <p>With this understanding, we are now ready to design <strong>correct and informed preprocessing pipelines</strong> without guessing.</p>
 <p>🔗 <strong>Full runnable notebook:</strong></p>
 <p><a href="https://colab.research.google.com/github/xixiaofinland/blog/blob/main/notebooks/housing_data_inspection.ipynb">▶ Run this notebook on Google Colab</a></p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="classification"><a class="header" href="#classification">Classification</a></h1>
+<blockquote>
+<p>Comparing to regression (predict values), classification has more areas to pay attention to.</p>
+</blockquote>
+<hr>
+<h2 id="1-mnist-dataset"><a class="header" href="#1-mnist-dataset">1) MNIST dataset</a></h2>
+<p><strong>MNIST</strong> is used because it’s:</p>
+<ul>
+<li>easy to visualize,</li>
+<li>large enough to see realistic evaluation issues,</li>
+<li>naturally supports binary, multiclass, and beyond.</li>
+</ul>
+<pre><code class="language-python">import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import fetch_openml
+
+mnist = fetch_openml("mnist_784", as_frame=False)
+X, y = mnist.data, mnist.target.astype(np.uint8)
+
+X_train, X_test = X[:60000], X[60000:]
+y_train, y_test = y[:60000], y[60000:]
+
+shuffle_idx = np.random.permutation(60000)
+X_train, y_train = X_train[shuffle_idx], y_train[shuffle_idx]
+
+def plot_digit(image_data):
+    image = image_data.reshape(28, 28)
+    plt.imshow(image, cmap="binary")
+    plt.axis("off")
+
+plot_digit(X[0])
+plt.show()
+</code></pre>
+<hr>
+<h2 id="2-training-a-binary-classifier-a-5-detector"><a class="header" href="#2-training-a-binary-classifier-a-5-detector">2) Training a binary classifier (a “5-detector”)</a></h2>
+<ul>
+<li><strong>positive class</strong>: “is digit 5”</li>
+<li><strong>negative class</strong>: “not 5”</li>
+</ul>
+<pre><code class="language-python">from sklearn.linear_model import SGDClassifier
+
+y_train_5 = (y_train == 5)
+y_test_5 = (y_test == 5)
+
+sgd_clf = SGDClassifier(random_state=42)
+sgd_clf.fit(X_train, y_train_5)
+
+some_digit = X[0]
+print("Prediction:", sgd_clf.predict([some_digit]))
+print("Decision score:", sgd_clf.decision_function([some_digit]))
+</code></pre>
+<hr>
+<h2 id="3-performance-measures-why-accuracy-can-lie"><a class="header" href="#3-performance-measures-why-accuracy-can-lie">3) Performance measures: why accuracy can lie</a></h2>
+<pre><code class="language-python">from sklearn.model_selection import cross_val_score
+from sklearn.dummy import DummyClassifier
+
+print("SGD accuracy:",
+      cross_val_score(sgd_clf, X_train, y_train_5, cv=3, scoring="accuracy"))
+
+dummy_clf = DummyClassifier(strategy="most_frequent")
+print("Dummy accuracy:",
+      cross_val_score(dummy_clf, X_train, y_train_5, cv=3, scoring="accuracy"))
+</code></pre>
+<hr>
+<h2 id="4-confusion-matrix"><a class="header" href="#4-confusion-matrix">4) Confusion matrix</a></h2>
+<pre><code class="language-python">from sklearn.model_selection import cross_val_predict
+from sklearn.metrics import confusion_matrix
+
+y_train_pred = cross_val_predict(sgd_clf, X_train, y_train_5, cv=3)
+confusion_matrix(y_train_5, y_train_pred)
+</code></pre>
+<hr>
+<h2 id="5-precision-recall-f1"><a class="header" href="#5-precision-recall-f1">5) Precision, recall, F1</a></h2>
+<pre><code class="language-python">from sklearn.metrics import precision_score, recall_score, f1_score
+
+precision = precision_score(y_train_5, y_train_pred)
+recall = recall_score(y_train_5, y_train_pred)
+f1 = f1_score(y_train_5, y_train_pred)
+
+precision, recall, f1
+</code></pre>
+<hr>
+<h2 id="6-precisionrecall-trade-off"><a class="header" href="#6-precisionrecall-trade-off">6) Precision/Recall trade-off</a></h2>
+<pre><code class="language-python">from sklearn.metrics import precision_recall_curve
+
+y_scores = cross_val_predict(
+    sgd_clf, X_train, y_train_5,
+    cv=3,
+    method="decision_function"
+)
+
+precisions, recalls, thresholds = precision_recall_curve(
+    y_train_5, y_scores
+)
+
+plt.plot(thresholds, precisions[:-1], label="precision")
+plt.plot(thresholds, recalls[:-1], label="recall")
+plt.legend()
+plt.xlabel("threshold")
+plt.grid(True)
+plt.show()
+</code></pre>
+<hr>
+<h2 id="7-roc-curve"><a class="header" href="#7-roc-curve">7) ROC curve</a></h2>
+<pre><code class="language-python">from sklearn.metrics import roc_curve, roc_auc_score
+
+fpr, tpr, roc_thresholds = roc_curve(y_train_5, y_scores)
+auc = roc_auc_score(y_train_5, y_scores)
+
+plt.plot(fpr, tpr, label=f"SGD (AUC={auc:.4f})")
+plt.plot([0, 1], [0, 1], "--", label="random")
+plt.xlabel("FPR")
+plt.ylabel("TPR")
+plt.legend()
+plt.grid(True)
+plt.show()
+</code></pre>
+<hr>
+<h2 id="8-random-forest-comparison"><a class="header" href="#8-random-forest-comparison">8) Random Forest comparison</a></h2>
+<pre><code class="language-python">from sklearn.ensemble import RandomForestClassifier
+
+forest_clf = RandomForestClassifier(random_state=42, n_estimators=200)
+
+y_probas_forest = cross_val_predict(
+    forest_clf,
+    X_train,
+    y_train_5,
+    cv=3,
+    method="predict_proba"
+)
+
+y_scores_forest = y_probas_forest[:, 1]
+auc_forest = roc_auc_score(y_train_5, y_scores_forest)
+
+auc, auc_forest
+</code></pre>
+<hr>
+<h2 id="9-multiclass-classification"><a class="header" href="#9-multiclass-classification">9) Multiclass classification</a></h2>
+<pre><code class="language-python">from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import make_pipeline
+
+sgd_clf_multi = SGDClassifier(random_state=42)
+print("Multiclass accuracy:",
+      cross_val_score(sgd_clf_multi, X_train, y_train,
+                      cv=3, scoring="accuracy"))
+
+sgd_scaled = make_pipeline(
+    StandardScaler(),
+    SGDClassifier(random_state=42, max_iter=100)
+)
+
+print("Scaled accuracy:",
+      cross_val_score(sgd_scaled, X_train, y_train,
+                      cv=3, scoring="accuracy"))
+</code></pre>
+<hr>
+<h2 id="10-error-analysis"><a class="header" href="#10-error-analysis">10) Error analysis</a></h2>
+<pre><code class="language-python">from sklearn.metrics import ConfusionMatrixDisplay
+
+y_train_pred_multi = cross_val_predict(
+    sgd_scaled, X_train, y_train, cv=3
+)
+
+cm = confusion_matrix(y_train, y_train_pred_multi)
+ConfusionMatrixDisplay(cm).plot(cmap="Blues")
+plt.show()
+</code></pre>
+<hr>
+<h2 id="11-multilabel--multioutput"><a class="header" href="#11-multilabel--multioutput">11) Multilabel &amp; Multioutput</a></h2>
+<h3 id="multilabel"><a class="header" href="#multilabel">Multilabel</a></h3>
+<pre><code class="language-python">from sklearn.neighbors import KNeighborsClassifier
+
+y_train_large = (y_train &gt;= 7)
+y_train_odd = (y_train % 2 == 1)
+y_multilabel = np.c_[y_train_large, y_train_odd]
+
+knn_clf = KNeighborsClassifier()
+knn_clf.fit(X_train, y_multilabel)
+
+knn_clf.predict([some_digit])
+</code></pre>
+<h3 id="multioutput-denoising"><a class="header" href="#multioutput-denoising">Multioutput (denoising)</a></h3>
+<pre><code class="language-python">rng = np.random.RandomState(42)
+
+noise = rng.randint(0, 100, (len(X_train), 784))
+X_train_mod = X_train + noise
+y_train_mod = X_train
+
+knn_denoise = KNeighborsClassifier()
+knn_denoise.fit(X_train_mod, y_train_mod)
+
+clean_digit = knn_denoise.predict([X_train_mod[0]])
+
+plot_digit(clean_digit[0])
+plt.show()
+</code></pre>
+<hr>
+<h2 id="what-we-learned"><a class="header" href="#what-we-learned">What we learned</a></h2>
+<ol>
+<li>Accuracy is not enough (especially with imbalance).</li>
+<li>Confusion matrix is foundational.</li>
+<li>Precision/recall define different trade-offs.</li>
+<li>Threshold selection matters.</li>
+<li>PR and ROC curves guide operating points.</li>
+<li>Multiclass strategies are standard.</li>
+<li>Error analysis drives improvement.</li>
+</ol>
+<hr>
+<p>🔗 <strong>Full runnable notebook:</strong></p>
+<p><a href="https://colab.research.google.com/github/xixiaofinland/blog/blob/main/notebooks/classification.ipynb">▶ Run this notebook on Google Colab</a></p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="others"><a class="header" href="#others">Others</a></h1>
 <div style="break-before: page; page-break-before: always;"></div>
