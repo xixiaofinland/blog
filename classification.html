@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-5780b97b.js";
+            window.path_to_searchindex_js = "searchindex-2af555ea.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-eae742ac.js"></script>
@@ -181,6 +181,7 @@
 <blockquote>
 <p>Comparing to regression (predict values), classification has more areas to pay attention to.</p>
 </blockquote>
+<p>In regression, the prediction target is a continuous value, and a single error metric often gives a decent first signal.<br>In classification, model quality depends on decision boundaries, class balance, and threshold choices, so evaluation is usually the hard part.<br>This thread uses MNIST to show not only how to train classifiers, but how to reason about whether their predictions are trustworthy.</p>
 <hr>
 <h2 id="1-mnist-dataset"><a class="header" href="#1-mnist-dataset">1) MNIST dataset</a></h2>
 <p><strong>MNIST</strong> is used because it’s:</p>
@@ -189,6 +190,7 @@
 <li>large enough to see realistic evaluation issues,</li>
 <li>naturally supports binary, multiclass, and beyond.</li>
 </ul>
+<p><strong>Why this code matters:</strong> We start with a controlled dataset so you can focus on evaluation logic instead of data cleaning noise.<br><strong>What to look for:</strong> The train/test split and shuffling are critical; without these, later metrics can be misleading.<br><strong>Common trap:</strong> Treating this split pattern as universal. In production, prefer stratified split and time-aware split when data is temporal.</p>
 <pre><code class="language-python">import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.datasets import fetch_openml
@@ -216,6 +218,7 @@ plt.show()
 <li><strong>positive class</strong>: “is digit 5”</li>
 <li><strong>negative class</strong>: “not 5”</li>
 </ul>
+<p><strong>Why this code matters:</strong> Binary classification is the simplest setting to learn precision/recall trade-offs.<br><strong>What to look for:</strong> <code>decision_function</code> gives a score for ranking confidence, while <code>predict</code> applies a default threshold to return True/False.<br><strong>Common trap:</strong> Reading decision scores as probabilities. They are margin-like scores, not calibrated probabilities.</p>
 <pre><code class="language-python">from sklearn.linear_model import SGDClassifier
 
 y_train_5 = (y_train == 5)
@@ -230,6 +233,7 @@ print("Decision score:", sgd_clf.decision_function([some_digit]))
 </code></pre>
 <hr>
 <h2 id="3-performance-measures-why-accuracy-can-lie"><a class="header" href="#3-performance-measures-why-accuracy-can-lie">3) Performance measures: why accuracy can lie</a></h2>
+<p><strong>Why this code matters:</strong> If only ~10% of images are digit 5, a naive model can get high accuracy by mostly predicting “not 5.”<br><strong>What to look for:</strong> Compare SGD accuracy against <code>DummyClassifier</code> baseline. If they are close, your model may not be useful.<br><strong>Common trap:</strong> Celebrating high accuracy without checking class distribution or baseline performance.</p>
 <pre><code class="language-python">from sklearn.model_selection import cross_val_score
 from sklearn.dummy import DummyClassifier
 
@@ -242,6 +246,7 @@ print("Dummy accuracy:",
 </code></pre>
 <hr>
 <h2 id="4-confusion-matrix"><a class="header" href="#4-confusion-matrix">4) Confusion matrix</a></h2>
+<p><strong>Why this code matters:</strong> The confusion matrix is the source of truth behind most classification metrics.<br><strong>What to look for:</strong><br><code>TN</code>: correctly rejected non-5s, <code>FP</code>: wrongly flagged non-5s as 5, <code>FN</code>: missed real 5s, <code>TP</code>: correctly found 5s.<br><strong>Common trap:</strong> Looking only at diagonal totals without considering whether <code>FP</code> or <code>FN</code> is more costly in your use case.</p>
 <pre><code class="language-python">from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import confusion_matrix
 
@@ -250,6 +255,7 @@ confusion_matrix(y_train_5, y_train_pred)
 </code></pre>
 <hr>
 <h2 id="5-precision-recall-f1"><a class="header" href="#5-precision-recall-f1">5) Precision, recall, F1</a></h2>
+<p><strong>Why this code matters:</strong> These metrics let you optimize for the failure mode that matters most.<br><strong>What to look for:</strong><br>High precision means fewer false alarms; high recall means fewer misses; F1 balances both when you need a single score.<br><strong>Common trap:</strong> Maximizing F1 by default. In many domains, one error type is far more expensive than the other.</p>
 <pre><code class="language-python">from sklearn.metrics import precision_score, recall_score, f1_score
 
 precision = precision_score(y_train_5, y_train_pred)
@@ -260,6 +266,7 @@ precision, recall, f1
 </code></pre>
 <hr>
 <h2 id="6-precisionrecall-trade-off"><a class="header" href="#6-precisionrecall-trade-off">6) Precision/Recall trade-off</a></h2>
+<p><strong>Why this code matters:</strong> Classifiers output scores, and your threshold turns those scores into decisions.<br><strong>What to look for:</strong> As threshold increases, precision usually rises while recall falls. Pick threshold based on product/business cost.<br><strong>Common trap:</strong> Keeping threshold at default 0 without validating if it matches your required precision or recall target.</p>
 <pre><code class="language-python">from sklearn.metrics import precision_recall_curve
 
 y_scores = cross_val_predict(
@@ -281,6 +288,7 @@ plt.show()
 </code></pre>
 <hr>
 <h2 id="7-roc-curve"><a class="header" href="#7-roc-curve">7) ROC curve</a></h2>
+<p><strong>Why this code matters:</strong> ROC summarizes ranking performance across all thresholds.<br><strong>What to look for:</strong> Curves closer to top-left and larger AUC indicate better separability than random guessing.<br><strong>Common trap:</strong> Using ROC alone on imbalanced data. Precision-Recall curves are often more informative when positives are rare.</p>
 <pre><code class="language-python">from sklearn.metrics import roc_curve, roc_auc_score
 
 fpr, tpr, roc_thresholds = roc_curve(y_train_5, y_scores)
@@ -296,6 +304,7 @@ plt.show()
 </code></pre>
 <hr>
 <h2 id="8-random-forest-comparison"><a class="header" href="#8-random-forest-comparison">8) Random Forest comparison</a></h2>
+<p><strong>Why this code matters:</strong> Same task, different model family; this checks whether the issue is data-limited or model-limited.<br><strong>What to look for:</strong> Compare <code>auc</code> (SGD) vs <code>auc_forest</code>. Better AUC suggests better ranking quality over thresholds.<br><strong>Common trap:</strong> Comparing models using different validation setups. Keep CV split and metric consistent for fair comparison.</p>
 <pre><code class="language-python">from sklearn.ensemble import RandomForestClassifier
 
 forest_clf = RandomForestClassifier(random_state=42, n_estimators=200)
@@ -315,6 +324,7 @@ auc, auc_forest
 </code></pre>
 <hr>
 <h2 id="9-multiclass-classification"><a class="header" href="#9-multiclass-classification">9) Multiclass classification</a></h2>
+<p><strong>Why this code matters:</strong> Real tasks often require choosing among many labels, not just yes/no.<br><strong>What to look for:</strong> Baseline multiclass accuracy vs scaled-pipeline accuracy; SGD usually benefits from feature scaling.<br><strong>Common trap:</strong> Forgetting to include preprocessing in the cross-validation pipeline, which causes leakage or inconsistent evaluation.</p>
 <pre><code class="language-python">from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline
 
@@ -334,6 +344,7 @@ print("Scaled accuracy:",
 </code></pre>
 <hr>
 <h2 id="10-error-analysis"><a class="header" href="#10-error-analysis">10) Error analysis</a></h2>
+<p><strong>Why this code matters:</strong> A confusion matrix for multiclass reveals <em>where</em> the model struggles, not just <em>how much</em>.<br><strong>What to look for:</strong> Pairs of digits with high confusion (e.g., similar shapes). Those patterns guide targeted improvements.<br><strong>Common trap:</strong> Stopping at one aggregate score instead of diagnosing specific confusion pairs.</p>
 <pre><code class="language-python">from sklearn.metrics import ConfusionMatrixDisplay
 
 y_train_pred_multi = cross_val_predict(
@@ -347,6 +358,7 @@ plt.show()
 <hr>
 <h2 id="11-multilabel--multioutput"><a class="header" href="#11-multilabel--multioutput">11) Multilabel &amp; Multioutput</a></h2>
 <h3 id="multilabel"><a class="header" href="#multilabel">Multilabel</a></h3>
+<p><strong>Why this code matters:</strong> One sample can have multiple valid labels (not mutually exclusive), which is common in tagging systems.<br><strong>What to look for:</strong> Output has multiple booleans per sample: here, <code>&gt;=7</code> and <code>odd</code> are predicted together.<br><strong>Common trap:</strong> Treating multilabel as multiclass and forcing only one label per sample.</p>
 <pre><code class="language-python">from sklearn.neighbors import KNeighborsClassifier
 
 y_train_large = (y_train &gt;= 7)
@@ -359,6 +371,7 @@ knn_clf.fit(X_train, y_multilabel)
 knn_clf.predict([some_digit])
 </code></pre>
 <h3 id="multioutput-denoising"><a class="header" href="#multioutput-denoising">Multioutput (denoising)</a></h3>
+<p><strong>Why this code matters:</strong> Multioutput predicts multiple targets at once; denoising predicts a whole clean pixel vector.<br><strong>What to look for:</strong> The predicted digit should preserve structure while removing injected random noise.<br><strong>Common trap:</strong> Assuming all classifiers support large multioutput targets efficiently; memory and latency can grow quickly.</p>
 <pre><code class="language-python">rng = np.random.RandomState(42)
 
 noise = rng.randint(0, 100, (len(X_train), 784))
@@ -375,14 +388,15 @@ plt.show()
 </code></pre>
 <hr>
 <h2 id="what-we-learned"><a class="header" href="#what-we-learned">What we learned</a></h2>
+<p>Use this as a practical checklist:</p>
 <ol>
-<li>Accuracy is not enough (especially with imbalance).</li>
-<li>Confusion matrix is foundational.</li>
-<li>Precision/recall define different trade-offs.</li>
-<li>Threshold selection matters.</li>
-<li>PR and ROC curves guide operating points.</li>
-<li>Multiclass strategies are standard.</li>
-<li>Error analysis drives improvement.</li>
+<li>Start with a simple binary slice to understand errors clearly.</li>
+<li>Always compare against a naive baseline before trusting accuracy.</li>
+<li>Inspect confusion matrix before optimizing any single metric.</li>
+<li>Pick precision/recall target based on business cost of FP vs FN.</li>
+<li>Tune threshold intentionally; default threshold is rarely optimal.</li>
+<li>Compare model families under the same validation protocol.</li>
+<li>For multiclass/multilabel tasks, diagnose per-label confusion, not just one aggregate score.</li>
 </ol>
 <hr>
 <p>🔗 <strong>Full runnable notebook:</strong></p>
