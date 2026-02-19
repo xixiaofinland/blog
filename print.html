@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-2af555ea.js";
+            window.path_to_searchindex_js = "searchindex-a8b8b933.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-eae742ac.js"></script>
+        <script src="toc-f5bb4fda.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -507,6 +507,124 @@ and flexibility. In this small CLI project of mine:
 <a href="https://github.com/xixiaofinland/jirun/tree/a0af5d6f76301ff278fac61a4f84e3c497730303">jirun</a>,
 I have transferred it into workspace style to prepare for growing :)!</p>
 <div style="break-before: page; page-break-before: always;"></div>
+<h1 id="cross-compiling-a-rust-binary-for-raspberry-pi-on-nixos"><a class="header" href="#cross-compiling-a-rust-binary-for-raspberry-pi-on-nixos">Cross-Compiling a Rust Binary for Raspberry Pi on NixOS</a></h1>
+<p><em>2026-02-19</em></p>
+<p>I have a Rust project called <strong>zeroclaw</strong> that I wanted to run on a Raspberry Pi
+5 (Ubuntu 24.04 LTS, aarch64). My development machine is a NixOS x86_64 desktop.
+The goal: compile on the desktop, deploy to the Pi—without touching the Pi’s
+package manager or installing a Rust toolchain there.</p>
+<p>This post documents how I got it working using a Nix <strong>devShell</strong>, and the
+several issues that came up along the way.</p>
+<hr>
+<h2 id="the-plan-devshell-not-a-nix-derivation"><a class="header" href="#the-plan-devshell-not-a-nix-derivation">The Plan: devShell, not a Nix derivation</a></h2>
+<p>The first design decision was <em>how</em> to drive the cross-compilation inside Nix.
+Two options exist:</p>
+<ul>
+<li><strong>Nix derivation/package</strong> — let Nix build and manage the output as a store
+path.</li>
+<li><strong>devShell</strong> — enter a shell that has the cross-toolchain on <code>PATH</code> and run
+<code>cargo build</code> manually.</li>
+</ul>
+<p>I chose the devShell approach. zeroclaw is not a Nix-managed package, it lives
+at <code>~/zeroclaw/</code> as a normal checkout. I just needed the right compiler
+environment available when I ran <code>cargo build</code>.</p>
+<hr>
+<h2 id="setting-up-the-devshell"><a class="header" href="#setting-up-the-devshell">Setting Up the devShell</a></h2>
+<p>I added a <code>zeroclaw-cross</code> entry to the <code>devShells</code> output in <code>flake.nix</code>. The
+key ingredients:</p>
+<ul>
+<li><code>pkgsCross</code> instantiated for <code>aarch64-multiplatform</code> via
+<code>lib.systems.examples.aarch64-multiplatform</code></li>
+<li><code>rust-overlay</code> overlays threaded through so <code>rust-bin.stable."1.92.0"</code> (the
+version pinned in zeroclaw’s <code>rust-toolchain.toml</code>) is available</li>
+<li>The aarch64 GCC cross-toolchain from <code>pkgsCross.stdenv.cc</code></li>
+<li><code>openssl</code> and <code>postgresql</code> from <code>pkgsCross.pkgsStatic</code> for static linking</li>
+</ul>
+<p>The relevant env vars exposed in the shell:</p>
+<pre><code class="language-nix">CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER =
+  "${pkgsCross.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc";
+CC_aarch64_unknown_linux_gnu =
+  "${pkgsCross.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc";
+CXX_aarch64_unknown_linux_gnu =
+  "${pkgsCross.stdenv.cc}/bin/aarch64-unknown-linux-gnu-g++";
+AR_aarch64_unknown_linux_gnu =
+  "${pkgsCross.stdenv.cc}/bin/aarch64-unknown-linux-gnu-ar";
+</code></pre>
+<p>Because <code>forAllSystems</code> in my flake only covers <code>x86_64-linux</code> and
+<code>x86_64-darwin</code>, the shell was added outside that helper using a <code>//</code> merge on
+the <code>devShells</code> output:</p>
+<pre><code class="language-nix">devShells = forAllSystems (...) // {
+  "x86_64-linux" = devShells."x86_64-linux" // {
+    zeroclaw-cross = pkgs.mkShell { ... };
+  };
+};
+</code></pre>
+<p>Then entering the shell and building is just:</p>
+<pre><code class="language-bash">nix develop .#zeroclaw-cross
+cd ~/zeroclaw
+cargo build --release --target aarch64-unknown-linux-gnu
+</code></pre>
+<hr>
+<h2 id="issue-1-c-crates-ignoring-the-cross-compiler"><a class="header" href="#issue-1-c-crates-ignoring-the-cross-compiler">Issue 1: C crates ignoring the cross-compiler</a></h2>
+<p>The first build attempt failed midway with ARM assembly errors inside <code>blake3</code>
+and <code>aws-lc-sys</code>. The error looked roughly like:</p>
+<pre><code>error: unknown directive
+  .arch armv8-a
+</code></pre>
+<p>This is the classic sign that the <strong>C compiler used by the <code>cc</code> crate is the
+host <code>gcc</code></strong>, not the cross <code>gcc</code>. Setting only
+<code>CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER</code> is not enough. That variable
+tells Cargo which linker to use for the final link step, but crates that compile
+C/C++/asm via the <code>cc</code> crate look at a different set of env vars:</p>
+<pre><code>CC_aarch64_unknown_linux_gnu
+CXX_aarch64_unknown_linux_gnu
+AR_aarch64_unknown_linux_gnu
+</code></pre>
+<p>Adding all four variables to the devShell fixed the issue. The build then
+completed in about 3.5 minutes.</p>
+<hr>
+<h2 id="issue-2-binary-hardcoded-to-the-nix-store-interpreter"><a class="header" href="#issue-2-binary-hardcoded-to-the-nix-store-interpreter">Issue 2: Binary hardcoded to the Nix store interpreter</a></h2>
+<p>With the binary built, I copied it to the Pi:</p>
+<pre><code class="language-bash">scp ~/zeroclaw/target/aarch64-unknown-linux-gnu/release/zeroclaw \
+    ubuntu@192.168.1.109:~/.cargo/bin/zeroclaw
+</code></pre>
+<p>Running it on the Pi gave:</p>
+<pre><code>bash: /home/ubuntu/.cargo/bin/zeroclaw: cannot execute: required file not found
+</code></pre>
+<p>Checking the ELF interpreter with <code>readelf</code> revealed the problem:</p>
+<pre><code>[Requesting program interpreter: /nix/store/ghvpbda663vmf62g22d9y47z55yh43xn-glibc-aarch64-unknown-linux-gnu-2.42-47/lib/ld-linux-aarch64.so.1]
+</code></pre>
+<p>The binary was built against the <strong>Nix glibc</strong>, so its dynamic linker path
+points into <code>/nix/store/</code>—a path that simply doesn’t exist on Ubuntu. The fix is
+<code>patchelf</code>, which rewrites the ELF header in-place:</p>
+<pre><code class="language-bash">nix shell nixpkgs#patchelf -- patchelf \
+  --set-interpreter /lib/ld-linux-aarch64.so.1 \
+  --set-rpath "" \
+  ~/zeroclaw/target/aarch64-unknown-linux-gnu/release/zeroclaw
+</code></pre>
+<p>After patching, <code>readelf -l</code> showed the standard Ubuntu interpreter path, and
+the binary ran on the Pi straight away:</p>
+<pre><code>$ zeroclaw --version
+zeroclaw 0.1.0
+</code></pre>
+<hr>
+<h2 id="summary"><a class="header" href="#summary">Summary</a></h2>
+<p>The full flow that worked:</p>
+<ol>
+<li>Add a <code>zeroclaw-cross</code> devShell to <code>flake.nix</code> with <code>pkgsCross</code> for
+<code>aarch64-multiplatform</code> and all four cross-compiler env vars set.</li>
+<li>Enter the shell and run <code>cargo build --release --target aarch64-unknown-linux-gnu</code> inside the project directory.</li>
+<li>Patch the ELF interpreter with <code>patchelf --set-interpreter /lib/ld-linux-aarch64.so.1</code>.</li>
+<li><code>scp</code> the patched binary to the Pi.</li>
+</ol>
+<p>Two non-obvious gotchas to keep in mind:</p>
+<ul>
+<li>The <code>cc</code> crate uses <code>CC_&lt;target&gt;</code> / <code>CXX_&lt;target&gt;</code> / <code>AR_&lt;target&gt;</code>, not the
+Cargo linker variable—you need all of them for crates with C/asm code.</li>
+<li>Nix-built binaries embed the Nix store path as the ELF interpreter. Always
+<code>patchelf</code> before deploying to a non-Nix system.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div>
 <h1 id="ai"><a href="#ai" class="header">AI</a></h1>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="linear-and-logistic-regression"><a class="header" href="#linear-and-logistic-regression">Linear and Logistic Regression</a></h1>
@@ -703,7 +821,7 @@ test_rmse
 <p>Since the target variable is measured in <strong>hundreds of thousands of dollars</strong>, this corresponds to an average prediction error of roughly <strong>$50,000</strong>.</p>
 <p>This result is realistic for this dataset and confirms that the workflow is functioning correctly.</p>
 <hr>
-<h2 id="summary"><a class="header" href="#summary">Summary</a></h2>
+<h2 id="summary-1"><a class="header" href="#summary-1">Summary</a></h2>
 <p>In this chapter we:</p>
 <ul>
 <li>split the data before preprocessing to avoid leakage</li>
@@ -821,7 +939,7 @@ corr["median_house_value"].sort_values(ascending=False)
 </ul>
 <p>Correlation is not causation, but it is a useful early filter.</p>
 <hr>
-<h2 id="summary-1"><a class="header" href="#summary-1">Summary</a></h2>
+<h2 id="summary-2"><a class="header" href="#summary-2">Summary</a></h2>
 <p>In this section we:</p>
 <ul>
 <li>inspected dataset shape and schema</li>

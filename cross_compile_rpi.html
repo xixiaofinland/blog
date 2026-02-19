@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Trait - Personal blog - Xi Xiao</title>
+        <title>Cross-Compiling for Raspberry Pi on NixOS - Personal blog - Xi Xiao</title>
 
 
         <!-- Custom HTML head -->
@@ -177,98 +177,133 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <h2 id="traits"><a class="header" href="#traits">Traits</a></h2>
-<p>Types in Rust are powerful and versatile. Traits define shared behavior that
-multiple types can implement.</p>
-<h3 id="default-implementations"><a class="header" href="#default-implementations">Default implementations</a></h3>
-<p>Traits in Rust are similar to interfaces in other languages but can also provide
-default implementations for methods.</p>
-<p>Typically, an interface defines method signatures without any implementation. In
-Rust, however, you can supply default method implementations directly within a
-trait.</p>
-<blockquote>
-<p>Hover over the code below and click “ <i class="fa fa-play"></i> “ to execute
-and see the result.</p>
-</blockquote>
-<pre class="playground"><code class="language-rust">trait Greet {
-    fn greet(&amp;self) { // Default implementation
-        println!("Hello from the default greeting!");
-    }
-}
-
-struct Person;
-
-impl Greet for Person {} // Uses the default implementation
-
-fn main() {
-    let person = Person;
-    person.greet(); // Outputs: Hello from the default greeting!
-}</code></pre>
-<p>We can, of course, override this default behavior like so:</p>
-<pre class="playground"><code class="language-rust"><span class="boring">trait Greet {
-</span><span class="boring">    fn greet(&amp;self) {
-</span><span class="boring">        println!("Hello from the default greeting!");
-</span><span class="boring">    }
-</span><span class="boring">}
-</span><span class="boring">
-</span><span class="boring">struct Person;
-</span>// --snip--
-
-impl Greet for Person {
-    fn greet(&amp;self) { // Overwrite the default implementation
-        println!("Hello from Person greeting!");
-    }
-}
-
-fn main() {
-    let person = Person;
-    person.greet();  // Outputs: Hello from Person greeting!
-}</code></pre>
-<h3 id="traits-as-function-parameters-and-return-types"><a class="header" href="#traits-as-function-parameters-and-return-types">Traits as Function Parameters and Return Types</a></h3>
-<p>Once the Greet trait is defined, it can be used as a type for function
-parameters and return values:</p>
-<pre class="playground"><code class="language-rust">fn main() {
-    let person = Person;
-    do_greet(person);
-
-    let returned = return_greet();
-    returned.greet();
-}
-
-fn do_greet(greetable: impl Greet) { // Accepts any type implementing Greet
-    greetable.greet();
-}
-
-fn return_greet() -&gt; impl Greet { // Returns some type implementing Greet
-    Person
-}
-
-// --snip--
-<span class="boring">struct Person;
-</span><span class="boring">
-</span><span class="boring">impl Greet for Person {}
-</span><span class="boring">
-</span><span class="boring">trait Greet {
-</span><span class="boring">    fn greet(&amp;self) {
-</span><span class="boring">        println!("Hello, greeting!");
-</span><span class="boring">    }
-</span><span class="boring">}
-</span></code></pre>
-<p>When reading more and more Rust code, we see that experienced Rust developers
-frequently use standard library traits. Rust provides common traits as both
-guidelines and best practices. This not only helps us learn Rust but also
-provide great references when programming in other languages.</p>
-<p>In the following section, let’s have a look at the out-of-box common traits!</p>
+                        <h1 id="cross-compiling-a-rust-binary-for-raspberry-pi-on-nixos"><a class="header" href="#cross-compiling-a-rust-binary-for-raspberry-pi-on-nixos">Cross-Compiling a Rust Binary for Raspberry Pi on NixOS</a></h1>
+<p><em>2026-02-19</em></p>
+<p>I have a Rust project called <strong>zeroclaw</strong> that I wanted to run on a Raspberry Pi
+5 (Ubuntu 24.04 LTS, aarch64). My development machine is a NixOS x86_64 desktop.
+The goal: compile on the desktop, deploy to the Pi—without touching the Pi’s
+package manager or installing a Rust toolchain there.</p>
+<p>This post documents how I got it working using a Nix <strong>devShell</strong>, and the
+several issues that came up along the way.</p>
+<hr>
+<h2 id="the-plan-devshell-not-a-nix-derivation"><a class="header" href="#the-plan-devshell-not-a-nix-derivation">The Plan: devShell, not a Nix derivation</a></h2>
+<p>The first design decision was <em>how</em> to drive the cross-compilation inside Nix.
+Two options exist:</p>
+<ul>
+<li><strong>Nix derivation/package</strong> — let Nix build and manage the output as a store
+path.</li>
+<li><strong>devShell</strong> — enter a shell that has the cross-toolchain on <code>PATH</code> and run
+<code>cargo build</code> manually.</li>
+</ul>
+<p>I chose the devShell approach. zeroclaw is not a Nix-managed package, it lives
+at <code>~/zeroclaw/</code> as a normal checkout. I just needed the right compiler
+environment available when I ran <code>cargo build</code>.</p>
+<hr>
+<h2 id="setting-up-the-devshell"><a class="header" href="#setting-up-the-devshell">Setting Up the devShell</a></h2>
+<p>I added a <code>zeroclaw-cross</code> entry to the <code>devShells</code> output in <code>flake.nix</code>. The
+key ingredients:</p>
+<ul>
+<li><code>pkgsCross</code> instantiated for <code>aarch64-multiplatform</code> via
+<code>lib.systems.examples.aarch64-multiplatform</code></li>
+<li><code>rust-overlay</code> overlays threaded through so <code>rust-bin.stable."1.92.0"</code> (the
+version pinned in zeroclaw’s <code>rust-toolchain.toml</code>) is available</li>
+<li>The aarch64 GCC cross-toolchain from <code>pkgsCross.stdenv.cc</code></li>
+<li><code>openssl</code> and <code>postgresql</code> from <code>pkgsCross.pkgsStatic</code> for static linking</li>
+</ul>
+<p>The relevant env vars exposed in the shell:</p>
+<pre><code class="language-nix">CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER =
+  "${pkgsCross.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc";
+CC_aarch64_unknown_linux_gnu =
+  "${pkgsCross.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc";
+CXX_aarch64_unknown_linux_gnu =
+  "${pkgsCross.stdenv.cc}/bin/aarch64-unknown-linux-gnu-g++";
+AR_aarch64_unknown_linux_gnu =
+  "${pkgsCross.stdenv.cc}/bin/aarch64-unknown-linux-gnu-ar";
+</code></pre>
+<p>Because <code>forAllSystems</code> in my flake only covers <code>x86_64-linux</code> and
+<code>x86_64-darwin</code>, the shell was added outside that helper using a <code>//</code> merge on
+the <code>devShells</code> output:</p>
+<pre><code class="language-nix">devShells = forAllSystems (...) // {
+  "x86_64-linux" = devShells."x86_64-linux" // {
+    zeroclaw-cross = pkgs.mkShell { ... };
+  };
+};
+</code></pre>
+<p>Then entering the shell and building is just:</p>
+<pre><code class="language-bash">nix develop .#zeroclaw-cross
+cd ~/zeroclaw
+cargo build --release --target aarch64-unknown-linux-gnu
+</code></pre>
+<hr>
+<h2 id="issue-1-c-crates-ignoring-the-cross-compiler"><a class="header" href="#issue-1-c-crates-ignoring-the-cross-compiler">Issue 1: C crates ignoring the cross-compiler</a></h2>
+<p>The first build attempt failed midway with ARM assembly errors inside <code>blake3</code>
+and <code>aws-lc-sys</code>. The error looked roughly like:</p>
+<pre><code>error: unknown directive
+  .arch armv8-a
+</code></pre>
+<p>This is the classic sign that the <strong>C compiler used by the <code>cc</code> crate is the
+host <code>gcc</code></strong>, not the cross <code>gcc</code>. Setting only
+<code>CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER</code> is not enough. That variable
+tells Cargo which linker to use for the final link step, but crates that compile
+C/C++/asm via the <code>cc</code> crate look at a different set of env vars:</p>
+<pre><code>CC_aarch64_unknown_linux_gnu
+CXX_aarch64_unknown_linux_gnu
+AR_aarch64_unknown_linux_gnu
+</code></pre>
+<p>Adding all four variables to the devShell fixed the issue. The build then
+completed in about 3.5 minutes.</p>
+<hr>
+<h2 id="issue-2-binary-hardcoded-to-the-nix-store-interpreter"><a class="header" href="#issue-2-binary-hardcoded-to-the-nix-store-interpreter">Issue 2: Binary hardcoded to the Nix store interpreter</a></h2>
+<p>With the binary built, I copied it to the Pi:</p>
+<pre><code class="language-bash">scp ~/zeroclaw/target/aarch64-unknown-linux-gnu/release/zeroclaw \
+    ubuntu@192.168.1.109:~/.cargo/bin/zeroclaw
+</code></pre>
+<p>Running it on the Pi gave:</p>
+<pre><code>bash: /home/ubuntu/.cargo/bin/zeroclaw: cannot execute: required file not found
+</code></pre>
+<p>Checking the ELF interpreter with <code>readelf</code> revealed the problem:</p>
+<pre><code>[Requesting program interpreter: /nix/store/ghvpbda663vmf62g22d9y47z55yh43xn-glibc-aarch64-unknown-linux-gnu-2.42-47/lib/ld-linux-aarch64.so.1]
+</code></pre>
+<p>The binary was built against the <strong>Nix glibc</strong>, so its dynamic linker path
+points into <code>/nix/store/</code>—a path that simply doesn’t exist on Ubuntu. The fix is
+<code>patchelf</code>, which rewrites the ELF header in-place:</p>
+<pre><code class="language-bash">nix shell nixpkgs#patchelf -- patchelf \
+  --set-interpreter /lib/ld-linux-aarch64.so.1 \
+  --set-rpath "" \
+  ~/zeroclaw/target/aarch64-unknown-linux-gnu/release/zeroclaw
+</code></pre>
+<p>After patching, <code>readelf -l</code> showed the standard Ubuntu interpreter path, and
+the binary ran on the Pi straight away:</p>
+<pre><code>$ zeroclaw --version
+zeroclaw 0.1.0
+</code></pre>
+<hr>
+<h2 id="summary"><a class="header" href="#summary">Summary</a></h2>
+<p>The full flow that worked:</p>
+<ol>
+<li>Add a <code>zeroclaw-cross</code> devShell to <code>flake.nix</code> with <code>pkgsCross</code> for
+<code>aarch64-multiplatform</code> and all four cross-compiler env vars set.</li>
+<li>Enter the shell and run <code>cargo build --release --target aarch64-unknown-linux-gnu</code> inside the project directory.</li>
+<li>Patch the ELF interpreter with <code>patchelf --set-interpreter /lib/ld-linux-aarch64.so.1</code>.</li>
+<li><code>scp</code> the patched binary to the Pi.</li>
+</ol>
+<p>Two non-obvious gotchas to keep in mind:</p>
+<ul>
+<li>The <code>cc</code> crate uses <code>CC_&lt;target&gt;</code> / <code>CXX_&lt;target&gt;</code> / <code>AR_&lt;target&gt;</code>, not the
+Cargo linker variable—you need all of them for crates with C/asm code.</li>
+<li>Nix-built binaries embed the Nix store path as the ELF interpreter. Always
+<code>patchelf</code> before deploying to a non-Nix system.</li>
+</ul>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="rust.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="workspace.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
-                            <a rel="next prefetch" href="trait_common_traits.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="ai.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
@@ -278,11 +313,11 @@ provide great references when programming in other languages.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="rust.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="workspace.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
-                    <a rel="next prefetch" href="trait_common_traits.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="ai.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>
