@@ -64,7 +64,7 @@ devShells = forAllSystems (...) // {
 };
 ```
 
-the full flake.nix is [here](https://github.com/xixiaofinland/dotfiles-nix/blob/25c351c5b422202de1a3fccb1f173d28c802a739/flake.nix#L389).
+the full flake.nix is [here](https://github.com/xixiaofinland/dotfiles-nix/blob/f643acbd8df60065689e2380f5684f15e015e82b/flake.nix#L391).
 
 Then entering the shell and building is just:
 
