@@ -1,7 +1,7 @@
-# Cross-Compiling a Rust Binary for Raspberry Pi on NixOS
+# Cross-Compiling ZeroClaw for Raspberry Pi on NixOS
 *2026-02-19*
 
-I have a Rust project called **zeroclaw** that I wanted to run on a Raspberry Pi
+I have [zeroclaw](https://github.com/zeroclaw-labs/zeroclaw) that I wanted to run on a Raspberry Pi
 5 (Ubuntu 24.04 LTS, aarch64). My development machine is a NixOS x86_64 desktop.
 The goal: compile on the desktop, deploy to the Pi—without touching the Pi's
 package manager or installing a Rust toolchain there.
@@ -63,6 +63,8 @@ devShells = forAllSystems (...) // {
   };
 };
 ```
+
+the full flake.nix is [here](https://github.com/xixiaofinland/dotfiles-nix/blob/25c351c5b422202de1a3fccb1f173d28c802a739/flake.nix#L389).
 
 Then entering the shell and building is just:
 
