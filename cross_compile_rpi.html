@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-a8b8b933.js";
+            window.path_to_searchindex_js = "searchindex-14a3147e.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-f5bb4fda.js"></script>
@@ -177,9 +177,9 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <h1 id="cross-compiling-a-rust-binary-for-raspberry-pi-on-nixos"><a class="header" href="#cross-compiling-a-rust-binary-for-raspberry-pi-on-nixos">Cross-Compiling a Rust Binary for Raspberry Pi on NixOS</a></h1>
+                        <h1 id="cross-compiling-zeroclaw-for-raspberry-pi-on-nixos"><a class="header" href="#cross-compiling-zeroclaw-for-raspberry-pi-on-nixos">Cross-Compiling ZeroClaw for Raspberry Pi on NixOS</a></h1>
 <p><em>2026-02-19</em></p>
-<p>I have a Rust project called <strong>zeroclaw</strong> that I wanted to run on a Raspberry Pi
+<p>I have <a href="https://github.com/zeroclaw-labs/zeroclaw">zeroclaw</a> that I wanted to run on a Raspberry Pi
 5 (Ubuntu 24.04 LTS, aarch64). My development machine is a NixOS x86_64 desktop.
 The goal: compile on the desktop, deploy to the Pi—without touching the Pi’s
 package manager or installing a Rust toolchain there.</p>
@@ -229,6 +229,7 @@ the <code>devShells</code> output:</p>
   };
 };
 </code></pre>
+<p>the full flake.nix is <a href="https://github.com/xixiaofinland/dotfiles-nix/blob/25c351c5b422202de1a3fccb1f173d28c802a739/flake.nix#L389">here</a>.</p>
 <p>Then entering the shell and building is just:</p>
 <pre><code class="language-bash">nix develop .#zeroclaw-cross
 cd ~/zeroclaw
