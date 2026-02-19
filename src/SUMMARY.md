@@ -7,6 +7,7 @@
     - [Trait](trait.md)
       - [Common traits](trait_common_traits.md)
     - [Cargo Workspace](workspace.md)
+    - [Cross-Compiling for Raspberry Pi on NixOS](cross_compile_rpi.md)
 
 - [AI](ai.md)
   - [Linear and Logistic Regression](llr.md)
