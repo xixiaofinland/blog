@@ -35,7 +35,9 @@ graph LR
     Agent -.->|Supervises| Platform
 ```
 
-But let's be clear: **the vision is not enough. The implementation is the key.**
+But let's be clear:
+
+**The vision is not enough. The implementation is the key.**
 
 Anyone can say "agent-first." But most get it wrong. I hate it when an agent tells me to go to a link, click a button in the top right, then do this, then do that. Not because the agent wants to, but because the platform doesn't support headless interaction.
 
@@ -48,7 +50,7 @@ The hard part isn't saying "agent-first." It's building it and maintaining it in
 ```mermaid
 graph TD
     A[5 - Agentic Layer] --> B[4 - Trust Layer]
-    B --> C[3 - Core Logic Layer]
+    B --> C[3 - Core Layer]
     C --> D[2 - Semantic Layer]
     D --> E[1 - Interface Layer]
 ```
@@ -65,18 +67,18 @@ This is the one everyone skips. Companies think "just expose an API" is enough. 
 
 Good semantics are the difference between an agent that works and one that "sort of". Think about it:
 
-- CLI tools with really good command and subcommand help menus, not just a one-liner
+- CLI tools with really good command and subcommand menus, and flags like `--help`, `--dry-run`, `--json`
 - MCP servers with incremental discovery, so agents can explore what's available without guessing
 - APIs with rich schema descriptions that explain not just the data structure, but the intent and when to use it
 - Machine-readable manifests like `llm.txt` that give agents a clear map of the platform without reading through pages of human documentation
 
-These all serve the same goal: making the interface understandable to machines, not just humans.
+These all serve the same goal: making the interface understandable to machines.
 
-## 3. Core Logic Layer
+## 3. Core Layer
 
-This is the same core of the platform. Flows, Apex, triggers, integrations, the database. The existing business logic that makes Salesforce valuable. But now it needs to be exposed to agents.
+This is the good-old core of the platform. Flows, Apex, triggers, integrations, the database. The existing business logic that makes Salesforce valuable. But now it needs to be exposed to agents.
 
-The challenge isn't exposing it. Most customer orgs are gigantic monolithic jungles. It was already difficult for developers to catch the big picture and the logic flow. People needed experience and technical documentation to navigate it. So now when the agent comes in, how can it quickly understand all of this? A user clicks a button. That invokes Apex, which fires a trigger, which kicks off a flow, which updates another object, which fires another trigger. And it might wait for approvals, or send notifications. How does an agent trace through that? An agent shouldn't have to guess the path. It should have a confident, logical trace of what happens.
+The challenge isn't exposing it. Most customer orgs are gigantic monolithic jungles. It was already difficult for developers to catch the big picture and the logic flow. People needed experience and technical documentation to navigate it. So now when the agent comes in, how can it quickly understand all of this? A user clicks a button. That invokes Apex, which fires a trigger, which kicks off a flow, which updates another object, which fires another trigger. And it might wait for approvals, or send notifications. How does an agent trace through that? An agent shouldn't have to guess the path. It should have a clear, logical understanding of what happens.
 
 Long logic chains are bad. But unfortunately, many customers have them. The key difference is that wheter an agent can see the full chain clearly and take cautious, deliberate actions rather than guessing.
 
@@ -96,8 +98,6 @@ The hardest layers to build are the Semantic Layer and the Trust Layer. And they
 
 Without the Semantic Layer, user agents are guessing. Without the Trust Layer, platform agents are blind. These two layers are the difference between an agent-first platform and a gimmick.
 
-Salesforce built its empire on low-code, no-code UIs. That paradigm is ending. For everyone building on the platform, the skills that got you here won't take you there. The old paradigms are fading away. The question isn't whether to embrace agent-first. It's how fast you can adapt.
-
-Just like the container revolution: some harbors find their rebirth and thrive. Others become relics.
+Salesforce built its empire on low-code, no-code UIs. That paradigm is ending. For everyone building on the platform, the skills that got you here won't take you there. Just like the container revolution: some harbors find their rebirth and thrive. Others become relics.
 
 Salesforce Headless 360 is a great move. But **the vision is not enough. The implementation is the key.** The real work is in the layers.
