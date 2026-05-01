@@ -30,9 +30,9 @@ graph LR
 
 ```mermaid
 graph LR
-    Human[Human] --> Agent[Agent]
-    Agent --> Platform[Platform Interface]
-    Agent -.->|Supervises| Platform
+    Human[Human] --> UserAgent[User Agent]
+    UserAgent --> PlatformInterface[Platform Interface]
+    PlatformAgent[Platform Agent] -.->|Supervises| PlatformInterface
 ```
 
 But let's be clear:
@@ -43,7 +43,7 @@ Anyone can say "agent-first." But most get it wrong. I hate it when an agent tel
 
 I have a simple rule:
 
-*If you remove all the UI, the agent should still be able to do the same work successfully as you did in the past. If it can't, the platform isn't agent-first.*
+_If you remove all the UI, the agent should still be able to do the same work successfully as you did in the past. If it can't, the platform isn't agent-first._
 
 The hard part isn't saying "agent-first." It's building it and maintaining it in production. To do that right, you need to rethink the entire architecture. Most people start with APIs and stop there. Let's break down the technical layers in my mind:
 
