@@ -63,11 +63,11 @@ flowchart LR
 
 APIs, CLIs, MCPs, skills. The front door that lets user agents enter the platform.
 
-SF CLI is a strong tool. Salesforce has diverse APIs. MCP servers are emerging too. But having an interface isn't enough — it must be designed for agents, not humans who happen to type commands. Without context, agents guess and hallucinate. That's where the next layer comes in.
+SF CLI is a strong tool. Salesforce has diverse APIs. MCP servers are emerging too. But having an interface isn't enough. It must be designed for agents, not humans who happen to type commands. Without context, agents guess and hallucinate. That's where the next layer comes in.
 
 ## 2. Semantic Layer
 
-This is the one everyone skips. Companies think "just expose an API" is enough. But the semantics inside are often terrible. Agents end up guessing, trying multiple paths, and triggering side effects they can't see — because the interface never said "this action is irreversible."
+This is the one everyone skips. Companies think "just expose an API" is enough. But the semantics inside are often terrible. Agents end up guessing, trying multiple paths, and triggering side effects they can't see, because the interface never said "this action is irreversible."
 
 Good semantics are the difference between an agent that works and one that sort of works:
 
@@ -80,11 +80,11 @@ The goal is the same: make the interface understandable to machines.
 
 ## 3. Core Layer
 
-Flows, Apex, triggers, integrations, the database. The existing business logic that makes Salesforce valuable — now exposed to agents.
+Flows, Apex, triggers, integrations, the database. The existing business logic that makes Salesforce valuable, now exposed to agents.
 
-The challenge isn't exposure. Most customer orgs are monolithic jungles. A click invokes Apex, which fires a trigger, which kicks off a flow, which updates another object, which fires another trigger, which waits for approvals. Developers needed years of experience to navigate this. Agents need a clear, logical path — not a maze to guess through.
+The challenge isn't exposure. Most customer orgs are monolithic jungles. A click invokes Apex, which fires a trigger, which kicks off a flow, which updates another object, which fires another trigger, which waits for approvals. Developers needed years of experience to navigate this. Agents need a clear, logical path, not a maze to guess through.
 
-Long logic chains are dangerous for agents. The key isn't eliminating them — it's ensuring agents can trace the full chain and act deliberately.
+Long logic chains are dangerous for agents. The key isn't eliminating them. It's ensuring agents can trace the full chain and act deliberately.
 
 ## 4. Trust Layer
 
@@ -92,7 +92,7 @@ Platforms are adding agent-friendly auditing and logging. But what most ignore i
 
 ## 5. Agentic Layer
 
-Agents that manage the platform itself — monitoring incoming agent actions, tracking performance, running A/B tests, scoring behavior, handling version control, and rolling back automatically.
+Agents that manage the platform itself: monitoring incoming agent actions, tracking performance, running A/B tests, scoring behavior, handling version control, and rolling back automatically.
 
 These are the admins of the new world. They don't replace human admins. They handle the scale and speed humans can't. When diagnostic data arrives, they identify patterns and trigger improvements. When a new API version ships, they test, score, and roll back if needed.
 
