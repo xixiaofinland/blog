@@ -72,7 +72,7 @@ This is the one everyone skips. Companies think "just expose an API" is enough. 
 Good semantics are the difference between an agent that works and one that sort of works:
 
 - CLI tools with clear command menus and flags like `--help`, `--dry-run`, `--json`
-- MCP servers with incremental discovery, so agents explore what's available without guessing
+- MCP servers with incremental discovery, so agents explore what's available only when they need
 - APIs with rich schema descriptions that explain intent, not just structure
 - Machine-readable manifests like `llm.txt` that map the platform without pages of human docs
 
