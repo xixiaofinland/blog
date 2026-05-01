@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-14a3147e.js";
+            window.path_to_searchindex_js = "searchindex-9496fc4d.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-f5bb4fda.js"></script>
+        <script src="toc-510a8be2.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -1178,6 +1178,71 @@ plt.show()
 <p>🔗 <strong>Full runnable notebook:</strong></p>
 <p><a href="https://colab.research.google.com/github/xixiaofinland/blog/blob/main/notebooks/classification.ipynb">▶ Run this notebook on Google Colab</a></p>
 <div style="break-before: page; page-break-before: always;"></div>
+<h1 id="salesforce-headless-360-a-paradigm-shift-or-just-hype"><a class="header" href="#salesforce-headless-360-a-paradigm-shift-or-just-hype">Salesforce Headless 360: A Paradigm Shift or Just Hype?</a></h1>
+<p>The same pattern keeps appearing in the new AI world, in how we build software. It’s happening also with the newly announced <a href="https://www.salesforce.com/news/stories/salesforce-headless-360-announcement/">Headless 360</a>.</p>
+<p>To understand why, go back to the 1950s.</p>
+<p>The shipping container was invented. It didn’t make cargo ships faster. It didn’t make ports more efficient. It killed an entire industry.</p>
+<p>Before containers, loading cargo was slow and expensive. Armies of dockworkers handled each unique shipment. Ports were customized for every cargo type.</p>
+<p>Then containers came. They didn’t improve break-bulk. They made it obsolete.</p>
+<p>Harbors like London and New York fell. Felixstowe rose to replace London’s old docks; Port Newark–Elizabeth replaced Manhattan’s piers.</p>
+<p><img src="img/headless-360/harbors.png" alt="Old break-bulk harbor vs modern container port"></p>
+<p>Salesforce’s Headless 360 is doing the same thing to the “UI-first” paradigm.</p>
+<p>The new agent world isn’t from <strong>A</strong> to <strong>A+</strong>. It’s <strong>A</strong> dying and an unprecedented <strong>B</strong> appearing. GUIs are dying, whether we like it or not.</p>
+<p><strong>Old world:</strong></p>
+<pre><code class="language-mermaid">graph LR
+    Human[Human] --&gt; GUI[GUI]
+    GUI --&gt; Platform[Platform]
+</code></pre>
+<p><strong>New world:</strong></p>
+<pre><code class="language-mermaid">graph LR
+    Human[Human] --&gt; UserAgent[User Agent]
+    UserAgent --&gt; PlatformInterface[Platform Interface]
+    PlatformAgent[Platform Agent] -.-&gt;|Supervises| PlatformInterface
+</code></pre>
+<p>But let’s be clear:</p>
+<p><strong>The vision is not enough. The implementation is the key.</strong></p>
+<p>Anyone can say “agent-first.” But most get it wrong. I hate it when an agent tells me to go to a link, click a button in the top right, then do this, then do that, not because the agent wants to, but because the platform doesn’t support headless interaction.</p>
+<p>My simple rule:</p>
+<p><em>If you remove all the UI, the agent should still be able to do the same work. If it can’t, the platform isn’t agent-first.</em></p>
+<p>The hard part isn’t saying “agent-first.” It’s building and maintaining it in production. That requires rethinking the entire architecture. Most people start with APIs and stop there. Here are the five layers that matter:</p>
+<pre><code class="language-mermaid">flowchart LR
+    Human[Human] --&gt; UserAgent[User Agent]
+    UserAgent --&gt; E
+    subgraph E[5 - Agentic Layer]
+        direction TB
+        A[1 - Interface Layer] --&gt; B[2 - Semantic Layer]
+        B --&gt; C[3 - Core Layer]
+        C --&gt; D[4 - Trust Layer]
+    end
+</code></pre>
+<h2 id="1-interface-layer"><a class="header" href="#1-interface-layer">1. Interface Layer</a></h2>
+<p>APIs, CLIs, MCPs, skills. The front door that lets user agents enter the platform.</p>
+<p>SF CLI is a strong tool. Salesforce has diverse APIs. MCP servers are emerging too. But having an interface isn’t enough. It must be designed for agents, not humans who happen to type commands. Without context, agents guess and hallucinate. That’s where the next layer comes in.</p>
+<h2 id="2-semantic-layer"><a class="header" href="#2-semantic-layer">2. Semantic Layer</a></h2>
+<p>This is the one everyone skips. Companies think “just expose an API” is enough. But the semantics inside are often terrible. Agents end up guessing, trying multiple paths, and triggering side effects they can’t see, because the interface never said “this action is irreversible.”</p>
+<p>Good semantics are the difference between an agent that works and one that sort of works:</p>
+<ul>
+<li>CLI tools with clear command menus and flags like <code>--help</code>, <code>--dry-run</code>, <code>--json</code></li>
+<li>MCP servers with incremental discovery, so agents explore what’s available without guessing</li>
+<li>APIs with rich schema descriptions that explain intent, not just structure</li>
+<li>Machine-readable manifests like <code>llm.txt</code> that map the platform without pages of human docs</li>
+</ul>
+<p>The goal is the same: make the interface understandable to machines.</p>
+<h2 id="3-core-layer"><a class="header" href="#3-core-layer">3. Core Layer</a></h2>
+<p>Flows, Apex, triggers, integrations, the database. The existing business logic that makes Salesforce valuable, now exposed to agents.</p>
+<p>The challenge isn’t exposure. Most customer orgs are monolithic jungles. A click invokes Apex, which fires a trigger, which kicks off a flow, which updates another object, which fires another trigger, which waits for approvals. Developers needed years of experience to navigate this. Agents need a clear, logical path, not a maze to guess through.</p>
+<p>Long logic chains are dangerous for agents. The key isn’t eliminating them. It’s ensuring agents can trace the full chain and act deliberately.</p>
+<h2 id="4-trust-layer"><a class="header" href="#4-trust-layer">4. Trust Layer</a></h2>
+<p>Platforms are adding agent-friendly auditing and logging. But what most ignore is agent-native observability: deep logging humans would never bother with, plus an error-collecting API so agents can submit rich diagnostics when tasks fail. Agents are far more willing to give detailed feedback than humans. If the platform can’t ingest that, it’s wasting a powerful improvement loop. The data from this layer feeds directly into the Agentic Layer above.</p>
+<h2 id="5-agentic-layer"><a class="header" href="#5-agentic-layer">5. Agentic Layer</a></h2>
+<p>Agents that manage the platform itself: monitoring incoming agent actions, tracking performance, running A/B tests, scoring behavior, handling version control, and rolling back automatically.</p>
+<p>These are the admins of the new world. They don’t replace human admins. They handle the scale and speed humans can’t. When diagnostic data arrives, they identify patterns and trigger improvements. When a new API version ships, they test, score, and roll back if needed.</p>
+<h2 id="the-real-challenge"><a class="header" href="#the-real-challenge">The Real Challenge</a></h2>
+<p>The hardest layers to build are the Semantic Layer and the Trust Layer. And they’re the easiest to ignore.</p>
+<p>Without the Semantic Layer, user agents are guessing. Without the Trust Layer, platform agents are blind. These two layers are the difference between an agent-first platform and a gimmick.</p>
+<p>Salesforce built its empire on low-code, no-code UIs. That paradigm is ending. The skills that got you here won’t take you there. Just like the container revolution: some harbors adapt and thrive. Others become relics.</p>
+<p>Salesforce Headless 360 is a good move. But <strong>the vision is not enough. The implementation is the key.</strong> The real work is in the layers.</p>
+<div style="break-before: page; page-break-before: always;"></div>
 <h1 id="others"><a class="header" href="#others">Others</a></h1>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="my-ergonomic-keyboard-journey-from-sculpt-to-glove80"><a class="header" href="#my-ergonomic-keyboard-journey-from-sculpt-to-glove80">My Ergonomic Keyboard Journey: From Sculpt to Glove80</a></h1>
@@ -1373,6 +1438,8 @@ up and feedback sessions after the training are also highly recommended</p>
         <script src="book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
+        <script src="mermaid-eefea253.min.js"></script>
+        <script src="mermaid-init-56849874.js"></script>
 
         <script>
         window.addEventListener('load', function() {
