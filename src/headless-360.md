@@ -16,7 +16,7 @@ Harbors like London and New York fell. Felixstowe rose to replace London's old d
 
 Salesforce's Headless 360 is doing the same thing to the "UI-first" paradigm.
 
-The new agent world isn't from **A** to **A+**. It's **A** dying and an unprecedented **B** appearing. And I think Salesforce made the right call. User interfaces are dying, whether we like it or not.
+The new agent world isn't from **A** to **A+**. It's **A** dying and an unprecedented **B** appearing. And I think Salesforce made the right call. GUIs are dying, whether we like it or not.
 
 **Old world:**
 
