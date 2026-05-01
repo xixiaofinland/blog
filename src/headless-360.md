@@ -22,7 +22,7 @@ The new agent world isn't from **A** to **A+**. It's **A** dying and an unpreced
 
 ```mermaid
 graph LR
-    Human[Human] --> GUI[GUI / UI]
+    Human[Human] --> GUI[GUI]
     GUI --> Platform[Platform]
 ```
 
@@ -48,16 +48,20 @@ _If you remove all the UI, the agent should still be able to do the same work su
 The hard part isn't saying "agent-first." It's building it and maintaining it in production. To do that right, you need to rethink the entire architecture. Most people start with APIs and stop there. Let's break down the technical layers in my mind:
 
 ```mermaid
-graph TD
-    A[5 - Agentic Layer] --> B[4 - Trust Layer]
-    B --> C[3 - Core Layer]
-    C --> D[2 - Semantic Layer]
-    D --> E[1 - Interface Layer]
+flowchart LR
+    Human[Human] --> UserAgent[User Agent]
+    UserAgent --> E
+    subgraph E[5 - Agentic Layer]
+        direction TB
+        A[1 - Interface Layer] --> B[2 - Semantic Layer]
+        B --> C[3 - Core Layer]
+        C --> D[4 - Trust Layer]
+    end
 ```
 
 ## 1. Interface Layer
 
-APIs, CLIs, MCPs, skills. The front door that lets agents enter the platform.
+APIs, CLIs, MCPs, skills. The front door that lets user agents enter the platform.
 
 [SF CLI](https://developer.salesforce.com/tools/salesforcecli) is developers' best Tooling. Salesforce is famous with diversifed APIs. MCP servers are popping up too. These are the entry points that agents use to interact with the platform. But just having a CLI or an API isn't enough. The interface needs to be designed for agents, not humans who happen to type commands. When an interface has no context, agents start to guess and hallucinate. That's where the next layer comes in.
 
