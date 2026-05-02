@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(mdbook build *)",
-      "Bash(mdbook serve *)"
-    ]
-  }
-}
