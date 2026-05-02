@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-a175b73c.js";
+            window.path_to_searchindex_js = "searchindex-7cbc7ab7.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-510a8be2.js"></script>
@@ -1179,8 +1179,8 @@ plt.show()
 <p><a href="https://colab.research.google.com/github/xixiaofinland/blog/blob/main/notebooks/classification.ipynb">▶ Run this notebook on Google Colab</a></p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="salesforce-headless-360-a-paradigm-shift-or-just-hype"><a class="header" href="#salesforce-headless-360-a-paradigm-shift-or-just-hype">Salesforce Headless 360: A Paradigm Shift or Just Hype?</a></h1>
-<p>User agents are multiplying. Steadily, firmly, and without asking permission.</p>
-<p>Claude books meetings. Copilot writes code. Custom agents close support tickets without anyone opening a browser. Each month, more work that used to require a GUI gets done without one.</p>
+<p>User agents are multiplying. Quietly. Everywhere.</p>
+<p>Claude books meetings. Copilot writes code. Support tickets close without anyone opening a browser.</p>
 <p>This is why Salesforce announced <a href="https://www.salesforce.com/news/stories/salesforce-headless-360-announcement/">Headless 360</a>. Not to improve the existing platform. To survive what’s coming.</p>
 <p>Because this isn’t <strong>A</strong> to <strong>A+</strong>. It’s <strong>A</strong> dying and an unprecedented <strong>B</strong> appearing. In Salesforce, A is the no/low-code GUI. B is the user agent.</p>
 <p>That distinction is why this article exists.</p>
@@ -1210,7 +1210,7 @@ plt.show()
 <p>You’ve been there. An agent tells you to go to a link, click a button in the top right, then do this, then do that. Not because the agent wants to. Because the platform doesn’t support headless interaction.</p>
 <p>My simple rule:</p>
 <p><em>If you remove all the GUI, the agent should still be able to do the same work. If it can’t, the platform isn’t agent-first.</em></p>
-<p>It reasons through multi-step sequences on its own. It carries context across every action. It decides, executes, and moves on. Platforms were never built for any of that.</p>
+<p>A user agent reasons through multi-step sequences on its own. It carries context across every action. It decides, executes, and moves on. Platforms were never built for any of that.</p>
 <hr>
 <p>A new beast needs a new foundation. Two things make or break it:</p>
 <p><strong>Semantics.</strong></p>
@@ -1259,25 +1259,21 @@ plt.show()
 <h2 id="1-interface-layer"><a class="header" href="#1-interface-layer">1. Interface Layer</a></h2>
 <p>APIs, CLIs, MCPs, skills. The front door that lets user agents enter the platform.</p>
 <p>Having an interface isn’t enough. It must be designed for agents, not humans who happen to type commands. Without context, agents guess and hallucinate. That’s what the next layer fixes.</p>
-<hr>
 <h2 id="2-semantic-layer"><a class="header" href="#2-semantic-layer">2. Semantic Layer</a></h2>
 <p>This is the one everyone skips. Companies think exposing an interface is enough. But an interface without meaning is a trap. Agents guess, retry blind, trigger side effects no one planned for.</p>
 <p>Good semantics tell agents what to expect, what’s reversible, what to avoid. The interface and the meaning. That’s what makes an agent reliable, not just capable.</p>
 <p>The specifics are in the Semantics section above.</p>
-<hr>
 <h2 id="3-core-layer"><a class="header" href="#3-core-layer">3. Core Layer</a></h2>
 <p>The data model, automations, custom business logic. Everything that already exists in the platform and makes it valuable.</p>
 <p>This is the moat. Years of customer configuration, flows, Apex, integrations, all locked into Salesforce. That doesn’t disappear. It gets exposed to agents, cleanly, through the Semantic Layer above.</p>
 <p>But most orgs are monolithic jungles. A user clicks a button. That invokes Apex, which fires a trigger, which kicks off a flow, which updates another object, which fires another trigger, which waits for approvals, which sends notifications.</p>
 <p>The ideal: the core is detangled. Functionalities composable. Agents pick what they need and chain it themselves.</p>
 <p>The reality: most orgs carry that technical debt. That’s fine, as long as the agent can see the full chain clearly. Not guess it. See it. Then it can act deliberately.</p>
-<hr>
 <h2 id="4-trust-layer"><a class="header" href="#4-trust-layer">4. Trust Layer</a></h2>
 <p>Auditing, logging, error collecting. The platform’s record of everything user agents do.</p>
 <p>Most platforms stop at logging. But agents can do something humans never bothered with: submit rich diagnostics when something goes wrong. Exact inputs, the decision path, the error. Not a vague report. A full trace.</p>
 <p>For that to work, the platform needs to provide the channel. An API for agents to submit feedback directly. Not passive logs waiting to be scraped. Active submission, by design.</p>
 <p>Software doesn’t survive by grand roadmaps. It survives by evolving toward what users actually need, one fix at a time. Agents generate the richest signal of what’s failing and what matters. That trace is gold.</p>
-<hr>
 <h2 id="5-agentic-layer"><a class="header" href="#5-agentic-layer">5. Agentic Layer</a></h2>
 <p>This layer sits on top of everything else. It’s the platform watching itself.</p>
 <p>Agents that monitor incoming actions, track performance, run A/B tests, roll back automatically.</p>
