@@ -1,23 +1,28 @@
 # Salesforce Headless 360: A Paradigm Shift or Just Hype?
 
-The same pattern keeps appearing in the new AI world, in how we build software. It's happening also with the newly announced [Headless 360](https://www.salesforce.com/news/stories/salesforce-headless-360-announcement/).
+User agents are multiplying. Not overnight. Steadily, firmly, and without asking permission.
 
-The new world isn't from **A** to **A+**. It's **A** dying and an unprecedented **B** appearing. In Salesforce platform, A is the no/low code GUI, B is the user agent.
+Claude books meetings. Copilot writes code. Custom agents close support tickets without anyone opening a browser. Each month, more work that used to require a GUI gets done without one.
 
-To understand why this concept difference is important, go back to the 1950s.
+This is why Salesforce announced [Headless 360](https://www.salesforce.com/news/stories/salesforce-headless-360-announcement/). Not to improve the existing platform. To survive what's coming.
 
-The shipping container was invented. It didn't make cargo ships faster. It didn't make ports more efficient. It killed an entire industry.
+Because this isn't **A** to **A+**. It's **A** dying and an unprecedented **B** appearing. In Salesforce, A is the no/low-code GUI. B is the user agent.
 
-Before containers, loading cargo was slow and expensive. Armies of dockworkers handled each unique shipment. Ports were customized for every cargo type.
+To understand why, go back to the 1950s.
+
+The shipping container didn't make ships faster. Didn't make ports more efficient. It killed an entire industry.
+
+Before containers: armies of dockworkers, every cargo type handled by hand, every port built differently.
 
 Then containers came. They didn't improve break-bulk. They made it obsolete.
 
-Harbors like London and New York fell. Felixstowe rose to replace London's old docks; Port Newark–Elizabeth replaced Manhattan's piers.
+London's docks collapsed. New York's piers emptied. Felixstowe and Port Newark rose in their place.
 
 ![Old break-bulk harbor vs modern container port](img/headless-360/harbors.png)
 
-Salesforce's Headless 360 is doing the same thing to the "UI-first" paradigm.
+Salesforce's Headless 360 is doing the same thing to the GUI-first paradigm.
 
+The old world isn't gone. But it's no longer where the platform is heading.
 
 **Old world:**
 
@@ -36,17 +41,55 @@ graph LR
     PlatformAgent[Platform Agent] -.->|Supervises| PlatformInterface
 ```
 
-But let's be clear:
+But a user agent isn't just a faster human clicking buttons. It's a different beast entirely.
 
-**The vision is not enough. The implementation is the key.**
-
-Anyone can say "agent-first." But most get it wrong. I hate it when an agent tells me to go to a link, click a button in the top right, then do this, then do that, not because the agent wants to, but because the platform doesn't support headless interaction.
+It doesn't browse. It calls. No GUI to confirm. No human in the loop to catch a wrong turn.
+I hate it very much when an agent tells me to go to a link, click a button in the top right, then do this, then do that. Not because the agent wants to. Because the platform doesn't support headless interaction.
 
 My simple rule:
 
-_If you remove all the UI, the agent should still be able to do the same work. If it can't, the platform isn't agent-first._
+_If you remove all the GUI, the agent should still be able to do the same work. If it can't, the platform isn't agent-first._
 
-The hard part isn't saying "agent-first." It's building and maintaining it in production. That requires rethinking the entire architecture. Most people start with APIs and stop there. Here are the five layers that matter:
+It reasons through multi-step sequences on its own. It carries context across every action. It decides, executes, and moves on. Platforms were never built for any of that.
+
+A new beast needs a new foundation. Two things make or break it:
+
+**Semantics.**
+
+Agents can't guess intent. They have no visual cues, no hover states, no tooltips. Without machine-readable context, they hallucinate paths, retry blind, and trigger side effects no one planned for.
+
+Many platforms ship CLIs, APIs, MCPs, and skills, and call it "agent-first". It's an important step. But it's missing the soul.
+
+The soul is semantics.
+
+A good CLI doesn't just expose commands. It tells agents what to expect:
+
+- `--help` with clear, structured output
+- `--dry-run` for any action with side effects
+- `--json` for machine-readable responses
+- Clean stdout, stderr, and exit codes
+- Good examples. LLMs love examples.
+
+APIs follow the same logic. The interface and the meaning.
+
+- Schema descriptions that explain intent, not just structure
+- Reversibility signals. Agents can't read warning modals.
+- Structured errors: retry, escalate, or abort
+- Idempotency keys. Agents retry. Without them, retries create duplicates.
+
+MCP servers should expose a minimal contract. Not everything at once. Let the agent explore when it needs to. Fewer tools visible = less noise = sharper decisions.
+
+Agent skills are different one from another. Each feature gets its own skill. For example, a user agent needs to create a flow. It finds the flow creating skill via `llms.txt`. Reads the contract: inputs, outputs, side effects. Knows exactly what format to pass. No guessing. No docs to scrape.
+
+The goal isn't coverage. It's clarity.
+
+**Observability.**
+
+Agents don't interact with the platform the way humans do. They interact constantly. Thousands of actions where a human might take one. That volume demands auditing and logging at a scale no human admin can process.
+
+The data is there. The problem is who reads it. No human can keep up. The platform needs to put agents in the admin role too. Monitoring what's happening. Flagging anomalies. Catching what no one would catch manually.
+
+These two challenges shaped how I think about platform design. Five layers.
 
 ```mermaid
 flowchart LR
