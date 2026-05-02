@@ -2,7 +2,9 @@
 
 The same pattern keeps appearing in the new AI world, in how we build software. It's happening also with the newly announced [Headless 360](https://www.salesforce.com/news/stories/salesforce-headless-360-announcement/).
 
-To understand why, go back to the 1950s.
+The new world isn't from **A** to **A+**. It's **A** dying and an unprecedented **B** appearing. In Salesforce platform, A is the no/low code GUI, B is the user agent.
+
+To understand why this concept difference is important, go back to the 1950s.
 
 The shipping container was invented. It didn't make cargo ships faster. It didn't make ports more efficient. It killed an entire industry.
 
@@ -16,7 +18,6 @@ Harbors like London and New York fell. Felixstowe rose to replace London's old d
 
 Salesforce's Headless 360 is doing the same thing to the "UI-first" paradigm.
 
-The new agent world isn't from **A** to **A+**. It's **A** dying and an unprecedented **B** appearing. GUIs are dying, whether we like it or not.
 
 **Old world:**
 
