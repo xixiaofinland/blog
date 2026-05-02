@@ -51,3 +51,31 @@ Model all blog posts after this pattern:
 - Don't rewrite large sections without approval.
 - Save new drafts as `.md` files in `src/`.
 - Update `SUMMARY.md` when adding new posts.
+
+## Article Creation Workflow
+
+When starting a new article, proactively suggest this process:
+
+**1. Brief first.**
+Create a `src/<article-name>-brief.md` with: topic, target audience, key argument, and a bullet list of sections. Align on structure before writing any prose.
+
+**2. Outline before prose.**
+Turn the brief into a skeleton with section headings and one-line summaries. Restructure bullets, not paragraphs.
+
+**3. Raw thoughts → draft.**
+User drops rough ideas or voice-memo notes. Agent extracts structure and drafts. User corrects direction, adjusts one word at a time.
+
+**4. Article template.**
+Default structure for technical articles:
+
+- Hook (concrete observation, what's changing)
+- Analogy (A→B, not A→A+)
+- Challenge (name the new problem)
+- Solution (layers, framework, or approach)
+- Wrap Up (restate, call to reflection)
+
+**5. Images.**
+While writing, flag each place an image or diagram belongs and what it should show. Batch all image generation prompts at the end of the writing session.
+
+**6. Diagrams.**
+Use mermaid for flow diagrams. Keep edge labels simple — no colons or commas inside `|label|`.
