@@ -1,8 +1,8 @@
 # Salesforce Headless 360: A Paradigm Shift or Just Hype?
 
-User agents are multiplying. Steadily, firmly, and without asking permission.
+User agents are multiplying. Quietly. Everywhere.
 
-Claude books meetings. Copilot writes code. Custom agents close support tickets without anyone opening a browser. Each month, more work that used to require a GUI gets done without one.
+Claude books meetings. Copilot writes code. Support tickets close without anyone opening a browser.
 
 This is why Salesforce announced [Headless 360](https://www.salesforce.com/news/stories/salesforce-headless-360-announcement/). Not to improve the existing platform. To survive what's coming.
 
@@ -57,7 +57,7 @@ My simple rule:
 
 _If you remove all the GUI, the agent should still be able to do the same work. If it can't, the platform isn't agent-first._
 
-It reasons through multi-step sequences on its own. It carries context across every action. It decides, executes, and moves on. Platforms were never built for any of that.
+A user agent reasons through multi-step sequences on its own. It carries context across every action. It decides, executes, and moves on. Platforms were never built for any of that.
 
 ---
 
@@ -128,8 +128,6 @@ APIs, CLIs, MCPs, skills. The front door that lets user agents enter the platfor
 
 Having an interface isn't enough. It must be designed for agents, not humans who happen to type commands. Without context, agents guess and hallucinate. That's what the next layer fixes.
 
----
-
 ## 2. Semantic Layer
 
 This is the one everyone skips. Companies think exposing an interface is enough. But an interface without meaning is a trap. Agents guess, retry blind, trigger side effects no one planned for.
@@ -137,8 +135,6 @@ This is the one everyone skips. Companies think exposing an interface is enough.
 Good semantics tell agents what to expect, what's reversible, what to avoid. The interface and the meaning. That's what makes an agent reliable, not just capable.
 
 The specifics are in the Semantics section above.
-
----
 
 ## 3. Core Layer
 
@@ -152,8 +148,6 @@ The ideal: the core is detangled. Functionalities composable. Agents pick what t
 
 The reality: most orgs carry that technical debt. That's fine, as long as the agent can see the full chain clearly. Not guess it. See it. Then it can act deliberately.
 
----
-
 ## 4. Trust Layer
 
 Auditing, logging, error collecting. The platform's record of everything user agents do.
@@ -163,8 +157,6 @@ Most platforms stop at logging. But agents can do something humans never bothere
 For that to work, the platform needs to provide the channel. An API for agents to submit feedback directly. Not passive logs waiting to be scraped. Active submission, by design.
 
 Software doesn't survive by grand roadmaps. It survives by evolving toward what users actually need, one fix at a time. Agents generate the richest signal of what's failing and what matters. That trace is gold.
-
----
 
 ## 5. Agentic Layer
 
