@@ -28,7 +28,7 @@ London's docks collapsed. New York's piers emptied. New ports rose. Not where th
 
 Salesforce's Headless 360 is doing the same thing to the GUI-first paradigm.
 
-The old world isn't gone. But it's no longer where the platform is heading.
+The old world isn't gone (yet). But it's no longer where the platform is heading.
 
 **Old world:**
 
