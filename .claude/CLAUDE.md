@@ -14,7 +14,7 @@
 
 Model all blog posts after this pattern:
 
-**Sentence rhythm:** Short declarative sentence. Then a fragment. Then a question? Vary length deliberately. Long setup, then one-line punch.
+**Sentence rhythm:** Short declarative sentence. Then a fragment. Then a question? Vary length deliberately. Long setup, then one-line punch. Ratio: roughly 2-3 short sentences per 1 long setup. All-short = staccato drift, loses Beck contrast. Fix: insert one longer sentence before a run of short punches.
 
 **Voice:** Direct second person. "You see this." "You've been there." Drop reader into the scene before explaining anything.
 

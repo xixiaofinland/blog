@@ -14,15 +14,25 @@ That distinction is why this article exists.
 
 To understand why, go back to the 1950s.
 
-The shipping container didn't make ships faster. Didn't make ports more efficient. It killed an entire industry.
+The shipping container didn't make dockworkers more efficient. It made them unnecessary.
 
-Before containers: armies of dockworkers, every cargo type handled by hand, every port built differently.
+Before containers: armies of workers, every cargo type handled by hand, every port built around human labor.
 
-Then containers came. They didn't improve break-bulk. They made it obsolete.
+Then containers came, and the entire logic of moving cargo had to be rethought from the ground up. The work didn't get faster. The work disappeared. Break-bulk was gone. The ports built around it were gone. New ports rose. Somewhere else entirely. Built for a machine, not a hand.
 
-London's docks collapsed. New York's piers emptied. New ports rose. Not where the old ones stood. Somewhere else entirely.
+That's not A to A+. That's A dying. B appearing. Entirely different rules.
 
 ![Old break-bulk harbor vs modern container port](img/headless-360/harbors.png)
+
+AI is doing the same thing to knowledge work. Removing the human from the loop entirely, for entire categories of work.
+
+This wave also moves faster than any before it. Smartphones took four years. iPhone launched in 2007. By 2011, crossed 50% in major markets.
+
+Enterprise software moves faster. No hardware to buy. Buyers have budget authority. The pressure is headcount, not adoption friction.
+
+If 2026 is year zero, 2028 is not a stretch.
+
+![Nokia feature phone vs iPhone](img/headless-360/nokia-vs-iphone.png)
 
 ---
 
@@ -49,7 +59,7 @@ graph LR
 
 But a user agent isn't just a faster human clicking buttons. It's a different beast entirely.
 
-It doesn't browse. It calls. No GUI to confirm. No human in the loop to catch a wrong turn.
+It doesn't browse. It calls APIs directly, moves through multi-step sequences without pausing, and never waits for a screen to load. No GUI to confirm. No human in the loop to catch a wrong turn.
 
 You've been there. An agent tells you to go to a link, click a button in the top right, then do this, then do that. Not because the agent wants to. Because the platform doesn't support headless interaction.
 
@@ -134,7 +144,7 @@ This is the one everyone skips. Companies think exposing an interface is enough.
 
 Good semantics tell agents what to expect, what's reversible, what to avoid. The interface and the meaning. That's what makes an agent reliable, not just capable.
 
-The specifics are in the Semantics section above.
+The specifics are covered above, in the CLI, API, MCP, and skills breakdown.
 
 ## 3. Core Layer
 
@@ -144,7 +154,7 @@ This is the moat. Years of customer configuration, flows, Apex, integrations, al
 
 But most orgs are monolithic jungles. A user clicks a button. That invokes Apex, which fires a trigger, which kicks off a flow, which updates another object, which fires another trigger, which waits for approvals, which sends notifications.
 
-The ideal: the core is detangled. Functionalities composable. Agents pick what they need and chain it themselves.
+The ideal: the core is detangled into composable units. The platform handles the low-level wiring. Agents pick what they need and chain at the right level of abstraction.
 
 The reality: most orgs carry that technical debt. That's fine, as long as the agent can see the full chain clearly. Not guess it. See it. Then it can act deliberately.
 
@@ -174,7 +184,7 @@ Diagnostic data arrives. They find the pattern. They trigger the fix. A new API 
 
 The Semantic Layer and the Trust Layer are unlike anything the platform has built before. And they're the easiest to ignore.
 
-Salesforce built its empire on low-code, no-code UIs. That paradigm is fading. The skills that got you here won't take you there. Just like the container revolution: some harbors adapt and thrive. Others become relics.
+Salesforce built its empire on CRM data and the GUI-first admin. The CRM data and the trust it carries remain the brand. The GUI-first paradigm on top of it is fading. Some adapt and thrive. Others become relics.
 
 Salesforce Headless 360 is a good move. But **the vision is not enough. The implementation is the key.** The real work is in the layers.
 
