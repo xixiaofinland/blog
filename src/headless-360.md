@@ -184,7 +184,7 @@ Diagnostic data arrives. They find the pattern. They trigger the fix. A new API 
 
 The Semantic Layer and the Trust Layer are unlike anything the platform has built before. And they're the easiest to ignore.
 
-Salesforce built its empire on CRM data and the GUI-first admin. The CRM data and the trust it carries remain the brand. The GUI-first paradigm on top of it is fading. Some adapt and thrive. Others become relics.
+Salesforce built its empire on CRM data and the GUI-first strategy. The data and the trust it carries remain the brand. The GUI-first paradigm on top of it is fading. Some adapt and thrive. Others become relics.
 
 Salesforce Headless 360 is a good move. But **the vision is not enough. The implementation is the key.** The real work is in the layers.
 
