@@ -18,7 +18,7 @@ The shipping container didn't make dockworkers more efficient. It made them unne
 
 Before containers: armies of workers, every cargo type handled by hand, every port built around human labor.
 
-Then containers came, and the entire logic of moving cargo had to be rethought from the ground up. The work didn't get faster. The work disappeared. Break-bulk was gone. The ports built around it were gone. New ports rose. Somewhere else entirely. Built for a machine, not a hand.
+Then containers came, and the entire logic of moving cargo had to be rethought from the ground up. The work didn't get faster. The work disappeared. Break-bulk was gone. London's docks emptied. New York's piers went silent. Felixstowe and Port Newark rose in their place. Built for a machine, not a hand.
 
 That's not A to A+. That's A dying. B appearing. Entirely different rules.
 
