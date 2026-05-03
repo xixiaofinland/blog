@@ -1,4 +1,4 @@
-# Salesforce Headless 360: A Paradigm Shift or Just Hype?
+# Salesforce Headless 360: Agent-First or Just Hype?
 
 User agents are multiplying. Quietly. Everywhere.
 
