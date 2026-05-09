@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Keyboard - Personal blog - Xi Xiao</title>
+        <title>Build a Minimal LLM Agent: From Loop to Harness - Personal blog - Xi Xiao</title>
 
 
         <!-- Custom HTML head -->
@@ -177,126 +177,257 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <h1 id="my-ergonomic-keyboard-journey-from-sculpt-to-glove80"><a class="header" href="#my-ergonomic-keyboard-journey-from-sculpt-to-glove80">My Ergonomic Keyboard Journey: From Sculpt to Glove80</a></h1>
-<p><em>2025-09-13</em></p>
-<p>For years I used a regular keyboard until shoulder and hand tension pushed me to
-try something better. I switched to the <strong>Microsoft Sculpt</strong>, which served me
-well for several years. It was a big step up for comfort, but eventually I
-wanted to explore something even more ergonomic.</p>
+                        <h1 id="build-a-minimal-llm-agent-from-loop-to-harness"><a class="header" href="#build-a-minimal-llm-agent-from-loop-to-harness">Build a Minimal LLM Agent: From Loop to Harness</a></h1>
+<p>Andrej Karpathy said it well: “You can outsource thinking, but not understanding.”</p>
+<p>You’ve heard “agent” a hundred times this year. You’ve heard “harness,” “context window,” “memory layer.” But can you explain what actually runs? Can you point to the code?</p>
+<p>Most people can’t. The words are borrowed, not earned.</p>
+<p>This article earns them. We build a minimal LLM agent from scratch in TypeScript, step by step, milestone by milestone. By the end, you won’t just know the vocabulary. You’ll know the skeleton underneath it.</p>
+<p>The code is built in 30 minutes. The understanding takes the whole article. That’s the point.</p>
+<blockquote>
+<p>Full source: <a href="https://github.com/xixiaofinland/lab">github.com/xixiaofinland/lab</a>, under <code>minimal-agent/</code></p>
+</blockquote>
 <hr>
-<h2 id="choosing-the-next-keyboard"><a class="header" href="#choosing-the-next-keyboard">Choosing the Next Keyboard</a></h2>
-<p>I started comparing modern ergonomic split keyboards:</p>
-<ul>
-<li><strong>Kinesis Advantage360</strong> – classic reputation, but a bit pricey and bulky.</li>
-<li><strong>Voyager</strong> – high-quality build, very compact, but too minimal key count for
-me.</li>
-<li><strong>Moonlander</strong> – modern design, highly customizable.</li>
-<li><strong>Glove80</strong> – wireless, lightweight, with a distinctive curved key layout.</li>
-</ul>
-<p>After weighing the pros and cons, I chose the <strong>Glove80</strong>. Looking back, I
-believe any of these would have been a massive improvement over my Microsoft
-Sculpt—let alone a standard laptop keyboard.</p>
-<p>My <strong>Glove80</strong> (top) and retired <strong>Sculpt</strong> (bottom).</p>
-<p><img src="img/keyboards.jpg" alt="Keyboards"></p>
-<hr>
-<h2 id="changing-the-layout-too"><a class="header" href="#changing-the-layout-too">Changing the Layout Too</a></h2>
-<p>At the same time, I took on another challenge: moving from <strong>QWERTY</strong> to the
-<strong>Hands Down</strong> layout. My motivation was better efficiency, less finger strain,
-and more natural hand movement.</p>
-<p>There are more traditional alternatives like <strong>Dvorak</strong> and <strong>Colemak</strong>, but I
-chose the more modern and thumb-friendly <strong>Hands Down</strong> family—specifically the
-<em>handsdown-promethium</em> variant.</p>
-<p>You can find more handsdown info
-<a href="https://sites.google.com/alanreiser.com/handsdown">here</a>.</p>
+<h2 id="milestone-1-the-loop"><a class="header" href="#milestone-1-the-loop">Milestone 1: The Loop</a></h2>
+<p>Strip everything away. What is an agent at its core?</p>
+<p>A loop. That’s it.</p>
+<pre><code class="language-typescript">async function runAgent(task: string) {
+  const messages = [{ role: "user", content: task }];
+
+  for (let step = 0; step &lt; 5; step++) {
+    const response = await client.chat.completions.create({
+      model,
+      messages,
+      tools,
+    });
+    const message = response.choices[0].message;
+    messages.push(message);
+
+    if (response.choices[0].finish_reason === "tool_calls") {
+      const toolCall = message.tool_calls![0];
+      const observation = runTool(
+        toolCall.function.name,
+        JSON.parse(toolCall.function.arguments),
+      );
+      messages.push({
+        role: "tool",
+        tool_call_id: toolCall.id,
+        content: observation,
+      });
+    } else {
+      console.log(`model: ${message.content}`);
+      return;
+    }
+  }
+
+  console.log("Stopped: step limit reached.");
+}
+</code></pre>
+<p>Four things happen each iteration:</p>
 <ol>
-<li>Our most familiar QWERTY layout:</li>
+<li>Call the model with the current message history</li>
+<li>If it wants to call a tool, call it and push the result back</li>
+<li>If it’s done, print the answer and exit</li>
+<li>If neither after 5 steps, stop anyway</li>
 </ol>
-<p><img src="img/qwert.png" alt="QWERTY layout"></p>
-<ol start="2">
-<li>My chosen handsdown-promethium layout:</li>
+<p>That <code>step &lt; 5</code> guard is not cosmetic. Without it, a confused model loops forever. The step limit is the first harness piece, already baked in.</p>
+<p>Run it. The model answers the task using only its own knowledge. No tools yet, no memory, no files. Just inference.</p>
+<pre><code class="language-mermaid">flowchart TD
+    A([User Task]) --&gt; B[Call Model]
+    B --&gt; C{finish_reason?}
+    C -- tool_calls --&gt; D[Run Tool]
+    D --&gt; E[Push Observation]
+    E --&gt; B
+    C -- stop --&gt; F([Print Answer])
+    C -- step limit --&gt; G([Stopped])
+</code></pre>
+<hr>
+<h2 id="milestone-2-tools"><a class="header" href="#milestone-2-tools">Milestone 2: Tools</a></h2>
+<p>The model can think. Now give it eyes.</p>
+<p>Tools are not system prompt tricks. They’re a structured API. You pass a list of tool definitions alongside your messages. The model reads the descriptions and decides which one to call.</p>
+<pre><code class="language-typescript">const tools = [
+  {
+    type: "function",
+    function: {
+      name: "list_files",
+      description: "List files and directories at a given path.",
+      parameters: {
+        type: "object",
+        properties: {
+          path: { type: "string", description: "Directory path to list." },
+        },
+        required: ["path"],
+      },
+    },
+  },
+  // read_file is identical in shape
+];
+</code></pre>
+<p>The model never calls your code directly. It returns a structured <code>tool_calls</code> block. Your code dispatches it.</p>
+<pre><code class="language-typescript">function runTool(name, args) {
+  if (name === "list_files") return list_files(args.path);
+  if (name === "read_file") return read_file(args.path);
+}
+</code></pre>
+<p>The model reasons. You execute. The loop carries the observation back.</p>
+<p>Run it with a task like “What files exist here, and does package.json have a test script?” Watch the model chain two tool calls across three steps to answer. It’s not magic. It’s just the loop reading its own history.</p>
+<pre><code class="language-mermaid">sequenceDiagram
+    participant Loop
+    participant Model
+    participant Tool
+
+    Loop-&gt;&gt;Model: messages + tool definitions
+    Model--&gt;&gt;Loop: tool_calls: list_files(path)
+    Loop-&gt;&gt;Tool: list_files(".")
+    Tool--&gt;&gt;Loop: "agent.ts\npackage.json\n..."
+    Loop-&gt;&gt;Model: messages + observation
+    Model--&gt;&gt;Loop: finish_reason: stop
+    Loop-&gt;&gt;Loop: print answer
+</code></pre>
+<hr>
+<h2 id="milestone-3-tool-boundary"><a class="header" href="#milestone-3-tool-boundary">Milestone 3: Tool Boundary</a></h2>
+<p>Now add <code>run_command</code>. The model can execute shell commands.</p>
+<pre><code class="language-typescript">const ALLOWED_COMMANDS = ["ls", "cat", "echo", "node", "npm", "rg"];
+
+function run_command(command: string): string {
+  const binary = command.trim().split(/\s+/)[0];
+  if (!ALLOWED_COMMANDS.includes(binary)) {
+    return `Error: '${binary}' is not an allowed command.`;
+  }
+  return execSync(command, { encoding: "utf-8" });
+}
+</code></pre>
+<p>Notice the whitelist. Why?</p>
+<p>This is the tool boundary. The question isn’t “is this command dangerous?” It’s: “what surface area am I exposing?” <code>list_files</code> and <code>read_file</code> are Node-native, read-only. <code>run_command</code> crosses into the shell. Different layer, different trust model.</p>
+<p>The whitelist is the boundary guard. It says: the model can reach the shell, but only through these specific doors. Fewer doors means fewer things that can go wrong. Easier to audit. Easier to extend deliberately.</p>
+<p>This is also the first time you feel the gap between “runs” and “works.” The loop runs fine without a whitelist. But you wouldn’t trust it near your home directory.</p>
+<hr>
+<h2 id="why-five-more-boundaries"><a class="header" href="#why-five-more-boundaries">Why Five More Boundaries</a></h2>
+<p>The loop is running. It can list files, read files, run commands. The demo works.</p>
+<p>But “works in a demo” is not the same as “works on real tasks.” Run this agent on anything non-trivial and five specific things will break:</p>
+<ol>
+<li><strong>Context overflows.</strong> Long tool observations grow the message array. Hit the token limit, the API throws.</li>
+<li><strong>The loop never stops.</strong> A confused model keeps calling tools without converging.</li>
+<li><strong>The agent forgets everything.</strong> Close the terminal, restart, it knows nothing about your project.</li>
+<li><strong>Unchecked commands.</strong> No confirmation before running something irreversible.</li>
+<li><strong>False completion.</strong> The model says “done.” Nothing was actually written or tested.</li>
 </ol>
-<p><img src="img/hd-p.png" alt="Handsdown Promethium layout"></p>
-<p>So, not only did I have to adjust to a new keyboard shape, but also to a
-completely new key layout. Yes, it was brutal, painfully difficult at first.</p>
-<p>That said, I’m very happy with handsdown-promethium. Honestly, I think almost
-any modern layout is a huge step up from QWERTY. <a href="https://cyanophage.github.io/">This
-site</a> provides useful statistics on different
-layouts to back that up. For example,
-<a href="https://cyanophage.github.io/#qwerty">QWERTY</a>’s <em>Total Word Effort</em> is 2070.6
-while <a href="https://cyanophage.github.io/#handsdown-promethium">handsdown-promethium</a>
-is only 763.5.</p>
+<p>These aren’t hypothetical. Each one is a failure mode you will hit. The next four milestones add a boundary for each.</p>
 <hr>
-<h2 id="programmability-and-practice"><a class="header" href="#programmability-and-practice">Programmability and Practice</a></h2>
-<p>One of the Glove80’s best features is its <strong>programmability</strong>. I could remap
-keys, add layers, and customize shortcuts directly on the keyboard. These three
-features make it possible to tailor the keyboard to my workflow instead of
-forcing myself to adapt to it.</p>
-<p><img src="img/glove80-layouts.png" alt="Glove80 layouts"></p>
-<h3 id="layers"><a class="header" href="#layers">Layers</a></h3>
-<p>A <strong>layer</strong> is like having multiple keyboards in one. Your base layer handles
-normal typing, but with a single key press you can switch to another layer—for
-numbers, symbols, navigation, or anything else. On the Glove80, I set up
-separate layers for symbols, numbers, cursor movement, and even mouse control.
-With cursor keys and mouse emulation built in, I rarely reach for an actual
-mouse—especially when using a tiling window manager like Hyperland.</p>
-<h3 id="home-row-mods-hrm"><a class="header" href="#home-row-mods-hrm">Home Row Mods (HRM)</a></h3>
-<p>Another powerful feature is <strong>Home Row Mods</strong>. With HRM, keys on the home row
-act as normal letters when tapped, but as modifiers (Ctrl, Alt, Shift, etc.)
-when held.</p>
-<p>In my case, <code>s</code>, <code>n</code>, <code>t</code>, <code>h</code> on left hand and <code>a</code>, <code>e</code>, <code>i</code>, <code>c</code> on righe hand
-are my modifiers as shown on the glove80-layouts screenshot above.</p>
-<p>This means I don’t need to stretch my fingers awkwardly to reach modifier keys,
-reducing strain and speeding up key combos.</p>
+<h2 id="milestone-4-context-boundary"><a class="header" href="#milestone-4-context-boundary">Milestone 4: Context Boundary</a></h2>
+<p>The simplest fix for context overflow: truncate observations that are too long.</p>
+<pre><code class="language-typescript">const raw = await runTool(toolCall.function.name, args);
+const observation =
+  raw.length &gt; 2000 ? raw.slice(0, 2000) + "\n[...truncated]" : raw;
+</code></pre>
+<p>This is a blunt instrument. It works for a demo. In production, you’d summarize instead: call the model again on just the observation, get a condensed version, push that. Tools like <a href="https://github.com/rtk-ai/rtk">RTK</a> solve this at the CLI layer, compressing command output before it ever reaches the model — 80% token reduction in practice.</p>
+<p>The step limit handles the second half of the context boundary: the loop that never stops. Together, truncation and step limits are the two guards that keep the loop from choking itself mid-run.</p>
+<p>One broader observation worth making here: CLI tools are starting to evolve toward agent-friendly output. <code>ls</code> returning 200 lines of noise made sense when a human was reading it. When an agent reads it, that’s wasted tokens. RTK is a shim for the transition period. Long-term, tools will output compact, structured data natively. The same shift happened to APIs when mobile came along.</p>
 <hr>
-<h2 id="the-practice-phase"><a class="header" href="#the-practice-phase">The Practice Phase</a></h2>
-<p>The first few weeks were slow. I had to <strong>retrain my muscle memory</strong> while
-learning both a new keyboard shape and a new layout. Daily practice on
-<a href="https://www.keybr.com/">keybr.com</a> was essential. Gradually, my typing speed
-and accuracy started to recover.</p>
+<h2 id="milestone-5-memory-boundary"><a class="header" href="#milestone-5-memory-boundary">Milestone 5: Memory Boundary</a></h2>
+<p>Context is what’s in the <code>messages</code> array right now. Memory is what survives closing the terminal.</p>
+<p>Add an <code>AGENTS.md</code> to the project root:</p>
+<pre><code class="language-markdown"># Project Rules
+
+Always respond in Simplified Chinese (简体中文).
+</code></pre>
+<p>Load it as a system message at startup:</p>
+<pre><code class="language-typescript">function loadMemory(): OpenAI.ChatCompletionMessageParam[] {
+  try {
+    const rules = fs.readFileSync("AGENTS.md", "utf-8");
+    return [{ role: "system", content: rules }];
+  } catch {
+    return [];
+  }
+}
+
+const messages = [...loadMemory(), { role: "user", content: task }];
+</code></pre>
+<p>Run the same task as before. The model now responds in Chinese. Delete <code>AGENTS.md</code>, run again: English. The difference is visible in one line.</p>
+<p>That’s what memory buys. Not smarter reasoning. Continuity across sessions.</p>
+<p>This is the minimal version. Real memory systems go further: layered storage (project rules, session summaries, learned preferences), keyword retrieval, eventually vector search when the volume demands it. But the principle is the same. Start with Markdown. Keep it readable. Add complexity when the pain is real, not before.</p>
 <hr>
-<h2 id="integrating-into-my-workflow"><a class="header" href="#integrating-into-my-workflow">Integrating Into My Workflow</a></h2>
-<p>Once typing felt natural again, the next step was adapting my <strong>dotfiles</strong> and
-tools. For me, that especially meant reconfiguring <strong>Tmux</strong> and <strong>Neovim</strong> to
-fit the new layout. Even small adjustments made a big difference in keeping my
-workflow smooth and efficient.</p>
-<p>One challenge of using a non-QWERTY layout is <strong>Vim’s navigation keys</strong>.
-Traditionally, <code>h</code>, <code>j</code>, <code>k</code>, and <code>l</code> sit comfortably on the home row, making
-them ideal for movement. On Handsdown-Promethium, however, these keys are no
-longer in the same resting positions, so an alternative was needed.</p>
-<p>My solution was to rely on the <strong>arrow keys in a dedicated cursor layer</strong>. On
-the Glove80, they map neatly to the same physical positions as <code>hjkl</code> on a
-standard keyboard, which makes the transition more natural. At the same time,
-Handsdown-Promethium still places <code>hjkl</code> in reasonably accessible spots, so I
-can fall back on them if I want.</p>
-<p>This hybrid approach has worked well: I get the familiarity of Vim-style
-navigation without forcing my fingers into awkward positions.</p>
+<h2 id="milestone-6-permission-boundary"><a class="header" href="#milestone-6-permission-boundary">Milestone 6: Permission Boundary</a></h2>
+<p><code>run_command</code> has a whitelist. That’s the outer gate. But some commands in the whitelist are still risky. <code>npm install</code>, <code>npm run build</code> — these change state.</p>
+<p>Add a second tier: commands that require confirmation before running.</p>
+<pre><code class="language-typescript">const AUTO_COMMANDS = ["ls", "cat", "echo", "node", "rg"];
+const CONFIRM_COMMANDS = ["npm"];
+
+async function run_command(command: string): Promise&lt;string&gt; {
+  const binary = command.trim().split(/\s+/)[0];
+  if (!AUTO_COMMANDS.includes(binary) &amp;&amp; !CONFIRM_COMMANDS.includes(binary)) {
+    return `Error: '${binary}' is not an allowed command.`;
+  }
+  if (CONFIRM_COMMANDS.includes(binary)) {
+    const approved = await ask(`Allow: ${command} ? (y/n) `);
+    if (!approved) return "User denied the command.";
+  }
+  return execSync(command, { encoding: "utf-8" });
+}
+</code></pre>
+<p>Three tiers: auto, confirm, deny. The model doesn’t know which tier a command is in. It just calls the tool. Your code decides what happens next.</p>
+<p>This is the same design Claude Code uses. Anthropic documented the tension: ask for every write and run command, and users get approval fatigue. Never ask, and you amplify risk. Their production answer involves a classifier that identifies truly risky actions. Our demo answer is a simple tier list. The principle is identical: the permission boundary keeps the model from being the last line of defense.</p>
 <hr>
-<h2 id="typing-demo"><a class="header" href="#typing-demo">Typing Demo</a></h2>
-<p><a href="https://youtu.be/k6qzg6YJ-pY">Here’s a 1.5-minute typing demo</a> ~40 WPM (words per min) recorded on 13-09-2025.</p>
-<p>Notes:</p>
-<ul>
-<li>The printed letters on the keycaps are QWERTY, so they don’t match my actual layout.</li>
-<li>Finger and hand movement is very minimal, which shows the ergonomic advantage.</li>
-</ul>
+<h2 id="milestone-7-write-and-validate"><a class="header" href="#milestone-7-write-and-validate">Milestone 7: Write and Validate</a></h2>
+<p>Add <code>write_file</code>. Now the agent can actually produce artifacts.</p>
+<pre><code class="language-typescript">function write_file(filePath: string, content: string): string {
+  fs.writeFileSync(filePath, content, "utf-8");
+  return `Written: ${filePath}`;
+}
+</code></pre>
+<p>Change the task: “Read package.json, then write a short project summary to summary.txt.”</p>
+<p>The agent runs. It reads the file, writes the summary, says “done.” Here’s the question: did it actually work?</p>
+<p>Don’t trust the model’s word. Check independently.</p>
+<pre><code class="language-typescript">runAgent(task).then(() =&gt; {
+  const ok =
+    fs.existsSync("summary.txt") &amp;&amp;
+    fs.readFileSync("summary.txt", "utf-8").trim().length &gt; 0;
+  console.log(
+    ok
+      ? "Validation passed: summary.txt written."
+      : "Validation failed: summary.txt missing or empty.",
+  );
+});
+</code></pre>
+<p>This is the validation boundary. “Done” is not a feeling. It’s evidence. File exists. Content is non-empty. Test passed. Exit code zero.</p>
+<p>Models are excellent at sounding confident. That confidence has no relationship to whether the work was actually done. Traditional CI fails loudly with logs. An agent can succeed quietly and lie. The validation check is what makes completion mean something.</p>
+<p>How do Claude Code and Codex handle validation on longer tasks? They use the same principle at scale: check exit codes, run the test suite, read back files they just wrote. Claude Code’s Todo system marks tasks complete only after the environment confirms, not after the model claims. The exact mechanisms for complex multi-step recovery are still an active area. We’ll dig into that in a follow-up.</p>
 <hr>
-<h2 id="final-thoughts"><a class="header" href="#final-thoughts">Final Thoughts</a></h2>
-<p>Switching from the Sculpt to the Glove80—while also changing layouts—was not
-easy. The transition took multiple weeks of patience and practice.</p>
-<p>But now, three months later, typing feels <strong>lighter, smoother, and more
-sustainable</strong>. I no longer feel the same tension in my shoulders and hands.</p>
-<p>If you spend hours typing each day, investing in both an ergonomic keyboard and
-a better layout is worth it. The short-term pain pays off in long-term comfort
-and efficiency.</p>
+<h2 id="the-llm-difference"><a class="header" href="#the-llm-difference">The LLM Difference</a></h2>
+<p>The harness is fixed. Swap the model and run the same task.</p>
+<p>A capable model (like <code>qwen3:32b</code>) navigates ambiguity, chains tools correctly, recovers from partial failures, produces useful output. A weaker 1B model may hallucinate a file path, stop after one tool call, or return empty content.</p>
+<p>The loop is identical. The tool definitions are identical. The boundaries are identical. The difference is entirely in the model’s judgment inside the loop.</p>
+<p>This is the separation worth understanding: the harness sets what the agent <em>can</em> do. The model determines how often it <em>succeeds</em>. Stronger models get more out of the same harness. A better harness lets even average models operate safely.</p>
+<p>They’re independently improvable. That’s a useful property.</p>
+<hr>
+<h2 id="wrap-up"><a class="header" href="#wrap-up">Wrap Up</a></h2>
+<p>Look at what we built:</p>
+<pre><code class="language-mermaid">flowchart LR
+    subgraph Minimal["Minimal Agent"]
+        L([Loop])
+    end
+
+    subgraph Harness["+ Harness"]
+        TB[Tool Boundary\nwhitelist] --&gt; L
+        CB[Context Boundary\nstep limit + truncation] --&gt; L
+        MB[Memory Boundary\nAGENTS.md] --&gt; L
+        PB[Permission Boundary\nauto / confirm / deny] --&gt; L
+        VB[Validation Boundary\nevidence not confidence] --&gt; L
+    end
+</code></pre>
+<p>Claude Code is this. Codex is this. Every serious agent framework is this. The loop is always simple. The work is always in the boundaries.</p>
+<p>The source article put it cleanly: Agent 起步靠一个循环。“An agent starts with a loop.” The loop is the skeleton. Harness is how it survives contact with reality.</p>
+<p>Build it yourself. Feel each piece land. Then when someone says “Claude Code uses a harness layer,” you won’t nod along. You’ll know exactly what they mean.</p>
+<p>That’s the understanding Karpathy was talking about. You can’t outsource it.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="others.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="headless-360.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
-                            <a rel="next prefetch" href="sf_dev_training.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="others.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
@@ -306,11 +437,11 @@ and efficiency.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="others.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="headless-360.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
-                    <a rel="next prefetch" href="sf_dev_training.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="others.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>
