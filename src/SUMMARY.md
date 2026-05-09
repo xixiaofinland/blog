@@ -15,9 +15,8 @@
   - [Inspect data before preprocessing](data_inspection.md)
   - [Classification](classification.md)
   - [Salesforce Headless 360: A Paradigm Shift or Just Hype?](headless-360.md)
+  - [Build a Minimal LLM Agent: From Loop to Harness](ai-minimal-agent.md)
 
 - [Others](others.md)
   - [Keyboard](keyboard.md)
   - [Salesforce developer training](sf_dev_training.md)
-
-

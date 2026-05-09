@@ -79,3 +79,29 @@ While writing, flag each place an image or diagram belongs and what it should sh
 
 **6. Diagrams.**
 Use mermaid for flow diagrams. Keep edge labels simple — no colons or commas inside `|label|`.
+
+To render diagrams to PNG for LinkedIn, use `mermaid-cli` via Nix (no install needed):
+
+```bash
+nix run nixpkgs#mermaid-cli -- -i diagram.mmd -o src/img/<slug>/diagram.png
+```
+
+Save each diagram source as a `.mmd` file alongside the PNG so it can be edited later. Store both under `src/img/<slug>/`.
+
+**7. Code screenshots.**
+Use `charm-freeze` via Nix to generate syntax-highlighted code images for LinkedIn:
+
+```bash
+# pipe a line range from a file into freeze
+sed -n '<start>,<end>p' path/to/file.ts | nix run nixpkgs#charm-freeze -- - \
+  --language typescript \
+  --theme dracula \
+  --output src/img/<slug>/snippet-name.png \
+  --window \
+  --border.radius 8 \
+  --shadow.blur 20 \
+  --shadow.x 4 \
+  --shadow.y 4
+```
+
+Store all images under `src/img/<slug>/`. For the blog, embed with `![](img/<slug>/name.png)`. For LinkedIn, attach as images manually.
