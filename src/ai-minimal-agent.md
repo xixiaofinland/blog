@@ -98,7 +98,7 @@ The code above is not pseudocode. You can run it. I run against a local Qwen3.6 
 
 Several subtle details worth mentioning:
 
-The task hints the model toward tools like `list_files` and `read_file`. But none are defined yet. So the model reasons from its own knowledge, does its best, and signals `stop` after one step. No looping. Not yet. This is how ChatGPT browser version works.
+The task hints the model toward tools like `list_files` and `read_file`. But none are defined yet. So the model reasons from its own knowledge, does its best, and signals `stop` after one single step. No looping. Not yet. This is how ChatGPT browser version works.
 
 `finish_reason` in action 3 isn't always `"stop"`. `"length"` means output hit the token limit, cut off mid-thought. `"content_filter"` means it was blocked. Production handles all of them explicitly.
 
@@ -278,7 +278,7 @@ Step 1: the model calls `run_command("rm AGENTS.md")`. It doesn't know `rm` is b
 
 Two subtle points I'd like to point out.
 
-**First: the model doesn't build the guardrail. The agent does.** The model still tried to run `rm` — no hesitation, no special awareness. Your code intercepted it. You can't rely on the model to protect you from itself. The boundary has to live in the harness.
+**First: the model doesn't build the guardrail. The agent does.** The model still tried to run `rm`, no hesitation, no special awareness. Your code intercepted it. You can't rely on the model to protect you from itself. The boundary has to live in the harness.
 
 **Second: real harnesses return richer observations.** Our `run_command` returns a plain string. Production systems return exit codes, stderr separated from stdout, truncation markers. Without exit codes, the model can't tell "command ran and produced nothing" from "command failed silently." Feed it thin observations, it fills the gaps with guesses.
 
@@ -310,7 +310,11 @@ const observation =
   raw.length > 2000 ? raw.slice(0, 2000) + "\n[...truncated]" : raw;
 ```
 
-This is a blunt instrument. It works for a demo. In production, you'd summarize instead: call the model again on just the observation, get a condensed version, push that. Tools like [RTK](https://github.com/rtk-ai/rtk) solve this at the CLI layer, compressing command output before it ever reaches the model — 80% token reduction in practice.
+This is a blunt instrument. It works for a demo. In production, you'd summarize instead: call the model again on just the observation, get a condensed version, push that. Tools like [RTK](https://github.com/rtk-ai/rtk) solve this at the CLI layer, compressing command output before it ever reaches the model. 
+
+The screenshot below is my RTK session summary. 589 commands run, 392K tokens saved. That's 46.8% of input tokens eliminated before the model ever saw them.
+
+![](img/minimal-agent/rtk-token-savings.png)
 
 The step limit handles the second half of the context boundary: the loop that never stops. Together, truncation and step limits are the two guards that keep the loop from choking itself mid-run.
 
