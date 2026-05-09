@@ -1,80 +1,108 @@
-# Build a Minimal LLM Agent: From Loop to Harness
+# Build a Minimal LLM Code Agent: From Loop to Harness
 
-Andrej Karpathy said it well: "You can outsource thinking, but not understanding."
+> "You can outsource thinking, but not understanding."
+>
+> - Andrej Karpathy
 
-You've heard "agent" a hundred times this year. You've heard "harness," "context window," "memory layer." But can you explain what actually runs? Can you point to the code?
+You've heard "code agent" and "harness" a hundred times this year, but do you know how it works? Could you build it in code?
 
 Most people can't. The words are borrowed, not earned.
 
-This article earns them. We build a minimal LLM agent from scratch in TypeScript, step by step, milestone by milestone. By the end, you won't just know the vocabulary. You'll know the skeleton underneath it.
+This article earns them. We build a minimal LLM code agent from scratch in TypeScript, step by step, milestone by milestone. By the end, you won't just know the vocabulary. You'll know the skeleton underneath it.
 
 The code is built in 30 minutes. The understanding takes the whole article. That's the point.
 
-> Full source: [github.com/xixiaofinland/lab](https://github.com/xixiaofinland/lab), under `minimal-agent/`
+> Full source: [minimal-agent](https://github.com/xixiaofinland/lab/tree/main/minimal-agent)
 
 ---
 
 ## Milestone 1: The Loop
 
-Strip everything away. What is an agent at its core?
+Strip everything away. What is a code agent at its core?
 
-A loop. That's it.
+A loop in `runAgent()`. That's it.
 
 ```typescript
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1",
+  apiKey: process.env.OPENAI_API_KEY ?? "none",
+});
+
+const MODEL = process.env.MODEL ?? "gpt-4o-mini";
+
 async function runAgent(task: string) {
-  const messages = [{ role: "user", content: task }];
+  const messages: OpenAI.ChatCompletionMessageParam[] = [
+    { role: "user", content: task },
+  ];
+
+  console.log(`user: ${task}`);
 
   for (let step = 0; step < 5; step++) {
+    console.log(`\n── step ${step + 1}`);
+
+    // action 1;
     const response = await client.chat.completions.create({
-      model,
+      model: MODEL,
       messages,
-      tools,
     });
+
+    // action 2;
     const message = response.choices[0].message;
     messages.push(message);
 
-    if (response.choices[0].finish_reason === "tool_calls") {
-      const toolCall = message.tool_calls![0];
-      const observation = runTool(
-        toolCall.function.name,
-        JSON.parse(toolCall.function.arguments),
-      );
-      messages.push({
-        role: "tool",
-        tool_call_id: toolCall.id,
-        content: observation,
-      });
-    } else {
-      console.log(`model: ${message.content}`);
-      return;
+    // strip <think>...</think> blocks for display only
+    const display = message.content
+      ?.replace(/<think>[\s\S]*?<\/think>/g, "")
+      .trim();
+    console.log("model:", display);
+
+    // action 3;
+    if (response.choices[0].finish_reason === "stop") {
+      return message.content;
     }
   }
 
-  console.log("Stopped: step limit reached.");
+  return "Stopped: step limit reached.";
 }
+
+const task =
+  "What test files exist in this project, and does package.json have a test script?";
+
+runAgent(task);
 ```
 
-Four things happen each iteration:
+It sends this exact task to the code agent, `"What test files exist in this project, and does package.json have a test script?"`, then calls `runAgent(task)` to start the loop.
 
-1. Call the model with the current message history
-2. If it wants to call a tool, call it and push the result back
-3. If it's done, print the answer and exit
-4. If neither after 5 steps, stop anyway
+Three things happen in each iteration:
 
-That `step < 5` guard is not cosmetic. Without it, a confused model loops forever. The step limit is the first harness piece, already baked in.
-
-Run it. The model answers the task using only its own knowledge. No tools yet, no memory, no files. Just inference.
+1. `action 1`: call the model with the current message history
+2. `action 2`: push the reply into history, print a cleaned version to the terminal
+3. `action 3`: if the model is done, return; if not, loop
 
 ```mermaid
 flowchart TD
     A([User Task]) --> B[Call Model]
-    B --> C{finish_reason?}
-    C -- tool_calls --> D[Run Tool]
-    D --> E[Push Observation]
-    E --> B
-    C -- stop --> F([Print Answer])
-    C -- step limit --> G([Stopped])
+    B --> C[Push Reply to History]
+    C --> D{finish_reason = stop?}
+    D -- yes --> E([Return Answer])
+    D -- no --> F{step < 5?}
+    F -- yes --> B
+    F -- no --> G([Stopped])
 ```
+
+The code above is not pseudocode. You can run it. I run against a local Qwen3.6 35B LLM, but any openai API compatible ones would go, such as gpt-4o-mini with your openai API key.
+
+![](img/minimal-agent/run-output.png)
+
+Several subtle details worth mentioning:
+
+The task hints the model toward tools like `list_files` and `read_file`. But none are defined yet. So the model reasons from its own knowledge, does its best, and signals `stop` after one step. No looping. Not yet. This is how ChatGPT browser version works.
+
+`finish_reason` in action 3 isn't always `"stop"`. `"length"` means output hit the token limit, cut off mid-thought. `"content_filter"` means it was blocked. Production handles all of them explicitly.
+
+That `step < 5` guard is not cosmetic. A confused model won't stop itself. The step limit is the first harness piece, already baked in.
 
 ---
 
@@ -164,11 +192,11 @@ This is also the first time you feel the gap between "runs" and "works." The loo
 
 The loop is running. It can list files, read files, run commands. The demo works.
 
-But "works in a demo" is not the same as "works on real tasks." Run this agent on anything non-trivial and five specific things will break:
+But "works in a demo" is not the same as "works on real tasks." Run this code agent on anything non-trivial and five specific things will break:
 
 1. **Context overflows.** Long tool observations grow the message array. Hit the token limit, the API throws.
 2. **The loop never stops.** A confused model keeps calling tools without converging.
-3. **The agent forgets everything.** Close the terminal, restart, it knows nothing about your project.
+3. **The code agent forgets everything.** Close the terminal, restart, it knows nothing about your project.
 4. **Unchecked commands.** No confirmation before running something irreversible.
 5. **False completion.** The model says "done." Nothing was actually written or tested.
 
@@ -190,7 +218,7 @@ This is a blunt instrument. It works for a demo. In production, you'd summarize 
 
 The step limit handles the second half of the context boundary: the loop that never stops. Together, truncation and step limits are the two guards that keep the loop from choking itself mid-run.
 
-One broader observation worth making here: CLI tools are starting to evolve toward agent-friendly output. `ls` returning 200 lines of noise made sense when a human was reading it. When an agent reads it, that's wasted tokens. RTK is a shim for the transition period. Long-term, tools will output compact, structured data natively. The same shift happened to APIs when mobile came along.
+One broader observation worth making here: CLI tools are starting to evolve toward output that code agents can read efficiently. `ls` returning 200 lines of noise made sense when a human was reading it. When a code agent reads it, that's wasted tokens. RTK is a shim for the transition period. Long-term, tools will output compact, structured data natively. The same shift happened to APIs when mobile came along.
 
 ---
 
@@ -260,7 +288,7 @@ This is the same design Claude Code uses. Anthropic documented the tension: ask 
 
 ## Milestone 7: Write and Validate
 
-Add `write_file`. Now the agent can actually produce artifacts.
+Add `write_file`. Now the code agent can actually produce artifacts.
 
 ```typescript
 function write_file(filePath: string, content: string): string {
@@ -271,7 +299,7 @@ function write_file(filePath: string, content: string): string {
 
 Change the task: "Read package.json, then write a short project summary to summary.txt."
 
-The agent runs. It reads the file, writes the summary, says "done." Here's the question: did it actually work?
+The code agent runs. It reads the file, writes the summary, says "done." Here's the question: did it actually work?
 
 Don't trust the model's word. Check independently.
 
@@ -290,7 +318,7 @@ runAgent(task).then(() => {
 
 This is the validation boundary. "Done" is not a feeling. It's evidence. File exists. Content is non-empty. Test passed. Exit code zero.
 
-Models are excellent at sounding confident. That confidence has no relationship to whether the work was actually done. Traditional CI fails loudly with logs. An agent can succeed quietly and lie. The validation check is what makes completion mean something.
+Models are excellent at sounding confident. That confidence has no relationship to whether the work was actually done. Traditional CI fails loudly with logs. A code agent can succeed quietly and lie. The validation check is what makes completion mean something.
 
 How do Claude Code and Codex handle validation on longer tasks? They use the same principle at scale: check exit codes, run the test suite, read back files they just wrote. Claude Code's Todo system marks tasks complete only after the environment confirms, not after the model claims. The exact mechanisms for complex multi-step recovery are still an active area. We'll dig into that in a follow-up.
 
@@ -304,7 +332,7 @@ A capable model (like `qwen3:32b`) navigates ambiguity, chains tools correctly, 
 
 The loop is identical. The tool definitions are identical. The boundaries are identical. The difference is entirely in the model's judgment inside the loop.
 
-This is the separation worth understanding: the harness sets what the agent _can_ do. The model determines how often it _succeeds_. Stronger models get more out of the same harness. A better harness lets even average models operate safely.
+This is the separation worth understanding: the harness sets what the code agent _can_ do. The model determines how often it _succeeds_. Stronger models get more out of the same harness. A better harness lets even average models operate safely.
 
 They're independently improvable. That's a useful property.
 
@@ -316,7 +344,7 @@ Look at what we built:
 
 ```mermaid
 flowchart LR
-    subgraph Minimal["Minimal Agent"]
+    subgraph Minimal["Minimal Code Agent"]
         L([Loop])
     end
 
@@ -329,9 +357,9 @@ flowchart LR
     end
 ```
 
-Claude Code is this. Codex is this. Every serious agent framework is this. The loop is always simple. The work is always in the boundaries.
+Claude Code is this. Codex is this. Every serious code agent framework is this. The loop is always simple. The work is always in the boundaries.
 
-The source article put it cleanly: Agent 起步靠一个循环。"An agent starts with a loop." The loop is the skeleton. Harness is how it survives contact with reality.
+The source article put it cleanly: Agent 起步靠一个循环。"An agent starts with a loop." A code agent is no different. The loop is the skeleton. Harness is how it survives contact with reality.
 
 Build it yourself. Feel each piece land. Then when someone says "Claude Code uses a harness layer," you won't nod along. You'll know exactly what they mean.
 

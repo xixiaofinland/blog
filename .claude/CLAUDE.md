@@ -52,6 +52,16 @@ Model all blog posts after this pattern:
 - Save new drafts as `.md` files in `src/`.
 - Update `SUMMARY.md` when adding new posts.
 
+## Editing Collaboration
+
+When proposing prose changes:
+
+1. Show a diff view (before/after lines). Do not apply.
+2. Wait for the user to say "go" or "update" before applying any change.
+3. If the user continues without saying either, treat it as "no update" — do not apply.
+4. The user may cherry-pick manually from the diff — do not re-apply what they skipped.
+5. Keep each diff small and isolated so individual lines are easy to accept or ignore.
+
 ## Article Creation Workflow
 
 When starting a new article, proactively suggest this process:

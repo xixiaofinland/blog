@@ -6,6 +6,10 @@
 
 The core execution cycle of an agent: call model → check for tool call → execute tool → write observation back to context → repeat. Bounded by a step limit. The loop itself is ~20 lines. Everything else is Harness.
 
+### Code Agent
+
+Default narration term for this repo's articles when referring to a tool-using coding agent. Prefer `code agent` over plain `agent` in article prose. Keep plain `agent` only in direct quotes, citations, file names, and product names.
+
 ### Minimal Agent
 
 An agent with only the loop and three tools (list_files, read_file, run_command). No memory, no permission system, no validation. Purpose: anatomy lesson. Shows the skeleton before the harness layers are added.
