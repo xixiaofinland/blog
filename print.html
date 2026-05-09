@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-05c60749.js";
+            window.path_to_searchindex_js = "searchindex-b74d5dc7.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-e9b83f98.js"></script>
@@ -1498,7 +1498,11 @@ async function runAgent(task: string) {
 <hr>
 <h2 id="milestone-3-tool-boundary"><a class="header" href="#milestone-3-tool-boundary">Milestone 3: Tool Boundary</a></h2>
 <p>Now add <code>run_command</code>. The model can execute shell commands.</p>
-<pre><code class="language-typescript">const ALLOWED_COMMANDS = ["ls", "cat", "echo", "node", "npm", "rg"];
+<p><code>list_files</code> and <code>read_file</code> use Node’s <code>fs</code> module. You’re calling well-defined Node APIs. Node handles the underlying OS interaction, and the security contract is clearly scoped: read the filesystem, nothing else.</p>
+<p><code>run_command</code> is different. It hands a string to the shell and lets the shell decide what happens. No guardrails. Any binary, any argument, any side effect. That’s a different layer entirely, and it needs a different trust model.</p>
+<pre><code class="language-typescript">// ... imports, client, MODEL, tools, list_files, read_file, runAgent same as before
+
+const ALLOWED_COMMANDS = ["ls", "cat", "echo", "node", "npm", "rg"];
 
 function run_command(command: string): string {
   const binary = command.trim().split(/\s+/)[0];
@@ -1507,11 +1511,19 @@ function run_command(command: string): string {
   }
   return execSync(command, { encoding: "utf-8" });
 }
+
+const task =
+  "List the files in this directory, read package.json, and run `node --version`.";
+
+runAgent(task);
 </code></pre>
-<p>Notice the whitelist. Why?</p>
-<p>This is the tool boundary. The question isn’t “is this command dangerous?” It’s: “what surface area am I exposing?” <code>list_files</code> and <code>read_file</code> are Node-native, read-only. <code>run_command</code> crosses into the shell. Different layer, different trust model.</p>
-<p>The whitelist is the boundary guard. It says: the model can reach the shell, but only through these specific doors. Fewer doors means fewer things that can go wrong. Easier to audit. Easier to extend deliberately.</p>
-<p>This is also the first time you feel the gap between “runs” and “works.” The loop runs fine without a whitelist. But you wouldn’t trust it near your home directory.</p>
+<p>Notice the whitelist? It is the guardrail we build. The model can reach the shell, but only through these specific doors. If we send the task to run <code>rm AGENTS.md</code>, agent would refuse it as below.</p>
+<p><img src="img/minimal-agent/run-output-tool-boundary.png" alt=""></p>
+<p>The code run above has the task: “Run <code>rm AGENTS.md</code>”, and it has two steps.</p>
+<p>Step 1: the model calls <code>run_command("rm AGENTS.md")</code>. It doesn’t know <code>rm</code> is blocked. The whitelist fires, returns an error string as a normal observation. Step 2: the model reads it and reports back.</p>
+<p>Two subtle points I’d like to point out.</p>
+<p><strong>First: the model doesn’t build the guardrail. The agent does.</strong> The model still tried to run <code>rm</code> — no hesitation, no special awareness. Your code intercepted it. You can’t rely on the model to protect you from itself. The boundary has to live in the harness.</p>
+<p><strong>Second: real harnesses return richer observations.</strong> Our <code>run_command</code> returns a plain string. Production systems return exit codes, stderr separated from stdout, truncation markers. Without exit codes, the model can’t tell “command ran and produced nothing” from “command failed silently.” Feed it thin observations, it fills the gaps with guesses.</p>
 <hr>
 <h2 id="why-five-more-boundaries"><a class="header" href="#why-five-more-boundaries">Why Five More Boundaries</a></h2>
 <p>The loop is running. It can list files, read files, run commands. The demo works.</p>
