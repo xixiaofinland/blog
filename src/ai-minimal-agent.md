@@ -100,7 +100,7 @@ Several subtle details worth mentioning:
 
 The task hints the model toward tools like `list_files` and `read_file`. But none are defined yet. So the model reasons from its own knowledge, does its best, and signals `stop` after one single step. No looping. Not yet. This is how ChatGPT browser version works.
 
-`finish_reason` in action 3 isn't always `"stop"`. `"length"` means output hit the token limit, cut off mid-thought. `"content_filter"` means it was blocked. Production handles all of them explicitly.
+`finish_reason` in action 3 isn't always `"stop"`. `"length"` means output hit the token limit, cut off mid-thought. `"content_filter"` means it was blocked. Production handles all of them explicitly. In this demo, we assume it's always the happy path.
 
 That `step < 5` guard is not cosmetic. A confused model won't stop itself. The step limit is the first harness piece, already baked in.
 
@@ -284,17 +284,16 @@ Two subtle points I'd like to point out.
 
 ---
 
-## Why Five More Boundaries
+## Why Four More Boundaries
 
 The loop is running. It can list files, read files, run commands. The demo works.
 
 But "works in a demo" is not the same as "works on real tasks." Run this code agent on anything non-trivial and five specific things will break:
 
 1. **Context overflows.** Long tool observations grow the message array. Hit the token limit, the API throws.
-2. **The loop never stops.** A confused model keeps calling tools without converging.
-3. **The code agent forgets everything.** Close the terminal, restart, it knows nothing about your project.
-4. **Unchecked commands.** No confirmation before running something irreversible.
-5. **False completion.** The model says "done." Nothing was actually written or tested.
+2. **The code agent forgets everything.** Close the terminal, restart, it knows nothing about your project.
+3. **Unchecked commands.** No confirmation before running something irreversible.
+4. **False completion.** The model says "done." Nothing was actually written or tested.
 
 These aren't hypothetical. Each one is a failure mode you will hit. The next four milestones add a boundary for each.
 
@@ -310,13 +309,11 @@ const observation =
   raw.length > 2000 ? raw.slice(0, 2000) + "\n[...truncated]" : raw;
 ```
 
-This is a blunt instrument. It works for a demo. In production, you'd summarize instead: call the model again on just the observation, get a condensed version, push that. Tools like [RTK](https://github.com/rtk-ai/rtk) solve this at the CLI layer, compressing command output before it ever reaches the model. 
+This is a blunt instrument. It works for a demo. In production, you'd summarize instead: call the model again on just the observation, get a condensed version, push that. Tools like [RTK](https://github.com/rtk-ai/rtk) solve this at the CLI layer, compressing the tool call result before it ever reaches the model. 
 
-The screenshot below is my RTK session summary. 589 commands run, 392K tokens saved. That's 46.8% of input tokens eliminated before the model ever saw them.
+A side node, the screenshot below is my RTK session summary for ~2 week usage. 589 commands run, 392K tokens saved. That's 46.8% of input tokens eliminated before the model ever saw them.
 
 ![](img/minimal-agent/rtk-token-savings.png)
-
-The step limit handles the second half of the context boundary: the loop that never stops. Together, truncation and step limits are the two guards that keep the loop from choking itself mid-run.
 
 One broader observation worth making here: CLI tools are starting to evolve toward output that code agents can read efficiently. `ls` returning 200 lines of noise made sense when a human was reading it. When a code agent reads it, that's wasted tokens. RTK is a shim for the transition period. Long-term, tools will output compact, structured data natively. The same shift happened to APIs when mobile came along.
 
@@ -458,8 +455,6 @@ flowchart LR
 ```
 
 Claude Code is this. Codex is this. Every serious code agent framework is this. The loop is always simple. The work is always in the boundaries.
-
-The source article put it cleanly: Agent 起步靠一个循环。"An agent starts with a loop." A code agent is no different. The loop is the skeleton. Harness is how it survives contact with reality.
 
 Build it yourself. Feel each piece land. Then when someone says "Claude Code uses a harness layer," you won't nod along. You'll know exactly what they mean.
 
