@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-17f129ae.js";
+            window.path_to_searchindex_js = "searchindex-a58f987d.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-e9b83f98.js"></script>
@@ -1378,7 +1378,7 @@ runAgent(task);
 <p><img src="img/minimal-agent/run-output.png" alt=""></p>
 <p>Several subtle details worth mentioning:</p>
 <p>The task hints the model toward tools like <code>list_files</code> and <code>read_file</code>. But none are defined yet. So the model reasons from its own knowledge, does its best, and signals <code>stop</code> after one single step. No looping. Not yet. This is how ChatGPT browser version works.</p>
-<p><code>finish_reason</code> in action 3 isn’t always <code>"stop"</code>. <code>"length"</code> means output hit the token limit, cut off mid-thought. <code>"content_filter"</code> means it was blocked. Production handles all of them explicitly.</p>
+<p><code>finish_reason</code> in action 3 isn’t always <code>"stop"</code>. <code>"length"</code> means output hit the token limit, cut off mid-thought. <code>"content_filter"</code> means it was blocked. Production handles all of them explicitly. In this demo, we assume it’s always the happy path.</p>
 <p>That <code>step &lt; 5</code> guard is not cosmetic. A confused model won’t stop itself. The step limit is the first harness piece, already baked in.</p>
 <hr>
 <h2 id="milestone-2-tools"><a class="header" href="#milestone-2-tools">Milestone 2: Tools</a></h2>
@@ -1525,12 +1525,11 @@ runAgent(task);
 <p><strong>First: the model doesn’t build the guardrail. The agent does.</strong> The model still tried to run <code>rm</code>, no hesitation, no special awareness. Your code intercepted it. You can’t rely on the model to protect you from itself. The boundary has to live in the harness.</p>
 <p><strong>Second: real harnesses return richer observations.</strong> Our <code>run_command</code> returns a plain string. Production systems return exit codes, stderr separated from stdout, truncation markers. Without exit codes, the model can’t tell “command ran and produced nothing” from “command failed silently.” Feed it thin observations, it fills the gaps with guesses.</p>
 <hr>
-<h2 id="why-five-more-boundaries"><a class="header" href="#why-five-more-boundaries">Why Five More Boundaries</a></h2>
+<h2 id="why-four-more-boundaries"><a class="header" href="#why-four-more-boundaries">Why Four More Boundaries</a></h2>
 <p>The loop is running. It can list files, read files, run commands. The demo works.</p>
 <p>But “works in a demo” is not the same as “works on real tasks.” Run this code agent on anything non-trivial and five specific things will break:</p>
 <ol>
 <li><strong>Context overflows.</strong> Long tool observations grow the message array. Hit the token limit, the API throws.</li>
-<li><strong>The loop never stops.</strong> A confused model keeps calling tools without converging.</li>
 <li><strong>The code agent forgets everything.</strong> Close the terminal, restart, it knows nothing about your project.</li>
 <li><strong>Unchecked commands.</strong> No confirmation before running something irreversible.</li>
 <li><strong>False completion.</strong> The model says “done.” Nothing was actually written or tested.</li>
@@ -1543,10 +1542,9 @@ runAgent(task);
 const observation =
   raw.length &gt; 2000 ? raw.slice(0, 2000) + "\n[...truncated]" : raw;
 </code></pre>
-<p>This is a blunt instrument. It works for a demo. In production, you’d summarize instead: call the model again on just the observation, get a condensed version, push that. Tools like <a href="https://github.com/rtk-ai/rtk">RTK</a> solve this at the CLI layer, compressing command output before it ever reaches the model.</p>
-<p>The screenshot below is my RTK session summary. 589 commands run, 392K tokens saved. That’s 46.8% of input tokens eliminated before the model ever saw them.</p>
+<p>This is a blunt instrument. It works for a demo. In production, you’d summarize instead: call the model again on just the observation, get a condensed version, push that. Tools like <a href="https://github.com/rtk-ai/rtk">RTK</a> solve this at the CLI layer, compressing the tool call result before it ever reaches the model.</p>
+<p>A side node, the screenshot below is my RTK session summary for ~2 week usage. 589 commands run, 392K tokens saved. That’s 46.8% of input tokens eliminated before the model ever saw them.</p>
 <p><img src="img/minimal-agent/rtk-token-savings.png" alt=""></p>
-<p>The step limit handles the second half of the context boundary: the loop that never stops. Together, truncation and step limits are the two guards that keep the loop from choking itself mid-run.</p>
 <p>One broader observation worth making here: CLI tools are starting to evolve toward output that code agents can read efficiently. <code>ls</code> returning 200 lines of noise made sense when a human was reading it. When a code agent reads it, that’s wasted tokens. RTK is a shim for the transition period. Long-term, tools will output compact, structured data natively. The same shift happened to APIs when mobile came along.</p>
 <hr>
 <h2 id="milestone-5-memory-boundary"><a class="header" href="#milestone-5-memory-boundary">Milestone 5: Memory Boundary</a></h2>
@@ -1641,7 +1639,6 @@ async function run_command(command: string): Promise&lt;string&gt; {
     end
 </code></pre>
 <p>Claude Code is this. Codex is this. Every serious code agent framework is this. The loop is always simple. The work is always in the boundaries.</p>
-<p>The source article put it cleanly: Agent 起步靠一个循环。“An agent starts with a loop.” A code agent is no different. The loop is the skeleton. Harness is how it survives contact with reality.</p>
 <p>Build it yourself. Feel each piece land. Then when someone says “Claude Code uses a harness layer,” you won’t nod along. You’ll know exactly what they mean.</p>
 <p>That’s the understanding Karpathy was talking about. You can’t outsource it.</p>
 <div style="break-before: page; page-break-before: always;"></div>
