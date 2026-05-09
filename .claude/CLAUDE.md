@@ -105,3 +105,17 @@ sed -n '<start>,<end>p' path/to/file.ts | nix run nixpkgs#charm-freeze -- - \
 ```
 
 Store all images under `src/img/<slug>/`. For the blog, embed with `![](img/<slug>/name.png)`. For LinkedIn, attach as images manually.
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default label vocabulary (needs-triage, needs-info, ready-for-agent, ready-for-human, wontfix). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context repo: one `CONTEXT.md` + `docs/adr/` at root. See `docs/agents/domain.md`.
