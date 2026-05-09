@@ -106,6 +106,10 @@ sed -n '<start>,<end>p' path/to/file.ts | nix run nixpkgs#charm-freeze -- - \
 
 Store all images under `src/img/<slug>/`. For the blog, embed with `![](img/<slug>/name.png)`. For LinkedIn, attach as images manually.
 
+## Before Writing Content
+
+Read `~/notes/personal/projects/blog/ai-article-workflow.md` before drafting or editing any article content.
+
 ## Agent skills
 
 ### Issue tracker
