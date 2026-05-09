@@ -245,7 +245,13 @@ The quality of the agent's output is only as good as the observations its tools 
 
 Now add `run_command`. The model can execute shell commands.
 
+`list_files` and `read_file` use Node's `fs` module. You're calling well-defined Node APIs. Node handles the underlying OS interaction, and the security contract is clearly scoped: read the filesystem, nothing else.
+
+`run_command` is different. It hands a string to the shell and lets the shell decide what happens. No guardrails. Any binary, any argument, any side effect. That's a different layer entirely, and it needs a different trust model.
+
 ```typescript
+// ... imports, client, MODEL, tools, list_files, read_file, runAgent same as before
+
 const ALLOWED_COMMANDS = ["ls", "cat", "echo", "node", "npm", "rg"];
 
 function run_command(command: string): string {
@@ -255,15 +261,26 @@ function run_command(command: string): string {
   }
   return execSync(command, { encoding: "utf-8" });
 }
+
+const task =
+  "List the files in this directory, read package.json, and run `node --version`.";
+
+runAgent(task);
 ```
 
-Notice the whitelist. Why?
+Notice the whitelist? It is the guardrail we build. The model can reach the shell, but only through these specific doors. If we send the task to run `rm AGENTS.md`, agent would refuse it as below.
 
-This is the tool boundary. The question isn't "is this command dangerous?" It's: "what surface area am I exposing?" `list_files` and `read_file` are Node-native, read-only. `run_command` crosses into the shell. Different layer, different trust model.
+![](img/minimal-agent/run-output-tool-boundary.png)
 
-The whitelist is the boundary guard. It says: the model can reach the shell, but only through these specific doors. Fewer doors means fewer things that can go wrong. Easier to audit. Easier to extend deliberately.
+The code run above has the task: "Run `rm AGENTS.md`", and it has two steps.
 
-This is also the first time you feel the gap between "runs" and "works." The loop runs fine without a whitelist. But you wouldn't trust it near your home directory.
+Step 1: the model calls `run_command("rm AGENTS.md")`. It doesn't know `rm` is blocked. The whitelist fires, returns an error string as a normal observation. Step 2: the model reads it and reports back.
+
+Two subtle points I'd like to point out.
+
+**First: the model doesn't build the guardrail. The agent does.** The model still tried to run `rm` — no hesitation, no special awareness. Your code intercepted it. You can't rely on the model to protect you from itself. The boundary has to live in the harness.
+
+**Second: real harnesses return richer observations.** Our `run_command` returns a plain string. Production systems return exit codes, stderr separated from stdout, truncation markers. Without exit codes, the model can't tell "command ran and produced nothing" from "command failed silently." Feed it thin observations, it fills the gaps with guesses.
 
 ---
 
