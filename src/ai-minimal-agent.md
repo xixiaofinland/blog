@@ -108,12 +108,15 @@ That `step < 5` guard is not cosmetic. A confused model won't stop itself. The s
 
 ## Milestone 2: Tools
 
-The model can think. Now give it eyes.
+Now give it eyes (tools).
 
-Tools are not system prompt tricks. They're a structured API. You pass a list of tool definitions alongside your messages. The model reads the descriptions and decides which one to call.
+Tools are not system prompt tricks. They're a structured contract. The code agent passes a list of tool definitions alongside your messages. The model reads the descriptions and decides which one to call.
 
 ```typescript
-const tools = [
+// ... imports, client, MODEL same as before
+
+// ── Tool definitions (what the model sees)
+const tools: OpenAI.ChatCompletionTool[] = [
   {
     type: "function",
     function: {
@@ -128,37 +131,113 @@ const tools = [
       },
     },
   },
-  // read_file is identical in shape
+  {
+    type: "function",
+    function: {
+      name: "read_file",
+      description: "Read the contents of a file.",
+      parameters: {
+        type: "object",
+        properties: {
+          path: { type: "string", description: "File path to read." },
+        },
+        required: ["path"],
+      },
+    },
+  },
 ];
-```
 
-The model never calls your code directly. It returns a structured `tool_calls` block. Your code dispatches it.
+// ── Tool implementations (what actually runs)
+function list_files(filePath: string): string {
+  const entries = fs.readdirSync(filePath, { withFileTypes: true });
+  return entries
+    .map((e) => (e.isDirectory() ? `${e.name}/` : e.name))
+    .join("\n");
+}
 
-```typescript
-function runTool(name, args) {
+function read_file(filePath: string): string {
+  return fs.readFileSync(filePath, "utf-8");
+}
+
+function runTool(name: string, args: Record<string, string>): string {
   if (name === "list_files") return list_files(args.path);
   if (name === "read_file") return read_file(args.path);
+  return `Unknown tool: ${name}`;
 }
+
+// ── Agent loop
+async function runAgent(task: string) {
+  // ... messages setup same as before
+  for (let step = 0; step < 5; step++) {
+    const response = await client.chat.completions.create({
+      model: MODEL,
+      messages,
+      tools, // <-- added
+    });
+
+    const message = response.choices[0].message;
+    messages.push(message);
+
+    if (response.choices[0].finish_reason === "tool_calls") {
+      const toolCall = message.tool_calls![0];
+      const args = JSON.parse(toolCall.function.arguments);
+      const observation = runTool(toolCall.function.name, args);
+      messages.push({
+        role: "tool",
+        tool_call_id: toolCall.id,
+        content: observation,
+      });
+    } else {
+      // ... print and return same as before
+    }
+  }
+}
+
+// ... task and runAgent(task) same as before
 ```
 
-The model reasons. You execute. The loop carries the observation back.
+Think about how you'd solve this yourself.
 
-Run it with a task like "What files exist here, and does package.json have a test script?" Watch the model chain two tool calls across three steps to answer. It's not magic. It's just the loop reading its own history.
+You'd list the files first to get your bearings. Then open the specific file you need.
+
+The model does the same. It calls `list_files(".")`, scans the result, then calls `read_file("package.json")`. Two steps. Then it has what it needs and signals `stop`.
+
+The diagram shows exactly that.
 
 ```mermaid
 sequenceDiagram
-    participant Loop
-    participant Model
     participant Tool
+    participant Agent
+    participant Model
 
-    Loop->>Model: messages + tool definitions
-    Model-->>Loop: tool_calls: list_files(path)
-    Loop->>Tool: list_files(".")
-    Tool-->>Loop: "agent.ts\npackage.json\n..."
-    Loop->>Model: messages + observation
-    Model-->>Loop: finish_reason: stop
-    Loop->>Loop: print answer
+    Agent->>Model: messages
+    Model-->>Agent: tool_calls
+    Agent->>Tool: list_files(".")
+    Tool-->>Agent: response
+    Agent->>Model: messages + observation
+    Model-->>Agent: tool_calls
+    Agent->>Tool: read_file("package.json")
+    Tool-->>Agent: response
+    Agent->>Model: messages + observation
+    Model-->>Agent: stop
+    Agent->>Agent: done
 ```
+
+The code running result:
+
+Steps 1 and 2 follow the same pattern: the model requests a tool call, the agent runs it and sends the observation back.
+
+Step 3 is different. No tool call. The model has enough context now and answers directly. That's the `stop` signal, and the final answer prints.
+
+![](img/minimal-agent/run-output-tools.png)
+
+Think of tools as sensors in an IoT system. They sample the environment and send readings back. The model, like a controller, makes decisions based on what it receives.
+
+Feed it accurate readings, it reasons correctly. Feed it wrong ones, it reasons confidently in the wrong direction. The model has no way to tell the difference. It just processes what arrives.
+
+You could return fake data. Wrong file contents. A made-up directory listing. The model would accept it, reason over it, and answer confidently. No verification.
+
+The quality of the agent's output is only as good as the observations its tools return.
 
 ---
 
