@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-b74d5dc7.js";
+            window.path_to_searchindex_js = "searchindex-17f129ae.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-e9b83f98.js"></script>
@@ -263,7 +263,7 @@ runAgent(task);
 <p>The code above is not pseudocode. You can run it. I run against a local Qwen3.6 35B LLM, but any openai API compatible ones would go, such as gpt-4o-mini with your openai API key.</p>
 <p><img src="img/minimal-agent/run-output.png" alt=""></p>
 <p>Several subtle details worth mentioning:</p>
-<p>The task hints the model toward tools like <code>list_files</code> and <code>read_file</code>. But none are defined yet. So the model reasons from its own knowledge, does its best, and signals <code>stop</code> after one step. No looping. Not yet. This is how ChatGPT browser version works.</p>
+<p>The task hints the model toward tools like <code>list_files</code> and <code>read_file</code>. But none are defined yet. So the model reasons from its own knowledge, does its best, and signals <code>stop</code> after one single step. No looping. Not yet. This is how ChatGPT browser version works.</p>
 <p><code>finish_reason</code> in action 3 isn’t always <code>"stop"</code>. <code>"length"</code> means output hit the token limit, cut off mid-thought. <code>"content_filter"</code> means it was blocked. Production handles all of them explicitly.</p>
 <p>That <code>step &lt; 5</code> guard is not cosmetic. A confused model won’t stop itself. The step limit is the first harness piece, already baked in.</p>
 <hr>
@@ -408,7 +408,7 @@ runAgent(task);
 <p>The code run above has the task: “Run <code>rm AGENTS.md</code>”, and it has two steps.</p>
 <p>Step 1: the model calls <code>run_command("rm AGENTS.md")</code>. It doesn’t know <code>rm</code> is blocked. The whitelist fires, returns an error string as a normal observation. Step 2: the model reads it and reports back.</p>
 <p>Two subtle points I’d like to point out.</p>
-<p><strong>First: the model doesn’t build the guardrail. The agent does.</strong> The model still tried to run <code>rm</code> — no hesitation, no special awareness. Your code intercepted it. You can’t rely on the model to protect you from itself. The boundary has to live in the harness.</p>
+<p><strong>First: the model doesn’t build the guardrail. The agent does.</strong> The model still tried to run <code>rm</code>, no hesitation, no special awareness. Your code intercepted it. You can’t rely on the model to protect you from itself. The boundary has to live in the harness.</p>
 <p><strong>Second: real harnesses return richer observations.</strong> Our <code>run_command</code> returns a plain string. Production systems return exit codes, stderr separated from stdout, truncation markers. Without exit codes, the model can’t tell “command ran and produced nothing” from “command failed silently.” Feed it thin observations, it fills the gaps with guesses.</p>
 <hr>
 <h2 id="why-five-more-boundaries"><a class="header" href="#why-five-more-boundaries">Why Five More Boundaries</a></h2>
@@ -429,7 +429,9 @@ runAgent(task);
 const observation =
   raw.length &gt; 2000 ? raw.slice(0, 2000) + "\n[...truncated]" : raw;
 </code></pre>
-<p>This is a blunt instrument. It works for a demo. In production, you’d summarize instead: call the model again on just the observation, get a condensed version, push that. Tools like <a href="https://github.com/rtk-ai/rtk">RTK</a> solve this at the CLI layer, compressing command output before it ever reaches the model — 80% token reduction in practice.</p>
+<p>This is a blunt instrument. It works for a demo. In production, you’d summarize instead: call the model again on just the observation, get a condensed version, push that. Tools like <a href="https://github.com/rtk-ai/rtk">RTK</a> solve this at the CLI layer, compressing command output before it ever reaches the model.</p>
+<p>The screenshot below is my RTK session summary. 589 commands run, 392K tokens saved. That’s 46.8% of input tokens eliminated before the model ever saw them.</p>
+<p><img src="img/minimal-agent/rtk-token-savings.png" alt=""></p>
 <p>The step limit handles the second half of the context boundary: the loop that never stops. Together, truncation and step limits are the two guards that keep the loop from choking itself mid-run.</p>
 <p>One broader observation worth making here: CLI tools are starting to evolve toward output that code agents can read efficiently. <code>ls</code> returning 200 lines of noise made sense when a human was reading it. When a code agent reads it, that’s wasted tokens. RTK is a shim for the transition period. Long-term, tools will output compact, structured data natively. The same shift happened to APIs when mobile came along.</p>
 <hr>
