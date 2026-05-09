@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-d3d317dd.js";
+            window.path_to_searchindex_js = "searchindex-05c60749.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-e9b83f98.js"></script>
@@ -268,9 +268,12 @@ runAgent(task);
 <p>That <code>step &lt; 5</code> guard is not cosmetic. A confused model won’t stop itself. The step limit is the first harness piece, already baked in.</p>
 <hr>
 <h2 id="milestone-2-tools"><a class="header" href="#milestone-2-tools">Milestone 2: Tools</a></h2>
-<p>The model can think. Now give it eyes.</p>
-<p>Tools are not system prompt tricks. They’re a structured API. You pass a list of tool definitions alongside your messages. The model reads the descriptions and decides which one to call.</p>
-<pre><code class="language-typescript">const tools = [
+<p>Now give it eyes (tools).</p>
+<p>Tools are not system prompt tricks. They’re a structured contract. The code agent passes a list of tool definitions alongside your messages. The model reads the descriptions and decides which one to call.</p>
+<pre><code class="language-typescript">// ... imports, client, MODEL same as before
+
+// ── Tool definitions (what the model sees)
+const tools: OpenAI.ChatCompletionTool[] = [
   {
     type: "function",
     function: {
@@ -285,30 +288,99 @@ runAgent(task);
       },
     },
   },
-  // read_file is identical in shape
+  {
+    type: "function",
+    function: {
+      name: "read_file",
+      description: "Read the contents of a file.",
+      parameters: {
+        type: "object",
+        properties: {
+          path: { type: "string", description: "File path to read." },
+        },
+        required: ["path"],
+      },
+    },
+  },
 ];
-</code></pre>
-<p>The model never calls your code directly. It returns a structured <code>tool_calls</code> block. Your code dispatches it.</p>
-<pre><code class="language-typescript">function runTool(name, args) {
+
+// ── Tool implementations (what actually runs)
+function list_files(filePath: string): string {
+  const entries = fs.readdirSync(filePath, { withFileTypes: true });
+  return entries
+    .map((e) =&gt; (e.isDirectory() ? `${e.name}/` : e.name))
+    .join("\n");
+}
+
+function read_file(filePath: string): string {
+  return fs.readFileSync(filePath, "utf-8");
+}
+
+function runTool(name: string, args: Record&lt;string, string&gt;): string {
   if (name === "list_files") return list_files(args.path);
   if (name === "read_file") return read_file(args.path);
+  return `Unknown tool: ${name}`;
 }
-</code></pre>
-<p>The model reasons. You execute. The loop carries the observation back.</p>
-<p>Run it with a task like “What files exist here, and does package.json have a test script?” Watch the model chain two tool calls across three steps to answer. It’s not magic. It’s just the loop reading its own history.</p>
-<pre><code class="language-mermaid">sequenceDiagram
-    participant Loop
-    participant Model
-    participant Tool
 
-    Loop-&gt;&gt;Model: messages + tool definitions
-    Model--&gt;&gt;Loop: tool_calls: list_files(path)
-    Loop-&gt;&gt;Tool: list_files(".")
-    Tool--&gt;&gt;Loop: "agent.ts\npackage.json\n..."
-    Loop-&gt;&gt;Model: messages + observation
-    Model--&gt;&gt;Loop: finish_reason: stop
-    Loop-&gt;&gt;Loop: print answer
+// ── Agent loop
+async function runAgent(task: string) {
+  // ... messages setup same as before
+  for (let step = 0; step &lt; 5; step++) {
+    const response = await client.chat.completions.create({
+      model: MODEL,
+      messages,
+      tools, // &lt;-- added
+    });
+
+    const message = response.choices[0].message;
+    messages.push(message);
+
+    if (response.choices[0].finish_reason === "tool_calls") {
+      const toolCall = message.tool_calls![0];
+      const args = JSON.parse(toolCall.function.arguments);
+      const observation = runTool(toolCall.function.name, args);
+      messages.push({
+        role: "tool",
+        tool_call_id: toolCall.id,
+        content: observation,
+      });
+    } else {
+      // ... print and return same as before
+    }
+  }
+}
+
+// ... task and runAgent(task) same as before
 </code></pre>
+<p>Think about how you’d solve this yourself.</p>
+<p>You’d list the files first to get your bearings. Then open the specific file you need.</p>
+<p>The model does the same. It calls <code>list_files(".")</code>, scans the result, then calls <code>read_file("package.json")</code>. Two steps. Then it has what it needs and signals <code>stop</code>.</p>
+<p>The diagram shows exactly that.</p>
+<pre><code class="language-mermaid">sequenceDiagram
+    participant Tool
+    participant Agent
+    participant Model
+
+    Agent-&gt;&gt;Model: messages
+    Model--&gt;&gt;Agent: tool_calls
+    Agent-&gt;&gt;Tool: list_files(".")
+    Tool--&gt;&gt;Agent: response
+    Agent-&gt;&gt;Model: messages + observation
+    Model--&gt;&gt;Agent: tool_calls
+    Agent-&gt;&gt;Tool: read_file("package.json")
+    Tool--&gt;&gt;Agent: response
+    Agent-&gt;&gt;Model: messages + observation
+    Model--&gt;&gt;Agent: stop
+    Agent-&gt;&gt;Agent: done
+</code></pre>
+<p>The code running result:</p>
+<p>Steps 1 and 2 follow the same pattern: the model requests a tool call, the agent runs it and sends the observation back.</p>
+<p>Step 3 is different. No tool call. The model has enough context now and answers directly. That’s the <code>stop</code> signal, and the final answer prints.</p>
+<p><img src="img/minimal-agent/run-output-tools.png" alt=""></p>
+<p>Think of tools as sensors in an IoT system. They sample the environment and send readings back. The model, like a controller, makes decisions based on what it receives.</p>
+<p>Feed it accurate readings, it reasons correctly. Feed it wrong ones, it reasons confidently in the wrong direction. The model has no way to tell the difference. It just processes what arrives.</p>
+<p>You could return fake data. Wrong file contents. A made-up directory listing. The model would accept it, reason over it, and answer confidently. No verification.</p>
+<p>The quality of the agent’s output is only as good as the observations its tools return.</p>
 <hr>
 <h2 id="milestone-3-tool-boundary"><a class="header" href="#milestone-3-tool-boundary">Milestone 3: Tool Boundary</a></h2>
 <p>Now add <code>run_command</code>. The model can execute shell commands.</p>
