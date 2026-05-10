@@ -8,11 +8,13 @@ You've heard "code agent" and "harness" a hundred times this year, but do you kn
 
 Most people can't. The words are borrowed, not earned.
 
-This article earns them. We build a minimal LLM code agent from scratch in TypeScript, step by step, milestone by milestone. By the end, you won't just know the vocabulary. You'll know the skeleton underneath it.
+This article earns them. We build a minimal LLM code agent from scratch in TypeScript, step by step. By the end, you won't just know the vocabulary. You'll know the skeleton underneath it.
 
 The code is built in 30 minutes. The understanding takes the whole article. That's the point.
 
-**TLDR:** A code agent is a loop. The loop calls a model, runs tools, and repeats until done. What makes it production-ready is the harness around it: boundaries for tools, context, memory, permissions, and validation. This article builds both from scratch, in TypeScript, milestone by milestone. Full source: [minimal-agent](https://github.com/xixiaofinland/lab/tree/main/minimal-agent).
+---
+
+**TLDR:** A code agent is a loop. The loop calls a model, runs tools, and repeats until done. What makes it production-ready is the harness around it: boundaries for tools, context, memory, permissions, and validation. This article builds both from scratch, in TypeScript, milestone by milestone.  Source code: [minimal-agent](https://github.com/xixiaofinland/lab/tree/main/minimal-agent).
 
 ---
 
@@ -479,3 +481,5 @@ Claude Code is this. Codex is this. Every serious code agent framework is this. 
 Build it yourself. Feel each piece land. Then when someone says "Claude Code uses a harness layer," you won't nod along. You'll know exactly what they mean.
 
 That's the understanding Karpathy was talking about. You can't outsource it.
+
+Source code: [minimal-agent](https://github.com/xixiaofinland/lab/tree/main/minimal-agent).
