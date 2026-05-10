@@ -12,7 +12,7 @@ This article earns them. We build a minimal LLM code agent from scratch in TypeS
 
 The code is built in 30 minutes. The understanding takes the whole article. That's the point.
 
-> Full source: [minimal-agent](https://github.com/xixiaofinland/lab/tree/main/minimal-agent)
+**TLDR:** A code agent is a loop. The loop calls a model, runs tools, and repeats until done. What makes it production-ready is the harness around it: boundaries for tools, context, memory, permissions, and validation. This article builds both from scratch, in TypeScript, milestone by milestone. Full source: [minimal-agent](https://github.com/xixiaofinland/lab/tree/main/minimal-agent).
 
 ---
 
