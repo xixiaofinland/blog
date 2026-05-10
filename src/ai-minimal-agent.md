@@ -14,7 +14,7 @@ The code is built in 30 minutes. The understanding takes the whole article. That
 
 ---
 
-**TLDR:** A code agent is a loop. The loop calls a model, runs tools, and repeats until done. What makes it production-ready is the harness around it: boundaries for tools, context, memory, permissions, and validation. This article builds both from scratch, in TypeScript, milestone by milestone.  Source code: [minimal-agent](https://github.com/xixiaofinland/lab/tree/main/minimal-agent).
+**TLDR:** A code agent is a loop. The loop calls a model, runs tools, and repeats until done. What makes it production-ready is the harness around it: boundaries for tools, context, memory, permissions, and validation. This article builds both from scratch, in TypeScript, milestone by milestone. Source code: [minimal-agent](https://github.com/xixiaofinland/lab/tree/main/minimal-agent).
 
 ---
 
@@ -225,7 +225,7 @@ sequenceDiagram
     Agent->>Agent: done
 ```
 
-The code running result:
+The code running result is in the screenshot below:
 
 Steps 1 and 2 follow the same pattern: the model requests a tool call, the agent runs it and sends the observation back.
 
@@ -469,7 +469,7 @@ flowchart LR
 
     subgraph Harness["Harness"]
         TB[Tool Boundary] --> L
-        CB[Context Management] --> L
+        CB[Context Boundary] --> L
         MB[Memory Boundary] --> L
         PB[Permission Boundary] --> L
         VB[Validation Boundary] --> L
