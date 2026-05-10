@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-38bae8d3.js";
+            window.path_to_searchindex_js = "searchindex-3b533ad6.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-e9b83f98.js"></script>
+        <script src="toc-33e57f6d.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -189,6 +189,1053 @@ paint brush icon (<i class="fa fa-paint-brush"></i>) in the top-left menu bar.</
 fa-search"></i>) or hit the <code>S</code> key on the keyboard to open an input box. As you
 type, matching content appears instantly.</p>
 <p>Thanks for your time!</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="ai"><a class="header" href="#ai">AI</a></h1>
+<p>Most new threads land in <a href="#latest-ai-threads">Latest</a> first.</p>
+<p>When that list gets too long, older threads move into yearly archive pages such as <a href="#ai-archive-2026">Archive 2026</a>.</p>
+<p>This keeps the sidebar recent-first without burying older posts.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="latest-ai-threads"><a class="header" href="#latest-ai-threads">Latest AI Threads</a></h1>
+<p>Start here for the newest AI posts. The sidebar keeps the latest seven threads visible, then rotates older ones into yearly archives.</p>
+<!-- AI_LATEST_LINKS_START -->
+<ul>
+<li><a href="#build-a-minimal-llm-code-agent-from-loop-to-harness">Build a Minimal LLM Code Agent: From Loop to Harness</a></li>
+<li><a href="#salesforce-headless-360-agent-first-or-just-hype">Salesforce Headless 360: Agent-First or Just Hype?</a></li>
+<li><a href="#classification">Classification</a></li>
+<li><a href="#inspecting-the-california-housing-dataset-before-preprocessing">Inspecting the California Housing Dataset (Before Preprocessing)</a></li>
+<li><a href="#end-to-end-regression-with-scikit-learn-numeric-features-only">End-to-End Regression with scikit-learn (Numeric Features Only)</a></li>
+<li><a href="#linear-and-logistic-regression">Linear and Logistic Regression</a></li>
+</ul>
+<!-- AI_LATEST_LINKS_END -->
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="build-a-minimal-llm-code-agent-from-loop-to-harness"><a class="header" href="#build-a-minimal-llm-code-agent-from-loop-to-harness">Build a Minimal LLM Code Agent: From Loop to Harness</a></h1>
+<blockquote>
+<p>“You can outsource thinking, but not understanding.”</p>
+<ul>
+<li>Andrej Karpathy</li>
+</ul>
+</blockquote>
+<p>You’ve heard “code agent” and “harness” a hundred times this year, but do you know how it works? Could you build it in code?</p>
+<p>Most people can’t. The words are borrowed, not earned.</p>
+<p>This article earns them. We build a minimal LLM code agent from scratch in TypeScript, step by step. By the end, you won’t just know the vocabulary. You’ll know the skeleton underneath it.</p>
+<p>The code is built in 30 minutes. The understanding takes the whole article. That’s the point.</p>
+<hr>
+<p><strong>TLDR:</strong> A code agent is a loop. The loop calls a model, runs tools, and repeats until done. What makes it production-ready is the harness around it: boundaries for tools, context, memory, permissions, and validation. This article builds both from scratch, in TypeScript, milestone by milestone. Source code: <a href="https://github.com/xixiaofinland/lab/tree/main/minimal-agent">minimal-agent</a>.</p>
+<hr>
+<h2 id="milestone-1-the-loop"><a class="header" href="#milestone-1-the-loop">Milestone 1: The Loop</a></h2>
+<p>Strip everything away. What is a code agent at its core?</p>
+<p>A loop in <code>runAgent()</code>. That’s it.</p>
+<pre><code class="language-typescript">import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1",
+  apiKey: process.env.OPENAI_API_KEY ?? "none",
+});
+
+const MODEL = process.env.MODEL ?? "gpt-4o-mini";
+
+async function runAgent(task: string) {
+  const messages: OpenAI.ChatCompletionMessageParam[] = [
+    { role: "user", content: task },
+  ];
+
+  console.log(`user: ${task}`);
+
+  for (let step = 0; step &lt; 5; step++) {
+    console.log(`\n── step ${step + 1}`);
+
+    // action 1;
+    const response = await client.chat.completions.create({
+      model: MODEL,
+      messages,
+    });
+
+    // action 2;
+    const message = response.choices[0].message;
+    messages.push(message);
+
+    // strip &lt;think&gt;...&lt;/think&gt; blocks for display only
+    const display = message.content
+      ?.replace(/&lt;think&gt;[\s\S]*?&lt;\/think&gt;/g, "")
+      .trim();
+    console.log("model:", display);
+
+    // action 3;
+    if (response.choices[0].finish_reason === "stop") {
+      return message.content;
+    }
+  }
+
+  return "Stopped: step limit reached.";
+}
+
+const task =
+  "What test files exist in this project, and does package.json have a test script?";
+
+runAgent(task);
+</code></pre>
+<p>It sends this exact task to the code agent, <code>"What test files exist in this project, and does package.json have a test script?"</code>, then calls <code>runAgent(task)</code> to start the loop.</p>
+<p>Three things happen in each iteration:</p>
+<ol>
+<li><code>action 1</code>: call the model with the current message history</li>
+<li><code>action 2</code>: push the reply into history, print a cleaned version to the terminal</li>
+<li><code>action 3</code>: if the model is done, return; if not, loop</li>
+</ol>
+<pre><code class="language-mermaid">flowchart TD
+    A([User Task]) --&gt; B[Call Model]
+    B --&gt; C[Push Reply to History]
+    C --&gt; D{finish_reason = stop?}
+    D -- yes --&gt; E([Return Answer])
+    D -- no --&gt; F{step &lt; 5?}
+    F -- yes --&gt; B
+    F -- no --&gt; G([Stopped])
+</code></pre>
+<p>The code above is not pseudocode. You can run it. I run against a local Qwen3.6 35B LLM, but any openai API compatible ones would go, such as gpt-4o-mini with your openai API key.</p>
+<p><img src="img/minimal-agent/run-output.png" alt=""></p>
+<p>Several subtle details worth mentioning:</p>
+<p>The task hints the model toward tools like <code>list_files</code> and <code>read_file</code>. But none are defined yet. So the model reasons from its own knowledge, does its best, and signals <code>stop</code> after one single step. No looping. Not yet. This is how ChatGPT browser version works.</p>
+<p><code>finish_reason</code> in action 3 isn’t always <code>"stop"</code>. <code>"length"</code> means output hit the token limit, cut off mid-thought. <code>"content_filter"</code> means it was blocked. Production handles all of them explicitly. In this demo, we assume it’s always the happy path.</p>
+<p>That <code>step &lt; 5</code> guard is not cosmetic. A confused model won’t stop itself. The step limit is the first harness piece, already baked in.</p>
+<hr>
+<h2 id="milestone-2-tools"><a class="header" href="#milestone-2-tools">Milestone 2: Tools</a></h2>
+<p>Now give it eyes (tools).</p>
+<p>Tools are not system prompt tricks. They’re a structured contract. The code agent passes a list of tool definitions alongside your messages. The model reads the descriptions and decides which one to call.</p>
+<pre><code class="language-typescript">// ... imports, client, MODEL same as before
+
+// ── Tool definitions (what the model sees)
+const tools: OpenAI.ChatCompletionTool[] = [
+  {
+    type: "function",
+    function: {
+      name: "list_files",
+      description: "List files and directories at a given path.",
+      parameters: {
+        type: "object",
+        properties: {
+          path: { type: "string", description: "Directory path to list." },
+        },
+        required: ["path"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "read_file",
+      description: "Read the contents of a file.",
+      parameters: {
+        type: "object",
+        properties: {
+          path: { type: "string", description: "File path to read." },
+        },
+        required: ["path"],
+      },
+    },
+  },
+];
+
+// ── Tool implementations (what actually runs)
+function list_files(filePath: string): string {
+  const entries = fs.readdirSync(filePath, { withFileTypes: true });
+  return entries
+    .map((e) =&gt; (e.isDirectory() ? `${e.name}/` : e.name))
+    .join("\n");
+}
+
+function read_file(filePath: string): string {
+  return fs.readFileSync(filePath, "utf-8");
+}
+
+function runTool(name: string, args: Record&lt;string, string&gt;): string {
+  if (name === "list_files") return list_files(args.path);
+  if (name === "read_file") return read_file(args.path);
+  return `Unknown tool: ${name}`;
+}
+
+// ── Agent loop
+async function runAgent(task: string) {
+  // ... messages setup same as before
+  for (let step = 0; step &lt; 5; step++) {
+    const response = await client.chat.completions.create({
+      model: MODEL,
+      messages,
+      tools, // &lt;-- added
+    });
+
+    const message = response.choices[0].message;
+    messages.push(message);
+
+    if (response.choices[0].finish_reason === "tool_calls") {
+      const toolCall = message.tool_calls![0];
+      const args = JSON.parse(toolCall.function.arguments);
+      const observation = runTool(toolCall.function.name, args);
+      messages.push({
+        role: "tool",
+        tool_call_id: toolCall.id,
+        content: observation,
+      });
+    } else {
+      // ... print and return same as before
+    }
+  }
+}
+
+// ... task and runAgent(task) same as before
+</code></pre>
+<p>Think about how you’d solve this yourself.</p>
+<p>You’d list the files first to get your bearings. Then open the specific file you need.</p>
+<p>The model does the same. It calls <code>list_files(".")</code>, scans the result, then calls <code>read_file("package.json")</code>. Two steps. Then it has what it needs and signals <code>stop</code>.</p>
+<p>The diagram shows exactly that.</p>
+<pre><code class="language-mermaid">sequenceDiagram
+    participant Tool
+    participant Agent
+    participant Model
+
+    Agent-&gt;&gt;Model: messages
+    Model--&gt;&gt;Agent: tool_calls
+    Agent-&gt;&gt;Tool: list_files(".")
+    Tool--&gt;&gt;Agent: response
+    Agent-&gt;&gt;Model: messages + observation
+    Model--&gt;&gt;Agent: tool_calls
+    Agent-&gt;&gt;Tool: read_file("package.json")
+    Tool--&gt;&gt;Agent: response
+    Agent-&gt;&gt;Model: messages + observation
+    Model--&gt;&gt;Agent: stop
+    Agent-&gt;&gt;Agent: done
+</code></pre>
+<p>The code running result is in the screenshot below:</p>
+<p>Steps 1 and 2 follow the same pattern: the model requests a tool call, the agent runs it and sends the observation back.</p>
+<p>Step 3 is different. No tool call. The model has enough context now and answers directly. That’s the <code>stop</code> signal, and the final answer prints.</p>
+<p><img src="img/minimal-agent/run-output-tools.png" alt=""></p>
+<p>Think of tools as sensors in an IoT system. They sample the environment and send readings back. The model, like a controller, makes decisions based on what it receives.</p>
+<p>Feed it accurate readings, it reasons correctly. Feed it wrong ones, it reasons confidently in the wrong direction. The model has no way to tell the difference. It just processes what arrives.</p>
+<p>You could return fake data. Wrong file contents. A made-up directory listing. The model would accept it, reason over it, and answer confidently. No verification.</p>
+<p>The quality of the agent’s output is only as good as the observations its tools return.</p>
+<hr>
+<h2 id="milestone-3-tool-boundary"><a class="header" href="#milestone-3-tool-boundary">Milestone 3: Tool Boundary</a></h2>
+<p>Now add <code>run_command</code>. The model can execute shell commands.</p>
+<p><code>list_files</code> and <code>read_file</code> use Node’s <code>fs</code> module. You’re calling well-defined Node APIs. Node handles the underlying OS interaction, and the security contract is clearly scoped: read the filesystem, nothing else.</p>
+<p><code>run_command</code> is different. It hands a string to the shell and lets the shell decide what happens. No guardrails. Any binary, any argument, any side effect. That’s a different layer entirely, and it needs a different trust model.</p>
+<pre><code class="language-typescript">// ... imports, client, MODEL, tools, list_files, read_file, runAgent same as before
+
+const ALLOWED_COMMANDS = ["ls", "cat", "echo", "node", "npm", "rg"];
+
+function run_command(command: string): string {
+  const binary = command.trim().split(/\s+/)[0];
+  if (!ALLOWED_COMMANDS.includes(binary)) {
+    return `Error: '${binary}' is not an allowed command.`;
+  }
+  return execSync(command, { encoding: "utf-8" });
+}
+
+const task =
+  "List the files in this directory, read package.json, and run `node --version`.";
+
+runAgent(task);
+</code></pre>
+<p>Notice the whitelist? It is the guardrail we build. The model can reach the shell, but only through these specific doors. If we send the task to run <code>rm AGENTS.md</code>, agent would refuse it as below.</p>
+<p><img src="img/minimal-agent/run-output-tool-boundary.png" alt=""></p>
+<p>The code run above has the task: “Run <code>rm AGENTS.md</code>”, and it has two steps.</p>
+<p>Step 1: the model calls <code>run_command("rm AGENTS.md")</code>. It doesn’t know <code>rm</code> is blocked. The whitelist fires, returns an error string as a normal observation. Step 2: the model reads it and reports back.</p>
+<p>Two subtle points I’d like to point out.</p>
+<p><strong>First: the model doesn’t build the guardrail. The agent does.</strong> The model still tried to run <code>rm</code>, no hesitation, no special awareness. Your code intercepted it. You can’t rely on the model to protect you from itself. The boundary has to live in the harness.</p>
+<p><strong>Second: real harnesses return richer observations.</strong> Our <code>run_command</code> returns a plain string. Production systems return exit codes, stderr separated from stdout, truncation markers. Without exit codes, the model can’t tell “command ran and produced nothing” from “command failed silently.” Feed it thin observations, it fills the gaps with guesses.</p>
+<hr>
+<h2 id="what-a-real-agent-needs"><a class="header" href="#what-a-real-agent-needs">What a Real Agent Needs</a></h2>
+<p>The loop is running. It can list files, read files, run commands. The demo works.</p>
+<p>But “works in a demo” is not the same as “works on real tasks.” Run this code agent on anything non-trivial and four specific things will break:</p>
+<ol>
+<li><strong>Context overflows.</strong> Long tool observations grow the message array. Hit the token limit, the API throws.</li>
+<li><strong>No memory.</strong> Close the terminal, restart, it knows nothing about your project.</li>
+<li><strong>Unchecked commands.</strong> No confirmation before running something irreversible.</li>
+<li><strong>False completion.</strong> The model says “done.” Nothing was actually written or tested.</li>
+</ol>
+<p>These aren’t hypothetical. Each one is a failure mode you will hit. The next four milestones add a boundary for each.</p>
+<hr>
+<h2 id="milestone-4-context-boundary"><a class="header" href="#milestone-4-context-boundary">Milestone 4: Context Boundary</a></h2>
+<p>Context isn’t just a technical limit. It’s everything the model can see right now.</p>
+<p>Transformers don’t attend equally across the context. The model pays more attention near the start and near the end. Bury something in the middle and the model struggles to reach it. The longer the context, the harder the attention. Researchers call this the “lost in the middle” problem.</p>
+<p>So the goal isn’t just “stay under the limit.” It’s “keep the right things visible.”</p>
+<p>That means three operations: pick what goes in, remove what’s useless, condense what’s redundant. Each is a judgment call. Each is hard. Together, they look a lot like the old embedded discipline: limited RAM, everything competing for it, no room for waste. The constraint is different. The problem shape is the same.</p>
+<p>In our demo, we take the simple approach: truncate anything too long.</p>
+<pre><code class="language-typescript">const raw = await runTool(toolCall.function.name, args);
+const observation =
+  raw.length &gt; 2000 ? raw.slice(0, 2000) + "\n[...truncated]" : raw;
+</code></pre>
+<p>This is a blunt instrument. It works for a demo. In production, you’d summarize instead: call the model again on just the observation, get a condensed version, push that. Tools like <a href="https://github.com/rtk-ai/rtk">RTK</a> solve this at the CLI layer, compressing the tool call result before it ever reaches the model.</p>
+<p>A side note, the screenshot below is my RTK session summary for ~2 week usage. 589 commands run, 392K tokens saved. That’s 46.8% of input tokens eliminated before the model ever saw them.</p>
+<p><img src="img/minimal-agent/rtk-token-savings.png" alt=""></p>
+<p>One broader observation worth making here: CLI tools are starting to evolve toward output that code agents can read efficiently. <code>ls</code> returning 200 lines of noise made sense when a human was reading it. When a code agent reads it, that’s wasted tokens. RTK is a shim for the transition period. Long-term, tools will output compact, structured data natively. The same shift happened to APIs when mobile came along.</p>
+<hr>
+<h2 id="milestone-5-memory-boundary"><a class="header" href="#milestone-5-memory-boundary">Milestone 5: Memory Boundary</a></h2>
+<p>Context is what’s in the <code>messages</code> array right now. Memory is what survives closing the terminal.</p>
+<p>Add an <code>AGENTS.md</code> to the project root:</p>
+<pre><code class="language-markdown"># Project Rules
+
+Always respond in Simplified Chinese (简体中文).
+</code></pre>
+<p>Load it as a system message at startup:</p>
+<pre><code class="language-typescript">function loadMemory(): OpenAI.ChatCompletionMessageParam[] {
+  try {
+    const rules = fs.readFileSync("AGENTS.md", "utf-8");
+    return [{ role: "system", content: rules }];
+  } catch {
+    return [];
+  }
+}
+
+const messages = [...loadMemory(), { role: "user", content: task }];
+</code></pre>
+<p>Run the same task as before. The model now responds in Chinese. Delete <code>AGENTS.md</code>, run again: English. The difference is visible in one line.</p>
+<p>Trust me, those are proper Chinese. The agent isn’t broken. 😄</p>
+<p><img src="img/minimal-agent/memory-agents.png" alt=""></p>
+<p>Continuity across sessions.</p>
+<p>For personal agents, memory isn’t a feature. It’s the whole point. Projects like <a href="https://openclaw.ai">OpenClaw</a> and <a href="https://github.com/NousResearch/Hermes">Hermes</a> are built around this: an assistant that knows your preferences, your history, your context. Context is temporary. Memory is what makes it yours.</p>
+<p>Which is why memory management is the harder problem. Context management asks: what should the model see right now? Memory management asks: what’s worth keeping at all? What to store. What to discard. When to surface it. How to retrieve the right piece without loading everything.</p>
+<p>Nobody has fully solved this. It’s one of the most active areas in agent research. Some draw the parallel to human sleep: one leading theory holds that sleep is when the brain consolidates the day’s experiences, strengthening useful patterns and discarding the rest. We don’t yet have that for LLMs. The framing is the same. The solution isn’t.</p>
+<hr>
+<h2 id="milestone-6-permission-boundary"><a class="header" href="#milestone-6-permission-boundary">Milestone 6: Permission Boundary</a></h2>
+<p><code>run_command</code> has a whitelist. That’s the outer gate. But some commands in the whitelist are still risky. <code>npm install</code>, <code>npm run build</code> — these change state.</p>
+<p>Add a second tier: commands that require confirmation before running.</p>
+<pre><code class="language-typescript">const AUTO_COMMANDS = ["ls", "cat", "echo", "node", "rg"];
+const CONFIRM_COMMANDS = ["npm"];
+
+async function run_command(command: string): Promise&lt;string&gt; {
+  const binary = command.trim().split(/\s+/)[0];
+  if (!AUTO_COMMANDS.includes(binary) &amp;&amp; !CONFIRM_COMMANDS.includes(binary)) {
+    return `Error: '${binary}' is not an allowed command.`;
+  }
+  if (CONFIRM_COMMANDS.includes(binary)) {
+    const approved = await ask(`Allow: ${command} ? (y/n) `);
+    if (!approved) return "User denied the command.";
+  }
+  return execSync(command, { encoding: "utf-8" });
+}
+</code></pre>
+<p>Three tiers: auto, confirm, deny. The model doesn’t know which tier a command is in. It just calls the tool. Your code decides what happens next.</p>
+<p>This is the same design Claude Code uses. Anthropic documented the tension: ask for every write and run command, and users get approval fatigue. Never ask, and you amplify risk. Their production answer involves a classifier that identifies truly risky actions. Our demo answer is a simple tier list. The principle is identical: the permission boundary keeps the model from being the last line of defense.</p>
+<hr>
+<h2 id="milestone-7-write-and-validate"><a class="header" href="#milestone-7-write-and-validate">Milestone 7: Write and Validate</a></h2>
+<p>A code agent that can only read and run is half an agent. It can answer questions. It can’t produce things. Add <code>write_file</code>.</p>
+<pre><code class="language-typescript">function write_file(filePath: string, content: string): string {
+  fs.writeFileSync(filePath, content, "utf-8");
+  return `Written: ${filePath}`;
+}
+</code></pre>
+<p>The signal is simple: the tool returns on success, throws on failure. <code>"Written: summary.txt"</code> means it worked. The loop closes. That’s the first layer of validation: the agent knows the write succeeded.</p>
+<p>The second layer runs after the agent finishes. Check independently.</p>
+<pre><code class="language-typescript">runAgent(task).then(() =&gt; {
+  const ok =
+    fs.existsSync("summary.txt") &amp;&amp;
+    fs.readFileSync("summary.txt", "utf-8").trim().length &gt; 0;
+  console.log(
+    ok
+      ? "\nValidation passed: summary.txt written."
+      : "\nValidation failed: summary.txt missing or empty.",
+  );
+});
+</code></pre>
+<p>Two tiers. The tool return closes the inner loop. The external check closes the outer one. “Done” is not a feeling. It’s evidence.</p>
+<p>Models are excellent at sounding confident. That confidence has no relationship to whether the work was actually done. Traditional CI fails loudly with logs. A code agent can succeed quietly and lie. Both checks are what makes completion mean something.</p>
+<p>How do Claude Code and Codex handle this on longer tasks? Same principle at scale: check exit codes, run the test suite, read back files they just wrote. Claude Code’s Todo system marks tasks complete only after the environment confirms, not after the model claims. The exact mechanisms for complex multi-step recovery are still an active area.</p>
+<p>This is the final version of the demo. Let’s run it.</p>
+<p><img src="img/minimal-agent/write-validate.png" alt=""></p>
+<p>The agent reads <code>package.json</code>, writes the summary to <code>summary.txt</code> in English, then responds in Chinese (AGENTS.md is still loaded). The external check confirms the file is written. Read, write, memory, validation: the full harness, working together.</p>
+<hr>
+<h2 id="the-model-inside-the-loop"><a class="header" href="#the-model-inside-the-loop">The Model Inside the Loop</a></h2>
+<p>The harness is fixed while we can swap the model like <a href="https://opencode.ai/">OpenCode</a> and <a href="https://pi.dev/">pi</a> do.</p>
+<p><code>Qwen3.6 35B</code> I use chains tools correctly, recovers from failures, and produces useful output. A weak 1B model hallucinates file paths, stops after one tool call, or returns empty content.</p>
+<p>That’s the separation this demo was built to show, and honestly it’s the thing I find most clarifying about building this yourself. The model defines the ceiling: how far it can reason, how well it recovers, how much ambiguity it can handle. The agent defines the floor: what’s allowed, what gets checked, what can’t go wrong even if the model tries.</p>
+<p><img src="img/minimal-agent/model-agent-boundary.png" alt=""></p>
+<p>You can’t train the expensive model. But you can build the code agent. The harness is just code. That boundary is worth holding onto.</p>
+<hr>
+<h2 id="wrap-up"><a class="header" href="#wrap-up">Wrap Up</a></h2>
+<p>Look at what we built:</p>
+<pre><code class="language-mermaid">flowchart LR
+    subgraph Minimal["Minimal Code Agent"]
+        L([Loop])
+    end
+
+    subgraph Harness["Harness"]
+        TB[Tool Boundary] --&gt; L
+        CB[Context Management] --&gt; L
+        MB[Memory Boundary] --&gt; L
+        PB[Permission Boundary] --&gt; L
+        VB[Validation Boundary] --&gt; L
+    end
+</code></pre>
+<p>Claude Code is this. Codex is this. Every serious code agent framework is this. The loop is always simple. The work is always in the boundaries.</p>
+<p>Build it yourself. Feel each piece land. Then when someone says “Claude Code uses a harness layer,” you won’t nod along. You’ll know exactly what they mean.</p>
+<p>That’s the understanding Karpathy was talking about. You can’t outsource it.</p>
+<p>Source code: <a href="https://github.com/xixiaofinland/lab/tree/main/minimal-agent">minimal-agent</a>.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="salesforce-headless-360-agent-first-or-just-hype"><a class="header" href="#salesforce-headless-360-agent-first-or-just-hype">Salesforce Headless 360: Agent-First or Just Hype?</a></h1>
+<p>User agents are multiplying. Quietly. Everywhere.</p>
+<p>Claude books meetings. Copilot writes code. Support tickets close without anyone opening a browser.</p>
+<p>This is why Salesforce announced <a href="https://www.salesforce.com/news/stories/salesforce-headless-360-announcement/">Headless 360</a>. Not to improve the existing platform. To survive what’s coming.</p>
+<p>Because this isn’t <strong>A</strong> to <strong>A+</strong>. It’s <strong>A</strong> dying and an unprecedented <strong>B</strong> appearing. In Salesforce, A is the no/low-code GUI. B is the user agent.</p>
+<p>That distinction is why this article exists.</p>
+<hr>
+<p>To understand why, go back to the 1950s.</p>
+<p>The shipping container didn’t make dockworkers more efficient. It made them unnecessary.</p>
+<p>Before containers: armies of workers, every cargo type handled by hand, every port built around human labor.</p>
+<p>Then containers came, and the entire logic of moving cargo had to be rethought from the ground up. The work didn’t get faster. The work disappeared. Break-bulk was gone. London’s docks emptied. New York’s piers went silent. Felixstowe and Port Newark rose in their place. Built for a machine, not a hand.</p>
+<p>That’s not A to A+. That’s A dying. B appearing. Entirely different rules.</p>
+<p><img src="img/headless-360/harbors.png" alt="Old break-bulk harbor vs modern container port"></p>
+<p>AI is doing the same thing to knowledge work. Removing the human from the loop entirely, for entire categories of work.</p>
+<p>This wave also moves faster than any before it. Smartphones took four years. iPhone launched in 2007. By 2011, crossed 50% in major markets.</p>
+<p>Enterprise software moves faster. No hardware to buy. Buyers have budget authority. The pressure is headcount, not adoption friction.</p>
+<p>If 2026 is year zero, 2028 is not a stretch.</p>
+<p><img src="img/headless-360/nokia-vs-iphone.png" alt="Nokia feature phone vs iPhone"></p>
+<hr>
+<p>Salesforce’s Headless 360 is doing the same thing to the GUI-first paradigm.</p>
+<p>The old world isn’t gone (yet). But it’s no longer where the platform is heading.</p>
+<p><strong>Old world:</strong></p>
+<pre><code class="language-mermaid">graph LR
+    Human[Human] --&gt; GUI[GUI]
+    GUI --&gt; Platform[Platform]
+</code></pre>
+<p><strong>New world:</strong></p>
+<pre><code class="language-mermaid">graph LR
+    Human[Human] --&gt; UserAgent[User Agent]
+    UserAgent --&gt; PlatformInterface[Platform Interface]
+    PlatformAgent[Platform Agent] -.-&gt;|Supervises| PlatformInterface
+</code></pre>
+<p>But a user agent isn’t just a faster human clicking buttons. It’s a different beast entirely.</p>
+<p>It doesn’t browse. It calls APIs directly, moves through multi-step sequences without pausing, and never waits for a screen to load. No GUI to confirm. No human in the loop to catch a wrong turn.</p>
+<p>You’ve been there. An agent tells you to go to a link, click a button in the top right, then do this, then do that. Not because the agent wants to. Because the platform doesn’t support headless interaction.</p>
+<p>My simple rule:</p>
+<p><em>If you remove all the GUI, the agent should still be able to do the same work. If it can’t, the platform isn’t agent-first.</em></p>
+<p>A user agent reasons through multi-step sequences on its own. It carries context across every action. It decides, executes, and moves on. Platforms were never built for any of that.</p>
+<hr>
+<p>A new beast needs a new foundation. Two things make or break it:</p>
+<p><strong>Semantics.</strong></p>
+<p>Agents can’t guess intent. They have no visual cues, no hover states, no tooltips. Without machine-readable context, they hallucinate paths, retry blind, and trigger side effects no one planned for.</p>
+<p>Many platforms ship CLIs, APIs, MCPs, and skills. They call it “agent-first”. It’s an important step. But it’s missing the soul.</p>
+<p>The soul is semantics.</p>
+<p>A good CLI doesn’t just expose commands. It tells agents what to expect:</p>
+<ul>
+<li><code>--help</code> with clear, structured output</li>
+<li><code>--dry-run</code> for any action with side effects</li>
+<li><code>--json</code> for machine-readable responses</li>
+<li>Clean stdout, stderr, and exit codes</li>
+<li>Good examples. LLMs love examples.</li>
+</ul>
+<p>APIs follow the same logic. The interface and the meaning.</p>
+<ul>
+<li>Schema descriptions that explain intent, not just structure</li>
+<li>Reversibility signals. Agents can’t read warning modals.</li>
+<li>Structured errors: retry, escalate, or abort</li>
+<li>Idempotency keys. Agents retry. Without them, retries create duplicates.</li>
+</ul>
+<p>MCP servers should expose a minimal contract. Not everything at once. Let the agent explore when it needs to. Fewer tools visible = less noise = sharper decisions.</p>
+<p>Agent skills are different. Each feature gets its own skill. For example, a user agent needs to create a flow. It finds the flow creating skill via <code>llms.txt</code>. Reads the contract: inputs, outputs, side effects. Knows exactly what format to pass. No guessing. No docs to scrape.</p>
+<pre><code class="language-mermaid">flowchart LR
+    UA[User Agent] --&gt;|discover| L[llms.txt]
+    L --&gt;|find skill| S[Skill Contract]
+    S --&gt;|read contract| UA
+    UA --&gt;|execute| A[Action]
+</code></pre>
+<p>The goal isn’t coverage. It’s clarity.</p>
+<p><strong>Observability.</strong></p>
+<p>Agents don’t interact with the platform like humans. They interact constantly. Thousands of actions where a human might take one. That volume demands auditing and logging at a scale no human admin can process.</p>
+<p>The data is there. The problem is who reads it. No human can keep up. The platform needs to put agents in the admin role too. Monitoring what’s happening. Flagging anomalies. Catching what no one would catch manually.</p>
+<p>These two challenges shaped how I think about platform design. Five layers.</p>
+<pre><code class="language-mermaid">flowchart LR
+    Human[Human] --&gt; UserAgent[User Agent]
+    UserAgent --&gt; E
+    subgraph E[5 - Agentic Layer]
+        direction TB
+        A[1 - Interface Layer] --&gt; B[2 - Semantic Layer]
+        B --&gt; C[3 - Core Layer]
+        C --&gt; D[4 - Trust Layer]
+    end
+</code></pre>
+<hr>
+<h2 id="1-interface-layer"><a class="header" href="#1-interface-layer">1. Interface Layer</a></h2>
+<p>APIs, CLIs, MCPs, skills. The front door that lets user agents enter the platform.</p>
+<p>Having an interface isn’t enough. It must be designed for agents, not humans who happen to type commands. Without context, agents guess and hallucinate. That’s what the next layer fixes.</p>
+<h2 id="2-semantic-layer"><a class="header" href="#2-semantic-layer">2. Semantic Layer</a></h2>
+<p>This is the one everyone skips. Companies think exposing an interface is enough. But an interface without meaning is a trap. Agents guess, retry blind, trigger side effects no one planned for.</p>
+<p>Good semantics tell agents what to expect, what’s reversible, what to avoid. The interface and the meaning. That’s what makes an agent reliable, not just capable.</p>
+<p>The specifics are covered above, in the CLI, API, MCP, and skills breakdown.</p>
+<h2 id="3-core-layer"><a class="header" href="#3-core-layer">3. Core Layer</a></h2>
+<p>The data model, automations, custom business logic. Everything that already exists in the platform and makes it valuable.</p>
+<p>This is the moat. Years of customer configuration, flows, Apex, integrations, all locked into Salesforce. That doesn’t disappear. It gets exposed to agents, cleanly, through the Semantic Layer above.</p>
+<p>But most orgs are monolithic jungles. A user clicks a button. That invokes Apex, which fires a trigger, which kicks off a flow, which updates another object, which fires another trigger, which waits for approvals, which sends notifications.</p>
+<p>The ideal: the core is detangled into composable units. The platform handles the low-level wiring. Agents pick what they need and chain at the right level of abstraction.</p>
+<p>The reality: most orgs carry that technical debt. That’s fine, as long as the agent can see the full chain clearly. Not guess it. See it. Then it can act deliberately.</p>
+<h2 id="4-trust-layer"><a class="header" href="#4-trust-layer">4. Trust Layer</a></h2>
+<p>Auditing, logging, error collecting. The platform’s record of everything user agents do.</p>
+<p>Most platforms stop at logging. But agents can do something humans never bothered with: submit rich diagnostics when something goes wrong. Exact inputs, the decision path, the error. Not a vague report. A full trace.</p>
+<p>For that to work, the platform needs to provide the channel. An API for agents to submit feedback directly. Not passive logs waiting to be scraped. Active submission, by design.</p>
+<p>Software doesn’t survive by grand roadmaps. It survives by evolving toward what users actually need, one fix at a time. Agents generate the richest signal of what’s failing and what matters. That trace is gold.</p>
+<h2 id="5-agentic-layer"><a class="header" href="#5-agentic-layer">5. Agentic Layer</a></h2>
+<p>This layer sits on top of everything else. It’s the platform watching itself.</p>
+<p>Agents that monitor incoming actions, track performance, run A/B tests, roll back automatically.</p>
+<p>These are the admins of the new world. Not replacements for human admins. They handle the scale and speed no human can.</p>
+<p>Diagnostic data arrives. They find the pattern. They trigger the fix. A new API version ships. They test, score, and roll back if needed. No delay.</p>
+<hr>
+<h2 id="wrap-up-1"><a class="header" href="#wrap-up-1">Wrap Up</a></h2>
+<p>The Semantic Layer and the Trust Layer are unlike anything the platform has built before. And they’re the easiest to ignore.</p>
+<p>Salesforce built its empire on CRM data and the GUI-first strategy. The data and the trust it carries remain the brand. The GUI-first paradigm on top of it is fading. Some adapt and thrive. Others become relics.</p>
+<p>Salesforce Headless 360 is a good move. But <strong>the vision is not enough. The implementation is the key.</strong> The real work is in the layers.</p>
+<p><img src="img/headless-360/wrap_up.png" alt="Platform agent welcoming user agents"></p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="classification"><a class="header" href="#classification">Classification</a></h1>
+<blockquote>
+<p>Comparing to regression (predict values), classification has more areas to pay attention to.</p>
+</blockquote>
+<p>In regression, the prediction target is a continuous value, and a single error metric often gives a decent first signal.<br>In classification, model quality depends on decision boundaries, class balance, and threshold choices, so evaluation is usually the hard part.<br>This thread uses MNIST to show not only how to train classifiers, but how to reason about whether their predictions are trustworthy.</p>
+<hr>
+<h2 id="1-mnist-dataset"><a class="header" href="#1-mnist-dataset">1) MNIST dataset</a></h2>
+<p><strong>MNIST</strong> is used because it’s:</p>
+<ul>
+<li>easy to visualize,</li>
+<li>large enough to see realistic evaluation issues,</li>
+<li>naturally supports binary, multiclass, and beyond.</li>
+</ul>
+<p><strong>Why this code matters:</strong> We start with a controlled dataset so you can focus on evaluation logic instead of data cleaning noise.<br><strong>What to look for:</strong> The train/test split and shuffling are critical; without these, later metrics can be misleading.<br><strong>Common trap:</strong> Treating this split pattern as universal. In production, prefer stratified split and time-aware split when data is temporal.</p>
+<pre><code class="language-python">import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import fetch_openml
+
+mnist = fetch_openml("mnist_784", as_frame=False)
+X, y = mnist.data, mnist.target.astype(np.uint8)
+
+X_train, X_test = X[:60000], X[60000:]
+y_train, y_test = y[:60000], y[60000:]
+
+shuffle_idx = np.random.permutation(60000)
+X_train, y_train = X_train[shuffle_idx], y_train[shuffle_idx]
+
+def plot_digit(image_data):
+    image = image_data.reshape(28, 28)
+    plt.imshow(image, cmap="binary")
+    plt.axis("off")
+
+plot_digit(X[0])
+plt.show()
+</code></pre>
+<hr>
+<h2 id="2-training-a-binary-classifier-a-5-detector"><a class="header" href="#2-training-a-binary-classifier-a-5-detector">2) Training a binary classifier (a “5-detector”)</a></h2>
+<ul>
+<li><strong>positive class</strong>: “is digit 5”</li>
+<li><strong>negative class</strong>: “not 5”</li>
+</ul>
+<p><strong>Why this code matters:</strong> Binary classification is the simplest setting to learn precision/recall trade-offs.<br><strong>What to look for:</strong> <code>decision_function</code> gives a score for ranking confidence, while <code>predict</code> applies a default threshold to return True/False.<br><strong>Common trap:</strong> Reading decision scores as probabilities. They are margin-like scores, not calibrated probabilities.</p>
+<pre><code class="language-python">from sklearn.linear_model import SGDClassifier
+
+y_train_5 = (y_train == 5)
+y_test_5 = (y_test == 5)
+
+sgd_clf = SGDClassifier(random_state=42)
+sgd_clf.fit(X_train, y_train_5)
+
+some_digit = X[0]
+print("Prediction:", sgd_clf.predict([some_digit]))
+print("Decision score:", sgd_clf.decision_function([some_digit]))
+</code></pre>
+<hr>
+<h2 id="3-performance-measures-why-accuracy-can-lie"><a class="header" href="#3-performance-measures-why-accuracy-can-lie">3) Performance measures: why accuracy can lie</a></h2>
+<p><strong>Why this code matters:</strong> If only ~10% of images are digit 5, a naive model can get high accuracy by mostly predicting “not 5.”<br><strong>What to look for:</strong> Compare SGD accuracy against <code>DummyClassifier</code> baseline. If they are close, your model may not be useful.<br><strong>Common trap:</strong> Celebrating high accuracy without checking class distribution or baseline performance.</p>
+<pre><code class="language-python">from sklearn.model_selection import cross_val_score
+from sklearn.dummy import DummyClassifier
+
+print("SGD accuracy:",
+      cross_val_score(sgd_clf, X_train, y_train_5, cv=3, scoring="accuracy"))
+
+dummy_clf = DummyClassifier(strategy="most_frequent")
+print("Dummy accuracy:",
+      cross_val_score(dummy_clf, X_train, y_train_5, cv=3, scoring="accuracy"))
+</code></pre>
+<hr>
+<h2 id="4-confusion-matrix"><a class="header" href="#4-confusion-matrix">4) Confusion matrix</a></h2>
+<p><strong>Why this code matters:</strong> The confusion matrix is the source of truth behind most classification metrics.<br><strong>What to look for:</strong><br><code>TN</code>: correctly rejected non-5s, <code>FP</code>: wrongly flagged non-5s as 5, <code>FN</code>: missed real 5s, <code>TP</code>: correctly found 5s.<br><strong>Common trap:</strong> Looking only at diagonal totals without considering whether <code>FP</code> or <code>FN</code> is more costly in your use case.</p>
+<pre><code class="language-python">from sklearn.model_selection import cross_val_predict
+from sklearn.metrics import confusion_matrix
+
+y_train_pred = cross_val_predict(sgd_clf, X_train, y_train_5, cv=3)
+confusion_matrix(y_train_5, y_train_pred)
+</code></pre>
+<hr>
+<h2 id="5-precision-recall-f1"><a class="header" href="#5-precision-recall-f1">5) Precision, recall, F1</a></h2>
+<p><strong>Why this code matters:</strong> These metrics let you optimize for the failure mode that matters most.<br><strong>What to look for:</strong><br>High precision means fewer false alarms; high recall means fewer misses; F1 balances both when you need a single score.<br><strong>Common trap:</strong> Maximizing F1 by default. In many domains, one error type is far more expensive than the other.</p>
+<pre><code class="language-python">from sklearn.metrics import precision_score, recall_score, f1_score
+
+precision = precision_score(y_train_5, y_train_pred)
+recall = recall_score(y_train_5, y_train_pred)
+f1 = f1_score(y_train_5, y_train_pred)
+
+precision, recall, f1
+</code></pre>
+<hr>
+<h2 id="6-precisionrecall-trade-off"><a class="header" href="#6-precisionrecall-trade-off">6) Precision/Recall trade-off</a></h2>
+<p><strong>Why this code matters:</strong> Classifiers output scores, and your threshold turns those scores into decisions.<br><strong>What to look for:</strong> As threshold increases, precision usually rises while recall falls. Pick threshold based on product/business cost.<br><strong>Common trap:</strong> Keeping threshold at default 0 without validating if it matches your required precision or recall target.</p>
+<pre><code class="language-python">from sklearn.metrics import precision_recall_curve
+
+y_scores = cross_val_predict(
+    sgd_clf, X_train, y_train_5,
+    cv=3,
+    method="decision_function"
+)
+
+precisions, recalls, thresholds = precision_recall_curve(
+    y_train_5, y_scores
+)
+
+plt.plot(thresholds, precisions[:-1], label="precision")
+plt.plot(thresholds, recalls[:-1], label="recall")
+plt.legend()
+plt.xlabel("threshold")
+plt.grid(True)
+plt.show()
+</code></pre>
+<hr>
+<h2 id="7-roc-curve"><a class="header" href="#7-roc-curve">7) ROC curve</a></h2>
+<p><strong>Why this code matters:</strong> ROC summarizes ranking performance across all thresholds.<br><strong>What to look for:</strong> Curves closer to top-left and larger AUC indicate better separability than random guessing.<br><strong>Common trap:</strong> Using ROC alone on imbalanced data. Precision-Recall curves are often more informative when positives are rare.</p>
+<pre><code class="language-python">from sklearn.metrics import roc_curve, roc_auc_score
+
+fpr, tpr, roc_thresholds = roc_curve(y_train_5, y_scores)
+auc = roc_auc_score(y_train_5, y_scores)
+
+plt.plot(fpr, tpr, label=f"SGD (AUC={auc:.4f})")
+plt.plot([0, 1], [0, 1], "--", label="random")
+plt.xlabel("FPR")
+plt.ylabel("TPR")
+plt.legend()
+plt.grid(True)
+plt.show()
+</code></pre>
+<hr>
+<h2 id="8-random-forest-comparison"><a class="header" href="#8-random-forest-comparison">8) Random Forest comparison</a></h2>
+<p><strong>Why this code matters:</strong> Same task, different model family; this checks whether the issue is data-limited or model-limited.<br><strong>What to look for:</strong> Compare <code>auc</code> (SGD) vs <code>auc_forest</code>. Better AUC suggests better ranking quality over thresholds.<br><strong>Common trap:</strong> Comparing models using different validation setups. Keep CV split and metric consistent for fair comparison.</p>
+<pre><code class="language-python">from sklearn.ensemble import RandomForestClassifier
+
+forest_clf = RandomForestClassifier(random_state=42, n_estimators=200)
+
+y_probas_forest = cross_val_predict(
+    forest_clf,
+    X_train,
+    y_train_5,
+    cv=3,
+    method="predict_proba"
+)
+
+y_scores_forest = y_probas_forest[:, 1]
+auc_forest = roc_auc_score(y_train_5, y_scores_forest)
+
+auc, auc_forest
+</code></pre>
+<hr>
+<h2 id="9-multiclass-classification"><a class="header" href="#9-multiclass-classification">9) Multiclass classification</a></h2>
+<p><strong>Why this code matters:</strong> Real tasks often require choosing among many labels, not just yes/no.<br><strong>What to look for:</strong> Baseline multiclass accuracy vs scaled-pipeline accuracy; SGD usually benefits from feature scaling.<br><strong>Common trap:</strong> Forgetting to include preprocessing in the cross-validation pipeline, which causes leakage or inconsistent evaluation.</p>
+<pre><code class="language-python">from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import make_pipeline
+
+sgd_clf_multi = SGDClassifier(random_state=42)
+print("Multiclass accuracy:",
+      cross_val_score(sgd_clf_multi, X_train, y_train,
+                      cv=3, scoring="accuracy"))
+
+sgd_scaled = make_pipeline(
+    StandardScaler(),
+    SGDClassifier(random_state=42, max_iter=100)
+)
+
+print("Scaled accuracy:",
+      cross_val_score(sgd_scaled, X_train, y_train,
+                      cv=3, scoring="accuracy"))
+</code></pre>
+<hr>
+<h2 id="10-error-analysis"><a class="header" href="#10-error-analysis">10) Error analysis</a></h2>
+<p><strong>Why this code matters:</strong> A confusion matrix for multiclass reveals <em>where</em> the model struggles, not just <em>how much</em>.<br><strong>What to look for:</strong> Pairs of digits with high confusion (e.g., similar shapes). Those patterns guide targeted improvements.<br><strong>Common trap:</strong> Stopping at one aggregate score instead of diagnosing specific confusion pairs.</p>
+<pre><code class="language-python">from sklearn.metrics import ConfusionMatrixDisplay
+
+y_train_pred_multi = cross_val_predict(
+    sgd_scaled, X_train, y_train, cv=3
+)
+
+cm = confusion_matrix(y_train, y_train_pred_multi)
+ConfusionMatrixDisplay(cm).plot(cmap="Blues")
+plt.show()
+</code></pre>
+<hr>
+<h2 id="11-multilabel--multioutput"><a class="header" href="#11-multilabel--multioutput">11) Multilabel &amp; Multioutput</a></h2>
+<h3 id="multilabel"><a class="header" href="#multilabel">Multilabel</a></h3>
+<p><strong>Why this code matters:</strong> One sample can have multiple valid labels (not mutually exclusive), which is common in tagging systems.<br><strong>What to look for:</strong> Output has multiple booleans per sample: here, <code>&gt;=7</code> and <code>odd</code> are predicted together.<br><strong>Common trap:</strong> Treating multilabel as multiclass and forcing only one label per sample.</p>
+<pre><code class="language-python">from sklearn.neighbors import KNeighborsClassifier
+
+y_train_large = (y_train &gt;= 7)
+y_train_odd = (y_train % 2 == 1)
+y_multilabel = np.c_[y_train_large, y_train_odd]
+
+knn_clf = KNeighborsClassifier()
+knn_clf.fit(X_train, y_multilabel)
+
+knn_clf.predict([some_digit])
+</code></pre>
+<h3 id="multioutput-denoising"><a class="header" href="#multioutput-denoising">Multioutput (denoising)</a></h3>
+<p><strong>Why this code matters:</strong> Multioutput predicts multiple targets at once; denoising predicts a whole clean pixel vector.<br><strong>What to look for:</strong> The predicted digit should preserve structure while removing injected random noise.<br><strong>Common trap:</strong> Assuming all classifiers support large multioutput targets efficiently; memory and latency can grow quickly.</p>
+<pre><code class="language-python">rng = np.random.RandomState(42)
+
+noise = rng.randint(0, 100, (len(X_train), 784))
+X_train_mod = X_train + noise
+y_train_mod = X_train
+
+knn_denoise = KNeighborsClassifier()
+knn_denoise.fit(X_train_mod, y_train_mod)
+
+clean_digit = knn_denoise.predict([X_train_mod[0]])
+
+plot_digit(clean_digit[0])
+plt.show()
+</code></pre>
+<hr>
+<h2 id="what-we-learned"><a class="header" href="#what-we-learned">What we learned</a></h2>
+<p>Use this as a practical checklist:</p>
+<ol>
+<li>Start with a simple binary slice to understand errors clearly.</li>
+<li>Always compare against a naive baseline before trusting accuracy.</li>
+<li>Inspect confusion matrix before optimizing any single metric.</li>
+<li>Pick precision/recall target based on business cost of FP vs FN.</li>
+<li>Tune threshold intentionally; default threshold is rarely optimal.</li>
+<li>Compare model families under the same validation protocol.</li>
+<li>For multiclass/multilabel tasks, diagnose per-label confusion, not just one aggregate score.</li>
+</ol>
+<hr>
+<p>🔗 <strong>Full runnable notebook:</strong></p>
+<p><a href="https://colab.research.google.com/github/xixiaofinland/blog/blob/main/notebooks/classification.ipynb">▶ Run this notebook on Google Colab</a></p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="inspecting-the-california-housing-dataset-before-preprocessing"><a class="header" href="#inspecting-the-california-housing-dataset-before-preprocessing">Inspecting the California Housing Dataset (Before Preprocessing)</a></h1>
+<p>Before any preprocessing or modeling, we should first <strong>understand the raw dataset</strong>: its structure, data types, missing values, and basic statistical properties.
+This step prevents silent bugs and informs correct preprocessing decisions later.</p>
+<hr>
+<h2 id="load-the-dataset"><a class="header" href="#load-the-dataset">Load the Dataset</a></h2>
+<p>We download and load the California Housing dataset from Géron’s public repository.
+The dataset is cached locally to avoid repeated downloads.</p>
+<pre><code class="language-python">from pathlib import Path
+import pandas as pd
+import tarfile
+import urllib.request
+
+def load_housing_data():
+    tarball_path = Path("datasets/housing.tgz")
+    if not tarball_path.is_file():
+        Path("datasets").mkdir(parents=True, exist_ok=True)
+        url = "https://github.com/ageron/data/raw/main/housing.tgz"
+        urllib.request.urlretrieve(url, tarball_path)
+        with tarfile.open(tarball_path) as housing_tarball:
+            housing_tarball.extractall(path="datasets", filter="data")
+    return pd.read_csv(Path("datasets/housing/housing.csv"))
+
+housing_full = load_housing_data()
+housing_full.shape, housing_full.head()
+</code></pre>
+<p>This gives us a first look at:</p>
+<ul>
+<li>dataset size (rows × columns)</li>
+<li>feature names</li>
+<li>rough value ranges</li>
+</ul>
+<hr>
+<h2 id="dataset-structure-and-data-types"><a class="header" href="#dataset-structure-and-data-types">Dataset Structure and Data Types</a></h2>
+<p>We inspect column types and missing-value counts.</p>
+<pre><code class="language-python">housing_full.info()
+</code></pre>
+<p>This step answers:</p>
+<ul>
+<li>which features are numeric vs categorical</li>
+<li>whether any columns have missing values</li>
+<li>whether dtypes are suitable for downstream pipelines</li>
+</ul>
+<hr>
+<h2 id="descriptive-statistics-numeric-features"><a class="header" href="#descriptive-statistics-numeric-features">Descriptive Statistics (Numeric Features)</a></h2>
+<p>We compute summary statistics for numeric columns.</p>
+<pre><code class="language-python">housing_full.describe()
+</code></pre>
+<p>From this, we can quickly spot:</p>
+<ul>
+<li>skewed distributions (mean vs median)</li>
+<li>extreme min/max values (potential outliers)</li>
+<li>scale differences across features</li>
+</ul>
+<hr>
+<h2 id="categorical-feature-distribution"><a class="header" href="#categorical-feature-distribution">Categorical Feature Distribution</a></h2>
+<p>The dataset contains one categorical feature: <code>ocean_proximity</code>.</p>
+<pre><code class="language-python">housing_full["ocean_proximity"].value_counts()
+</code></pre>
+<p>This reveals:</p>
+<ul>
+<li>category balance</li>
+<li>whether rare categories exist</li>
+<li>whether one-hot encoding is appropriate</li>
+</ul>
+<hr>
+<h2 id="missing-value-analysis-counts"><a class="header" href="#missing-value-analysis-counts">Missing Value Analysis (Counts)</a></h2>
+<p>We check how many values are missing in each column.</p>
+<pre><code class="language-python">housing_full.isna().sum().sort_values(ascending=False).head(20)
+</code></pre>
+<p>This helps decide:</p>
+<ul>
+<li>which features require imputation</li>
+<li>whether any columns might be dropped entirely</li>
+</ul>
+<hr>
+<h2 id="missing-value-analysis-ratios"><a class="header" href="#missing-value-analysis-ratios">Missing Value Analysis (Ratios)</a></h2>
+<p>Absolute counts can be misleading, so we also inspect missing-value ratios.</p>
+<pre><code class="language-python">housing_full.isna().mean().sort_values(ascending=False).head(20)
+</code></pre>
+<p>As a rule of thumb:</p>
+<ul>
+<li>features with very high missing ratios deserve scrutiny</li>
+<li>low ratios are usually safe for median or mode imputation</li>
+</ul>
+<hr>
+<h2 id="correlation-with-target-variable"><a class="header" href="#correlation-with-target-variable">Correlation with Target Variable</a></h2>
+<p>We compute correlations for numeric features and focus on the target variable.</p>
+<pre><code class="language-python">num_df = housing_full.select_dtypes(include="number")
+corr = num_df.corr(numeric_only=True)
+corr["median_house_value"].sort_values(ascending=False)
+</code></pre>
+<p>This provides a <strong>quick signal check</strong>:</p>
+<ul>
+<li>which features are strongly correlated with the target</li>
+<li>which features may be redundant or weak predictors</li>
+</ul>
+<p>Correlation is not causation, but it is a useful early filter.</p>
+<hr>
+<h2 id="summary"><a class="header" href="#summary">Summary</a></h2>
+<p>In this section we:</p>
+<ul>
+<li>inspected dataset shape and schema</li>
+<li>identified numeric and categorical features</li>
+<li>analyzed missing values</li>
+<li>examined basic statistical properties</li>
+<li>checked correlations with the target variable</li>
+</ul>
+<p>With this understanding, we are now ready to design <strong>correct and informed preprocessing pipelines</strong> without guessing.</p>
+<p>🔗 <strong>Full runnable notebook:</strong></p>
+<p><a href="https://colab.research.google.com/github/xixiaofinland/blog/blob/main/notebooks/housing_data_inspection.ipynb">▶ Run this notebook on Google Colab</a></p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="end-to-end-regression-with-scikit-learn-numeric-features-only"><a class="header" href="#end-to-end-regression-with-scikit-learn-numeric-features-only">End-to-End Regression with scikit-learn (Numeric Features Only)</a></h1>
+<p>This chapter demonstrates a complete regression workflow using <strong>scikit-learn</strong> and the <strong>California Housing dataset</strong>.
+All features in this dataset are numeric, which allows us to focus on the core machine learning pipeline without introducing categorical preprocessing.</p>
+<p>The goal is not to optimize performance aggressively, but to build a <strong>correct, leak-free, and reproducible workflow</strong>.</p>
+<hr>
+<h2 id="load-the-dataset-1"><a class="header" href="#load-the-dataset-1">Load the Dataset</a></h2>
+<p>We load the California Housing dataset directly from scikit-learn.
+It contains 8 numeric features and one numeric target variable, <code>MedHouseVal</code>.</p>
+<pre><code class="language-python">data = fetch_california_housing(as_frame=True)
+df = data.frame.copy()
+
+target_col = "MedHouseVal"
+df.head()
+</code></pre>
+<hr>
+<h2 id="train--test-split"><a class="header" href="#train--test-split">Train / Test Split</a></h2>
+<p>We split the dataset into training and test sets <strong>before any preprocessing</strong>.
+The test set is treated as <em>hands-off</em> until the final evaluation to prevent data leakage.</p>
+<pre><code class="language-python">train_df, test_df = train_test_split(
+    df,
+    test_size=0.2,
+    random_state=42
+)
+
+train_df.shape, test_df.shape
+</code></pre>
+<hr>
+<h2 id="separate-features-and-target"><a class="header" href="#separate-features-and-target">Separate Features and Target</a></h2>
+<p>We separate input features (<code>X</code>) from the target variable (<code>y</code>) for both training and test data.</p>
+<pre><code class="language-python">X_train = train_df.drop(columns=[target_col])
+y_train = train_df[target_col].copy()
+
+X_test = test_df.drop(columns=[target_col])
+y_test = test_df[target_col].copy()
+</code></pre>
+<hr>
+<h2 id="numeric-feature-preprocessing"><a class="header" href="#numeric-feature-preprocessing">Numeric Feature Preprocessing</a></h2>
+<p>All features in this dataset are numeric.
+We explicitly list the numeric columns and define a preprocessing pipeline that:</p>
+<ul>
+<li>imputes missing values using the median</li>
+<li>standardizes features using <code>StandardScaler</code></li>
+</ul>
+<pre><code class="language-python">num_cols = list(X_train.columns)
+num_cols
+</code></pre>
+<pre><code class="language-python">numeric_pipeline = Pipeline(steps=[
+    ("imputer", SimpleImputer(strategy="median")),
+    ("scaler", StandardScaler()),
+])
+</code></pre>
+<hr>
+<h2 id="build-the-full-pipeline"><a class="header" href="#build-the-full-pipeline">Build the Full Pipeline</a></h2>
+<p>We choose a <code>RandomForestRegressor</code> as the model and combine it with the preprocessing pipeline.
+Keeping preprocessing and modeling inside a single pipeline ensures consistency across training and evaluation.</p>
+<pre><code class="language-python">model = RandomForestRegressor(
+    n_estimators=300,
+    random_state=42,
+    n_jobs=-1
+)
+
+pipe = Pipeline(steps=[
+    ("prep", numeric_pipeline),
+    ("model", model),
+])
+
+print(pipe)
+</code></pre>
+<hr>
+<h2 id="cross-validation-on-the-training-set"><a class="header" href="#cross-validation-on-the-training-set">Cross-Validation on the Training Set</a></h2>
+<p>Before touching the test set, we estimate performance using <strong>5-fold cross-validation</strong> on the training data.
+We use <strong>RMSE (Root Mean Squared Error)</strong> as the evaluation metric.</p>
+<pre><code class="language-python">scores = cross_val_score(
+    pipe,
+    X_train,
+    y_train,
+    scoring="neg_root_mean_squared_error",
+    cv=5
+)
+
+rmse = -scores
+rmse.mean(), rmse.std()
+</code></pre>
+<hr>
+<h2 id="final-evaluation-on-the-test-set"><a class="header" href="#final-evaluation-on-the-test-set">Final Evaluation on the Test Set</a></h2>
+<p>After cross-validation, we fit the pipeline on the full training set and evaluate once on the test set.
+This provides an unbiased estimate of generalization performance.</p>
+<pre><code class="language-python">pipe.fit(X_train, y_train)
+
+y_pred = pipe.predict(X_test)
+test_rmse = root_mean_squared_error(y_test, y_pred)
+
+test_rmse
+</code></pre>
+<hr>
+<h2 id="interpretation"><a class="header" href="#interpretation">Interpretation</a></h2>
+<p>The final test RMSE is approximately <strong>0.50</strong>.</p>
+<p>Since the target variable is measured in <strong>hundreds of thousands of dollars</strong>, this corresponds to an average prediction error of roughly <strong>$50,000</strong>.</p>
+<p>This result is realistic for this dataset and confirms that the workflow is functioning correctly.</p>
+<hr>
+<h2 id="summary-1"><a class="header" href="#summary-1">Summary</a></h2>
+<p>In this chapter we:</p>
+<ul>
+<li>split the data before preprocessing to avoid leakage</li>
+<li>built a numeric-only preprocessing pipeline</li>
+<li>combined preprocessing and modeling using <code>Pipeline</code></li>
+<li>evaluated using cross-validation and a final test set</li>
+</ul>
+<p>This structure serves as a clean foundation for future extensions, such as handling categorical features or experimenting with other models.</p>
+<hr>
+<h2 id="reproducibility"><a class="header" href="#reproducibility">Reproducibility</a></h2>
+<ul>
+<li>Python ≥ 3.10</li>
+<li>scikit-learn ≥ 1.6.1</li>
+<li>Fixed random seed (<code>random_state=42</code>)</li>
+</ul>
+<hr>
+<p>🔗 <strong>Full runnable notebook:</strong></p>
+<p><a href="https://colab.research.google.com/github/xixiaofinland/blog/blob/main/notebooks/numeric_regression.ipynb">▶ Run this notebook on Google Colab</a></p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="linear-and-logistic-regression"><a class="header" href="#linear-and-logistic-regression">Linear and Logistic Regression</a></h1>
+<p>This post summarizes my takeaways from the <strong>first chapter</strong> of the <a href="https://www.deeplearning.ai/courses/machine-learning-specialization/">Machine
+Learning
+Specialization</a>.</p>
+<p>It covers the basics of linear regression, gradient descent, logistic
+regression, and the problem of overfitting. More importantly, I’ll focus on why
+we use these ideas, what they solve, and how they fit together.</p>
+<h2 id="linear-regression"><a class="header" href="#linear-regression">Linear Regression</a></h2>
+<p><strong>What it does?</strong></p>
+<p>Given historic data, it predicts new values (like house price, car mileage, or
+sales revenue). Instead of guessing outcomes, linear regression provides a
+systematic way to estimate them from data.</p>
+<p><strong>How to find the best fit LR model in practice?</strong></p>
+<p>There are two main challenges:</p>
+<ol>
+<li>
+<p><strong>Choosing the right model form</strong> – deciding what features (and
+transformations of features) to include.</p>
+</li>
+<li>
+<p><strong>Finding the best parameters</strong> – estimating the weights associated with
+those features.</p>
+</li>
+</ol>
+<p>The <strong>second problem</strong> is straightforward. Algorithms like gradient descent can
+find the optimal parameters. Given a fixed model, this process is deterministic
+and guarantees the best weights.</p>
+<p>The <strong>first problem</strong> is much harder. No algorithm can directly tell you the
+“correct” polynomial degree, transformations, or feature interactions. This is a
+model selection problem, not just an optimization one. It requires exploration
+and judgment.</p>
+<p>Feature engineering is often considered an art because it involves:</p>
+<ul>
+<li>Domain expertise</li>
+<li>Experimentation</li>
+<li>Iterative refinement</li>
+<li>Human judgment</li>
+</ul>
+<p>In this course, the focus is primarily on the second challenge, introducing
+<strong>Gradient Descent</strong> as a way to optimize parameters.</p>
+<p>Gradient Descent, Loss Function, and Cost Function</p>
+<ul>
+<li><strong>Loss function</strong>: The error for a single training example (“How wrong am I
+here?”).</li>
+<li><strong>Cost function</strong>: The average error across the whole dataset (“How wrong am I
+overall?”).</li>
+</ul>
+<p>Gradient descent works by repeatedly adjusting parameters to reduce the cost
+function.</p>
+<p>Because gradient descent must loop through potentially millions (or billions) of
+features — especially in large-scale models like LLMs — computation speed
+becomes critical. This is why GPU acceleration plays a pivotal role in modern
+machine learning: it dramatically speeds up these large-scale calculations.</p>
+<h2 id="logistic-regression-classification"><a class="header" href="#logistic-regression-classification">Logistic Regression (Classification)</a></h2>
+<p><strong>What it does?</strong></p>
+<p>While linear regression predicts continuous values, logistic regression is used
+for <strong>classification tasks</strong> — predicting categories such as spam vs. not spam,
+disease vs. no disease, etc.</p>
+<p>Instead of fitting a straight line, logistic regression uses the <strong>sigmoid
+function</strong> to squeeze predictions into a range between 0 and 1.</p>
+<ul>
+<li>Output: A probability. Example: 0.9 → very likely spam.</li>
+<li>Decision rule: If probability ≥ 0.5 → predict class 1, otherwise class 0.</li>
+</ul>
+<p><strong>Cost Function for Logistic Regression</strong></p>
+<p>Squared error (used in linear regression) doesn’t work well for classification
+because it doesn’t handle probabilities properly.</p>
+<p>Instead, logistic regression uses log loss (cross-entropy loss):</p>
+<ul>
+<li>Penalizes confident but wrong predictions much more heavily.</li>
+<li>Rewards probabilities that better reflect reality.</li>
+</ul>
+<p>This ensures the model doesn’t just guess classes, but actually learns
+meaningful probabilities.</p>
+<p><strong>Overfitting</strong></p>
+<p>When a model memorizes training data instead of learning general patterns. It
+performs great on training data but poorly on unseen data.</p>
+<p>Common fixes:</p>
+<ul>
+<li>Add more data when possible</li>
+<li>Apply regularization (penalize overly complex models).</li>
+<li>Simplify the model structure (loop back to the first challenge mentioned
+earlier)</li>
+</ul>
+<h2 id="final-thoughts"><a class="header" href="#final-thoughts">Final Thoughts</a></h2>
+<p>This chapter laid the groundwork for supervised learning:</p>
+<ul>
+<li>Linear regression for continuous values vs. logistic regression for
+categories.</li>
+<li>Gradient descent as the universal optimization method.</li>
+<li>Why the right cost function matters.</li>
+<li>How to spot and address overfitting early.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="ai-archive-2026"><a class="header" href="#ai-archive-2026">AI Archive 2026</a></h1>
+<p>Older AI threads from 2026 land here after they rotate out of Latest.</p>
+<!-- AI_ARCHIVE_LINKS_START -->
+<!-- AI_ARCHIVE_LINKS_END -->
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="coding"><a class="header" href="#coding">Coding</a></h1>
 <div style="break-before: page; page-break-before: always;"></div>
@@ -609,7 +1656,7 @@ the binary ran on the Pi straight away:</p>
 zeroclaw 0.1.0
 </code></pre>
 <hr>
-<h2 id="summary"><a class="header" href="#summary">Summary</a></h2>
+<h2 id="summary-2"><a class="header" href="#summary-2">Summary</a></h2>
 <p>The full flow that worked:</p>
 <ol>
 <li>Add a <code>zeroclaw-cross</code> devShell to <code>flake.nix</code> with <code>pkgsCross</code> for
@@ -625,1032 +1672,6 @@ Cargo linker variable—you need all of them for crates with C/asm code.</li>
 <li>Nix-built binaries embed the Nix store path as the ELF interpreter. Always
 <code>patchelf</code> before deploying to a non-Nix system.</li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div>
-<h1 id="ai"><a href="#ai" class="header">AI</a></h1>
-<div style="break-before: page; page-break-before: always;"></div>
-<h1 id="linear-and-logistic-regression"><a class="header" href="#linear-and-logistic-regression">Linear and Logistic Regression</a></h1>
-<p>This post summarizes my takeaways from the <strong>first chapter</strong> of the <a href="https://www.deeplearning.ai/courses/machine-learning-specialization/">Machine
-Learning
-Specialization</a>.</p>
-<p>It covers the basics of linear regression, gradient descent, logistic
-regression, and the problem of overfitting. More importantly, I’ll focus on why
-we use these ideas, what they solve, and how they fit together.</p>
-<h2 id="linear-regression"><a class="header" href="#linear-regression">Linear Regression</a></h2>
-<p><strong>What it does?</strong></p>
-<p>Given historic data, it predicts new values (like house price, car mileage, or
-sales revenue). Instead of guessing outcomes, linear regression provides a
-systematic way to estimate them from data.</p>
-<p><strong>How to find the best fit LR model in practice?</strong></p>
-<p>There are two main challenges:</p>
-<ol>
-<li>
-<p><strong>Choosing the right model form</strong> – deciding what features (and
-transformations of features) to include.</p>
-</li>
-<li>
-<p><strong>Finding the best parameters</strong> – estimating the weights associated with
-those features.</p>
-</li>
-</ol>
-<p>The <strong>second problem</strong> is straightforward. Algorithms like gradient descent can
-find the optimal parameters. Given a fixed model, this process is deterministic
-and guarantees the best weights.</p>
-<p>The <strong>first problem</strong> is much harder. No algorithm can directly tell you the
-“correct” polynomial degree, transformations, or feature interactions. This is a
-model selection problem, not just an optimization one. It requires exploration
-and judgment.</p>
-<p>Feature engineering is often considered an art because it involves:</p>
-<ul>
-<li>Domain expertise</li>
-<li>Experimentation</li>
-<li>Iterative refinement</li>
-<li>Human judgment</li>
-</ul>
-<p>In this course, the focus is primarily on the second challenge, introducing
-<strong>Gradient Descent</strong> as a way to optimize parameters.</p>
-<p>Gradient Descent, Loss Function, and Cost Function</p>
-<ul>
-<li><strong>Loss function</strong>: The error for a single training example (“How wrong am I
-here?”).</li>
-<li><strong>Cost function</strong>: The average error across the whole dataset (“How wrong am I
-overall?”).</li>
-</ul>
-<p>Gradient descent works by repeatedly adjusting parameters to reduce the cost
-function.</p>
-<p>Because gradient descent must loop through potentially millions (or billions) of
-features — especially in large-scale models like LLMs — computation speed
-becomes critical. This is why GPU acceleration plays a pivotal role in modern
-machine learning: it dramatically speeds up these large-scale calculations.</p>
-<h2 id="logistic-regression-classification"><a class="header" href="#logistic-regression-classification">Logistic Regression (Classification)</a></h2>
-<p><strong>What it does?</strong></p>
-<p>While linear regression predicts continuous values, logistic regression is used
-for <strong>classification tasks</strong> — predicting categories such as spam vs. not spam,
-disease vs. no disease, etc.</p>
-<p>Instead of fitting a straight line, logistic regression uses the <strong>sigmoid
-function</strong> to squeeze predictions into a range between 0 and 1.</p>
-<ul>
-<li>Output: A probability. Example: 0.9 → very likely spam.</li>
-<li>Decision rule: If probability ≥ 0.5 → predict class 1, otherwise class 0.</li>
-</ul>
-<p><strong>Cost Function for Logistic Regression</strong></p>
-<p>Squared error (used in linear regression) doesn’t work well for classification
-because it doesn’t handle probabilities properly.</p>
-<p>Instead, logistic regression uses log loss (cross-entropy loss):</p>
-<ul>
-<li>Penalizes confident but wrong predictions much more heavily.</li>
-<li>Rewards probabilities that better reflect reality.</li>
-</ul>
-<p>This ensures the model doesn’t just guess classes, but actually learns
-meaningful probabilities.</p>
-<p><strong>Overfitting</strong></p>
-<p>When a model memorizes training data instead of learning general patterns. It
-performs great on training data but poorly on unseen data.</p>
-<p>Common fixes:</p>
-<ul>
-<li>Add more data when possible</li>
-<li>Apply regularization (penalize overly complex models).</li>
-<li>Simplify the model structure (loop back to the first challenge mentioned
-earlier)</li>
-</ul>
-<h2 id="final-thoughts"><a class="header" href="#final-thoughts">Final Thoughts</a></h2>
-<p>This chapter laid the groundwork for supervised learning:</p>
-<ul>
-<li>Linear regression for continuous values vs. logistic regression for
-categories.</li>
-<li>Gradient descent as the universal optimization method.</li>
-<li>Why the right cost function matters.</li>
-<li>How to spot and address overfitting early.</li>
-</ul>
-<div style="break-before: page; page-break-before: always;"></div>
-<h1 id="end-to-end-regression-with-scikit-learn-numeric-features-only"><a class="header" href="#end-to-end-regression-with-scikit-learn-numeric-features-only">End-to-End Regression with scikit-learn (Numeric Features Only)</a></h1>
-<p>This chapter demonstrates a complete regression workflow using <strong>scikit-learn</strong> and the <strong>California Housing dataset</strong>.
-All features in this dataset are numeric, which allows us to focus on the core machine learning pipeline without introducing categorical preprocessing.</p>
-<p>The goal is not to optimize performance aggressively, but to build a <strong>correct, leak-free, and reproducible workflow</strong>.</p>
-<hr>
-<h2 id="load-the-dataset"><a class="header" href="#load-the-dataset">Load the Dataset</a></h2>
-<p>We load the California Housing dataset directly from scikit-learn.
-It contains 8 numeric features and one numeric target variable, <code>MedHouseVal</code>.</p>
-<pre><code class="language-python">data = fetch_california_housing(as_frame=True)
-df = data.frame.copy()
-
-target_col = "MedHouseVal"
-df.head()
-</code></pre>
-<hr>
-<h2 id="train--test-split"><a class="header" href="#train--test-split">Train / Test Split</a></h2>
-<p>We split the dataset into training and test sets <strong>before any preprocessing</strong>.
-The test set is treated as <em>hands-off</em> until the final evaluation to prevent data leakage.</p>
-<pre><code class="language-python">train_df, test_df = train_test_split(
-    df,
-    test_size=0.2,
-    random_state=42
-)
-
-train_df.shape, test_df.shape
-</code></pre>
-<hr>
-<h2 id="separate-features-and-target"><a class="header" href="#separate-features-and-target">Separate Features and Target</a></h2>
-<p>We separate input features (<code>X</code>) from the target variable (<code>y</code>) for both training and test data.</p>
-<pre><code class="language-python">X_train = train_df.drop(columns=[target_col])
-y_train = train_df[target_col].copy()
-
-X_test = test_df.drop(columns=[target_col])
-y_test = test_df[target_col].copy()
-</code></pre>
-<hr>
-<h2 id="numeric-feature-preprocessing"><a class="header" href="#numeric-feature-preprocessing">Numeric Feature Preprocessing</a></h2>
-<p>All features in this dataset are numeric.
-We explicitly list the numeric columns and define a preprocessing pipeline that:</p>
-<ul>
-<li>imputes missing values using the median</li>
-<li>standardizes features using <code>StandardScaler</code></li>
-</ul>
-<pre><code class="language-python">num_cols = list(X_train.columns)
-num_cols
-</code></pre>
-<pre><code class="language-python">numeric_pipeline = Pipeline(steps=[
-    ("imputer", SimpleImputer(strategy="median")),
-    ("scaler", StandardScaler()),
-])
-</code></pre>
-<hr>
-<h2 id="build-the-full-pipeline"><a class="header" href="#build-the-full-pipeline">Build the Full Pipeline</a></h2>
-<p>We choose a <code>RandomForestRegressor</code> as the model and combine it with the preprocessing pipeline.
-Keeping preprocessing and modeling inside a single pipeline ensures consistency across training and evaluation.</p>
-<pre><code class="language-python">model = RandomForestRegressor(
-    n_estimators=300,
-    random_state=42,
-    n_jobs=-1
-)
-
-pipe = Pipeline(steps=[
-    ("prep", numeric_pipeline),
-    ("model", model),
-])
-
-print(pipe)
-</code></pre>
-<hr>
-<h2 id="cross-validation-on-the-training-set"><a class="header" href="#cross-validation-on-the-training-set">Cross-Validation on the Training Set</a></h2>
-<p>Before touching the test set, we estimate performance using <strong>5-fold cross-validation</strong> on the training data.
-We use <strong>RMSE (Root Mean Squared Error)</strong> as the evaluation metric.</p>
-<pre><code class="language-python">scores = cross_val_score(
-    pipe,
-    X_train,
-    y_train,
-    scoring="neg_root_mean_squared_error",
-    cv=5
-)
-
-rmse = -scores
-rmse.mean(), rmse.std()
-</code></pre>
-<hr>
-<h2 id="final-evaluation-on-the-test-set"><a class="header" href="#final-evaluation-on-the-test-set">Final Evaluation on the Test Set</a></h2>
-<p>After cross-validation, we fit the pipeline on the full training set and evaluate once on the test set.
-This provides an unbiased estimate of generalization performance.</p>
-<pre><code class="language-python">pipe.fit(X_train, y_train)
-
-y_pred = pipe.predict(X_test)
-test_rmse = root_mean_squared_error(y_test, y_pred)
-
-test_rmse
-</code></pre>
-<hr>
-<h2 id="interpretation"><a class="header" href="#interpretation">Interpretation</a></h2>
-<p>The final test RMSE is approximately <strong>0.50</strong>.</p>
-<p>Since the target variable is measured in <strong>hundreds of thousands of dollars</strong>, this corresponds to an average prediction error of roughly <strong>$50,000</strong>.</p>
-<p>This result is realistic for this dataset and confirms that the workflow is functioning correctly.</p>
-<hr>
-<h2 id="summary-1"><a class="header" href="#summary-1">Summary</a></h2>
-<p>In this chapter we:</p>
-<ul>
-<li>split the data before preprocessing to avoid leakage</li>
-<li>built a numeric-only preprocessing pipeline</li>
-<li>combined preprocessing and modeling using <code>Pipeline</code></li>
-<li>evaluated using cross-validation and a final test set</li>
-</ul>
-<p>This structure serves as a clean foundation for future extensions, such as handling categorical features or experimenting with other models.</p>
-<hr>
-<h2 id="reproducibility"><a class="header" href="#reproducibility">Reproducibility</a></h2>
-<ul>
-<li>Python ≥ 3.10</li>
-<li>scikit-learn ≥ 1.6.1</li>
-<li>Fixed random seed (<code>random_state=42</code>)</li>
-</ul>
-<hr>
-<p>🔗 <strong>Full runnable notebook:</strong></p>
-<p><a href="https://colab.research.google.com/github/xixiaofinland/blog/blob/main/notebooks/numeric_regression.ipynb">▶ Run this notebook on Google Colab</a></p>
-<div style="break-before: page; page-break-before: always;"></div>
-<h1 id="inspecting-the-california-housing-dataset-before-preprocessing"><a class="header" href="#inspecting-the-california-housing-dataset-before-preprocessing">Inspecting the California Housing Dataset (Before Preprocessing)</a></h1>
-<p>Before any preprocessing or modeling, we should first <strong>understand the raw dataset</strong>: its structure, data types, missing values, and basic statistical properties.
-This step prevents silent bugs and informs correct preprocessing decisions later.</p>
-<hr>
-<h2 id="load-the-dataset-1"><a class="header" href="#load-the-dataset-1">Load the Dataset</a></h2>
-<p>We download and load the California Housing dataset from Géron’s public repository.
-The dataset is cached locally to avoid repeated downloads.</p>
-<pre><code class="language-python">from pathlib import Path
-import pandas as pd
-import tarfile
-import urllib.request
-
-def load_housing_data():
-    tarball_path = Path("datasets/housing.tgz")
-    if not tarball_path.is_file():
-        Path("datasets").mkdir(parents=True, exist_ok=True)
-        url = "https://github.com/ageron/data/raw/main/housing.tgz"
-        urllib.request.urlretrieve(url, tarball_path)
-        with tarfile.open(tarball_path) as housing_tarball:
-            housing_tarball.extractall(path="datasets", filter="data")
-    return pd.read_csv(Path("datasets/housing/housing.csv"))
-
-housing_full = load_housing_data()
-housing_full.shape, housing_full.head()
-</code></pre>
-<p>This gives us a first look at:</p>
-<ul>
-<li>dataset size (rows × columns)</li>
-<li>feature names</li>
-<li>rough value ranges</li>
-</ul>
-<hr>
-<h2 id="dataset-structure-and-data-types"><a class="header" href="#dataset-structure-and-data-types">Dataset Structure and Data Types</a></h2>
-<p>We inspect column types and missing-value counts.</p>
-<pre><code class="language-python">housing_full.info()
-</code></pre>
-<p>This step answers:</p>
-<ul>
-<li>which features are numeric vs categorical</li>
-<li>whether any columns have missing values</li>
-<li>whether dtypes are suitable for downstream pipelines</li>
-</ul>
-<hr>
-<h2 id="descriptive-statistics-numeric-features"><a class="header" href="#descriptive-statistics-numeric-features">Descriptive Statistics (Numeric Features)</a></h2>
-<p>We compute summary statistics for numeric columns.</p>
-<pre><code class="language-python">housing_full.describe()
-</code></pre>
-<p>From this, we can quickly spot:</p>
-<ul>
-<li>skewed distributions (mean vs median)</li>
-<li>extreme min/max values (potential outliers)</li>
-<li>scale differences across features</li>
-</ul>
-<hr>
-<h2 id="categorical-feature-distribution"><a class="header" href="#categorical-feature-distribution">Categorical Feature Distribution</a></h2>
-<p>The dataset contains one categorical feature: <code>ocean_proximity</code>.</p>
-<pre><code class="language-python">housing_full["ocean_proximity"].value_counts()
-</code></pre>
-<p>This reveals:</p>
-<ul>
-<li>category balance</li>
-<li>whether rare categories exist</li>
-<li>whether one-hot encoding is appropriate</li>
-</ul>
-<hr>
-<h2 id="missing-value-analysis-counts"><a class="header" href="#missing-value-analysis-counts">Missing Value Analysis (Counts)</a></h2>
-<p>We check how many values are missing in each column.</p>
-<pre><code class="language-python">housing_full.isna().sum().sort_values(ascending=False).head(20)
-</code></pre>
-<p>This helps decide:</p>
-<ul>
-<li>which features require imputation</li>
-<li>whether any columns might be dropped entirely</li>
-</ul>
-<hr>
-<h2 id="missing-value-analysis-ratios"><a class="header" href="#missing-value-analysis-ratios">Missing Value Analysis (Ratios)</a></h2>
-<p>Absolute counts can be misleading, so we also inspect missing-value ratios.</p>
-<pre><code class="language-python">housing_full.isna().mean().sort_values(ascending=False).head(20)
-</code></pre>
-<p>As a rule of thumb:</p>
-<ul>
-<li>features with very high missing ratios deserve scrutiny</li>
-<li>low ratios are usually safe for median or mode imputation</li>
-</ul>
-<hr>
-<h2 id="correlation-with-target-variable"><a class="header" href="#correlation-with-target-variable">Correlation with Target Variable</a></h2>
-<p>We compute correlations for numeric features and focus on the target variable.</p>
-<pre><code class="language-python">num_df = housing_full.select_dtypes(include="number")
-corr = num_df.corr(numeric_only=True)
-corr["median_house_value"].sort_values(ascending=False)
-</code></pre>
-<p>This provides a <strong>quick signal check</strong>:</p>
-<ul>
-<li>which features are strongly correlated with the target</li>
-<li>which features may be redundant or weak predictors</li>
-</ul>
-<p>Correlation is not causation, but it is a useful early filter.</p>
-<hr>
-<h2 id="summary-2"><a class="header" href="#summary-2">Summary</a></h2>
-<p>In this section we:</p>
-<ul>
-<li>inspected dataset shape and schema</li>
-<li>identified numeric and categorical features</li>
-<li>analyzed missing values</li>
-<li>examined basic statistical properties</li>
-<li>checked correlations with the target variable</li>
-</ul>
-<p>With this understanding, we are now ready to design <strong>correct and informed preprocessing pipelines</strong> without guessing.</p>
-<p>🔗 <strong>Full runnable notebook:</strong></p>
-<p><a href="https://colab.research.google.com/github/xixiaofinland/blog/blob/main/notebooks/housing_data_inspection.ipynb">▶ Run this notebook on Google Colab</a></p>
-<div style="break-before: page; page-break-before: always;"></div>
-<h1 id="classification"><a class="header" href="#classification">Classification</a></h1>
-<blockquote>
-<p>Comparing to regression (predict values), classification has more areas to pay attention to.</p>
-</blockquote>
-<p>In regression, the prediction target is a continuous value, and a single error metric often gives a decent first signal.<br>In classification, model quality depends on decision boundaries, class balance, and threshold choices, so evaluation is usually the hard part.<br>This thread uses MNIST to show not only how to train classifiers, but how to reason about whether their predictions are trustworthy.</p>
-<hr>
-<h2 id="1-mnist-dataset"><a class="header" href="#1-mnist-dataset">1) MNIST dataset</a></h2>
-<p><strong>MNIST</strong> is used because it’s:</p>
-<ul>
-<li>easy to visualize,</li>
-<li>large enough to see realistic evaluation issues,</li>
-<li>naturally supports binary, multiclass, and beyond.</li>
-</ul>
-<p><strong>Why this code matters:</strong> We start with a controlled dataset so you can focus on evaluation logic instead of data cleaning noise.<br><strong>What to look for:</strong> The train/test split and shuffling are critical; without these, later metrics can be misleading.<br><strong>Common trap:</strong> Treating this split pattern as universal. In production, prefer stratified split and time-aware split when data is temporal.</p>
-<pre><code class="language-python">import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.datasets import fetch_openml
-
-mnist = fetch_openml("mnist_784", as_frame=False)
-X, y = mnist.data, mnist.target.astype(np.uint8)
-
-X_train, X_test = X[:60000], X[60000:]
-y_train, y_test = y[:60000], y[60000:]
-
-shuffle_idx = np.random.permutation(60000)
-X_train, y_train = X_train[shuffle_idx], y_train[shuffle_idx]
-
-def plot_digit(image_data):
-    image = image_data.reshape(28, 28)
-    plt.imshow(image, cmap="binary")
-    plt.axis("off")
-
-plot_digit(X[0])
-plt.show()
-</code></pre>
-<hr>
-<h2 id="2-training-a-binary-classifier-a-5-detector"><a class="header" href="#2-training-a-binary-classifier-a-5-detector">2) Training a binary classifier (a “5-detector”)</a></h2>
-<ul>
-<li><strong>positive class</strong>: “is digit 5”</li>
-<li><strong>negative class</strong>: “not 5”</li>
-</ul>
-<p><strong>Why this code matters:</strong> Binary classification is the simplest setting to learn precision/recall trade-offs.<br><strong>What to look for:</strong> <code>decision_function</code> gives a score for ranking confidence, while <code>predict</code> applies a default threshold to return True/False.<br><strong>Common trap:</strong> Reading decision scores as probabilities. They are margin-like scores, not calibrated probabilities.</p>
-<pre><code class="language-python">from sklearn.linear_model import SGDClassifier
-
-y_train_5 = (y_train == 5)
-y_test_5 = (y_test == 5)
-
-sgd_clf = SGDClassifier(random_state=42)
-sgd_clf.fit(X_train, y_train_5)
-
-some_digit = X[0]
-print("Prediction:", sgd_clf.predict([some_digit]))
-print("Decision score:", sgd_clf.decision_function([some_digit]))
-</code></pre>
-<hr>
-<h2 id="3-performance-measures-why-accuracy-can-lie"><a class="header" href="#3-performance-measures-why-accuracy-can-lie">3) Performance measures: why accuracy can lie</a></h2>
-<p><strong>Why this code matters:</strong> If only ~10% of images are digit 5, a naive model can get high accuracy by mostly predicting “not 5.”<br><strong>What to look for:</strong> Compare SGD accuracy against <code>DummyClassifier</code> baseline. If they are close, your model may not be useful.<br><strong>Common trap:</strong> Celebrating high accuracy without checking class distribution or baseline performance.</p>
-<pre><code class="language-python">from sklearn.model_selection import cross_val_score
-from sklearn.dummy import DummyClassifier
-
-print("SGD accuracy:",
-      cross_val_score(sgd_clf, X_train, y_train_5, cv=3, scoring="accuracy"))
-
-dummy_clf = DummyClassifier(strategy="most_frequent")
-print("Dummy accuracy:",
-      cross_val_score(dummy_clf, X_train, y_train_5, cv=3, scoring="accuracy"))
-</code></pre>
-<hr>
-<h2 id="4-confusion-matrix"><a class="header" href="#4-confusion-matrix">4) Confusion matrix</a></h2>
-<p><strong>Why this code matters:</strong> The confusion matrix is the source of truth behind most classification metrics.<br><strong>What to look for:</strong><br><code>TN</code>: correctly rejected non-5s, <code>FP</code>: wrongly flagged non-5s as 5, <code>FN</code>: missed real 5s, <code>TP</code>: correctly found 5s.<br><strong>Common trap:</strong> Looking only at diagonal totals without considering whether <code>FP</code> or <code>FN</code> is more costly in your use case.</p>
-<pre><code class="language-python">from sklearn.model_selection import cross_val_predict
-from sklearn.metrics import confusion_matrix
-
-y_train_pred = cross_val_predict(sgd_clf, X_train, y_train_5, cv=3)
-confusion_matrix(y_train_5, y_train_pred)
-</code></pre>
-<hr>
-<h2 id="5-precision-recall-f1"><a class="header" href="#5-precision-recall-f1">5) Precision, recall, F1</a></h2>
-<p><strong>Why this code matters:</strong> These metrics let you optimize for the failure mode that matters most.<br><strong>What to look for:</strong><br>High precision means fewer false alarms; high recall means fewer misses; F1 balances both when you need a single score.<br><strong>Common trap:</strong> Maximizing F1 by default. In many domains, one error type is far more expensive than the other.</p>
-<pre><code class="language-python">from sklearn.metrics import precision_score, recall_score, f1_score
-
-precision = precision_score(y_train_5, y_train_pred)
-recall = recall_score(y_train_5, y_train_pred)
-f1 = f1_score(y_train_5, y_train_pred)
-
-precision, recall, f1
-</code></pre>
-<hr>
-<h2 id="6-precisionrecall-trade-off"><a class="header" href="#6-precisionrecall-trade-off">6) Precision/Recall trade-off</a></h2>
-<p><strong>Why this code matters:</strong> Classifiers output scores, and your threshold turns those scores into decisions.<br><strong>What to look for:</strong> As threshold increases, precision usually rises while recall falls. Pick threshold based on product/business cost.<br><strong>Common trap:</strong> Keeping threshold at default 0 without validating if it matches your required precision or recall target.</p>
-<pre><code class="language-python">from sklearn.metrics import precision_recall_curve
-
-y_scores = cross_val_predict(
-    sgd_clf, X_train, y_train_5,
-    cv=3,
-    method="decision_function"
-)
-
-precisions, recalls, thresholds = precision_recall_curve(
-    y_train_5, y_scores
-)
-
-plt.plot(thresholds, precisions[:-1], label="precision")
-plt.plot(thresholds, recalls[:-1], label="recall")
-plt.legend()
-plt.xlabel("threshold")
-plt.grid(True)
-plt.show()
-</code></pre>
-<hr>
-<h2 id="7-roc-curve"><a class="header" href="#7-roc-curve">7) ROC curve</a></h2>
-<p><strong>Why this code matters:</strong> ROC summarizes ranking performance across all thresholds.<br><strong>What to look for:</strong> Curves closer to top-left and larger AUC indicate better separability than random guessing.<br><strong>Common trap:</strong> Using ROC alone on imbalanced data. Precision-Recall curves are often more informative when positives are rare.</p>
-<pre><code class="language-python">from sklearn.metrics import roc_curve, roc_auc_score
-
-fpr, tpr, roc_thresholds = roc_curve(y_train_5, y_scores)
-auc = roc_auc_score(y_train_5, y_scores)
-
-plt.plot(fpr, tpr, label=f"SGD (AUC={auc:.4f})")
-plt.plot([0, 1], [0, 1], "--", label="random")
-plt.xlabel("FPR")
-plt.ylabel("TPR")
-plt.legend()
-plt.grid(True)
-plt.show()
-</code></pre>
-<hr>
-<h2 id="8-random-forest-comparison"><a class="header" href="#8-random-forest-comparison">8) Random Forest comparison</a></h2>
-<p><strong>Why this code matters:</strong> Same task, different model family; this checks whether the issue is data-limited or model-limited.<br><strong>What to look for:</strong> Compare <code>auc</code> (SGD) vs <code>auc_forest</code>. Better AUC suggests better ranking quality over thresholds.<br><strong>Common trap:</strong> Comparing models using different validation setups. Keep CV split and metric consistent for fair comparison.</p>
-<pre><code class="language-python">from sklearn.ensemble import RandomForestClassifier
-
-forest_clf = RandomForestClassifier(random_state=42, n_estimators=200)
-
-y_probas_forest = cross_val_predict(
-    forest_clf,
-    X_train,
-    y_train_5,
-    cv=3,
-    method="predict_proba"
-)
-
-y_scores_forest = y_probas_forest[:, 1]
-auc_forest = roc_auc_score(y_train_5, y_scores_forest)
-
-auc, auc_forest
-</code></pre>
-<hr>
-<h2 id="9-multiclass-classification"><a class="header" href="#9-multiclass-classification">9) Multiclass classification</a></h2>
-<p><strong>Why this code matters:</strong> Real tasks often require choosing among many labels, not just yes/no.<br><strong>What to look for:</strong> Baseline multiclass accuracy vs scaled-pipeline accuracy; SGD usually benefits from feature scaling.<br><strong>Common trap:</strong> Forgetting to include preprocessing in the cross-validation pipeline, which causes leakage or inconsistent evaluation.</p>
-<pre><code class="language-python">from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import make_pipeline
-
-sgd_clf_multi = SGDClassifier(random_state=42)
-print("Multiclass accuracy:",
-      cross_val_score(sgd_clf_multi, X_train, y_train,
-                      cv=3, scoring="accuracy"))
-
-sgd_scaled = make_pipeline(
-    StandardScaler(),
-    SGDClassifier(random_state=42, max_iter=100)
-)
-
-print("Scaled accuracy:",
-      cross_val_score(sgd_scaled, X_train, y_train,
-                      cv=3, scoring="accuracy"))
-</code></pre>
-<hr>
-<h2 id="10-error-analysis"><a class="header" href="#10-error-analysis">10) Error analysis</a></h2>
-<p><strong>Why this code matters:</strong> A confusion matrix for multiclass reveals <em>where</em> the model struggles, not just <em>how much</em>.<br><strong>What to look for:</strong> Pairs of digits with high confusion (e.g., similar shapes). Those patterns guide targeted improvements.<br><strong>Common trap:</strong> Stopping at one aggregate score instead of diagnosing specific confusion pairs.</p>
-<pre><code class="language-python">from sklearn.metrics import ConfusionMatrixDisplay
-
-y_train_pred_multi = cross_val_predict(
-    sgd_scaled, X_train, y_train, cv=3
-)
-
-cm = confusion_matrix(y_train, y_train_pred_multi)
-ConfusionMatrixDisplay(cm).plot(cmap="Blues")
-plt.show()
-</code></pre>
-<hr>
-<h2 id="11-multilabel--multioutput"><a class="header" href="#11-multilabel--multioutput">11) Multilabel &amp; Multioutput</a></h2>
-<h3 id="multilabel"><a class="header" href="#multilabel">Multilabel</a></h3>
-<p><strong>Why this code matters:</strong> One sample can have multiple valid labels (not mutually exclusive), which is common in tagging systems.<br><strong>What to look for:</strong> Output has multiple booleans per sample: here, <code>&gt;=7</code> and <code>odd</code> are predicted together.<br><strong>Common trap:</strong> Treating multilabel as multiclass and forcing only one label per sample.</p>
-<pre><code class="language-python">from sklearn.neighbors import KNeighborsClassifier
-
-y_train_large = (y_train &gt;= 7)
-y_train_odd = (y_train % 2 == 1)
-y_multilabel = np.c_[y_train_large, y_train_odd]
-
-knn_clf = KNeighborsClassifier()
-knn_clf.fit(X_train, y_multilabel)
-
-knn_clf.predict([some_digit])
-</code></pre>
-<h3 id="multioutput-denoising"><a class="header" href="#multioutput-denoising">Multioutput (denoising)</a></h3>
-<p><strong>Why this code matters:</strong> Multioutput predicts multiple targets at once; denoising predicts a whole clean pixel vector.<br><strong>What to look for:</strong> The predicted digit should preserve structure while removing injected random noise.<br><strong>Common trap:</strong> Assuming all classifiers support large multioutput targets efficiently; memory and latency can grow quickly.</p>
-<pre><code class="language-python">rng = np.random.RandomState(42)
-
-noise = rng.randint(0, 100, (len(X_train), 784))
-X_train_mod = X_train + noise
-y_train_mod = X_train
-
-knn_denoise = KNeighborsClassifier()
-knn_denoise.fit(X_train_mod, y_train_mod)
-
-clean_digit = knn_denoise.predict([X_train_mod[0]])
-
-plot_digit(clean_digit[0])
-plt.show()
-</code></pre>
-<hr>
-<h2 id="what-we-learned"><a class="header" href="#what-we-learned">What we learned</a></h2>
-<p>Use this as a practical checklist:</p>
-<ol>
-<li>Start with a simple binary slice to understand errors clearly.</li>
-<li>Always compare against a naive baseline before trusting accuracy.</li>
-<li>Inspect confusion matrix before optimizing any single metric.</li>
-<li>Pick precision/recall target based on business cost of FP vs FN.</li>
-<li>Tune threshold intentionally; default threshold is rarely optimal.</li>
-<li>Compare model families under the same validation protocol.</li>
-<li>For multiclass/multilabel tasks, diagnose per-label confusion, not just one aggregate score.</li>
-</ol>
-<hr>
-<p>🔗 <strong>Full runnable notebook:</strong></p>
-<p><a href="https://colab.research.google.com/github/xixiaofinland/blog/blob/main/notebooks/classification.ipynb">▶ Run this notebook on Google Colab</a></p>
-<div style="break-before: page; page-break-before: always;"></div>
-<h1 id="salesforce-headless-360-agent-first-or-just-hype"><a class="header" href="#salesforce-headless-360-agent-first-or-just-hype">Salesforce Headless 360: Agent-First or Just Hype?</a></h1>
-<p>User agents are multiplying. Quietly. Everywhere.</p>
-<p>Claude books meetings. Copilot writes code. Support tickets close without anyone opening a browser.</p>
-<p>This is why Salesforce announced <a href="https://www.salesforce.com/news/stories/salesforce-headless-360-announcement/">Headless 360</a>. Not to improve the existing platform. To survive what’s coming.</p>
-<p>Because this isn’t <strong>A</strong> to <strong>A+</strong>. It’s <strong>A</strong> dying and an unprecedented <strong>B</strong> appearing. In Salesforce, A is the no/low-code GUI. B is the user agent.</p>
-<p>That distinction is why this article exists.</p>
-<hr>
-<p>To understand why, go back to the 1950s.</p>
-<p>The shipping container didn’t make dockworkers more efficient. It made them unnecessary.</p>
-<p>Before containers: armies of workers, every cargo type handled by hand, every port built around human labor.</p>
-<p>Then containers came, and the entire logic of moving cargo had to be rethought from the ground up. The work didn’t get faster. The work disappeared. Break-bulk was gone. London’s docks emptied. New York’s piers went silent. Felixstowe and Port Newark rose in their place. Built for a machine, not a hand.</p>
-<p>That’s not A to A+. That’s A dying. B appearing. Entirely different rules.</p>
-<p><img src="img/headless-360/harbors.png" alt="Old break-bulk harbor vs modern container port"></p>
-<p>AI is doing the same thing to knowledge work. Removing the human from the loop entirely, for entire categories of work.</p>
-<p>This wave also moves faster than any before it. Smartphones took four years. iPhone launched in 2007. By 2011, crossed 50% in major markets.</p>
-<p>Enterprise software moves faster. No hardware to buy. Buyers have budget authority. The pressure is headcount, not adoption friction.</p>
-<p>If 2026 is year zero, 2028 is not a stretch.</p>
-<p><img src="img/headless-360/nokia-vs-iphone.png" alt="Nokia feature phone vs iPhone"></p>
-<hr>
-<p>Salesforce’s Headless 360 is doing the same thing to the GUI-first paradigm.</p>
-<p>The old world isn’t gone (yet). But it’s no longer where the platform is heading.</p>
-<p><strong>Old world:</strong></p>
-<pre><code class="language-mermaid">graph LR
-    Human[Human] --&gt; GUI[GUI]
-    GUI --&gt; Platform[Platform]
-</code></pre>
-<p><strong>New world:</strong></p>
-<pre><code class="language-mermaid">graph LR
-    Human[Human] --&gt; UserAgent[User Agent]
-    UserAgent --&gt; PlatformInterface[Platform Interface]
-    PlatformAgent[Platform Agent] -.-&gt;|Supervises| PlatformInterface
-</code></pre>
-<p>But a user agent isn’t just a faster human clicking buttons. It’s a different beast entirely.</p>
-<p>It doesn’t browse. It calls APIs directly, moves through multi-step sequences without pausing, and never waits for a screen to load. No GUI to confirm. No human in the loop to catch a wrong turn.</p>
-<p>You’ve been there. An agent tells you to go to a link, click a button in the top right, then do this, then do that. Not because the agent wants to. Because the platform doesn’t support headless interaction.</p>
-<p>My simple rule:</p>
-<p><em>If you remove all the GUI, the agent should still be able to do the same work. If it can’t, the platform isn’t agent-first.</em></p>
-<p>A user agent reasons through multi-step sequences on its own. It carries context across every action. It decides, executes, and moves on. Platforms were never built for any of that.</p>
-<hr>
-<p>A new beast needs a new foundation. Two things make or break it:</p>
-<p><strong>Semantics.</strong></p>
-<p>Agents can’t guess intent. They have no visual cues, no hover states, no tooltips. Without machine-readable context, they hallucinate paths, retry blind, and trigger side effects no one planned for.</p>
-<p>Many platforms ship CLIs, APIs, MCPs, and skills. They call it “agent-first”. It’s an important step. But it’s missing the soul.</p>
-<p>The soul is semantics.</p>
-<p>A good CLI doesn’t just expose commands. It tells agents what to expect:</p>
-<ul>
-<li><code>--help</code> with clear, structured output</li>
-<li><code>--dry-run</code> for any action with side effects</li>
-<li><code>--json</code> for machine-readable responses</li>
-<li>Clean stdout, stderr, and exit codes</li>
-<li>Good examples. LLMs love examples.</li>
-</ul>
-<p>APIs follow the same logic. The interface and the meaning.</p>
-<ul>
-<li>Schema descriptions that explain intent, not just structure</li>
-<li>Reversibility signals. Agents can’t read warning modals.</li>
-<li>Structured errors: retry, escalate, or abort</li>
-<li>Idempotency keys. Agents retry. Without them, retries create duplicates.</li>
-</ul>
-<p>MCP servers should expose a minimal contract. Not everything at once. Let the agent explore when it needs to. Fewer tools visible = less noise = sharper decisions.</p>
-<p>Agent skills are different. Each feature gets its own skill. For example, a user agent needs to create a flow. It finds the flow creating skill via <code>llms.txt</code>. Reads the contract: inputs, outputs, side effects. Knows exactly what format to pass. No guessing. No docs to scrape.</p>
-<pre><code class="language-mermaid">flowchart LR
-    UA[User Agent] --&gt;|discover| L[llms.txt]
-    L --&gt;|find skill| S[Skill Contract]
-    S --&gt;|read contract| UA
-    UA --&gt;|execute| A[Action]
-</code></pre>
-<p>The goal isn’t coverage. It’s clarity.</p>
-<p><strong>Observability.</strong></p>
-<p>Agents don’t interact with the platform like humans. They interact constantly. Thousands of actions where a human might take one. That volume demands auditing and logging at a scale no human admin can process.</p>
-<p>The data is there. The problem is who reads it. No human can keep up. The platform needs to put agents in the admin role too. Monitoring what’s happening. Flagging anomalies. Catching what no one would catch manually.</p>
-<p>These two challenges shaped how I think about platform design. Five layers.</p>
-<pre><code class="language-mermaid">flowchart LR
-    Human[Human] --&gt; UserAgent[User Agent]
-    UserAgent --&gt; E
-    subgraph E[5 - Agentic Layer]
-        direction TB
-        A[1 - Interface Layer] --&gt; B[2 - Semantic Layer]
-        B --&gt; C[3 - Core Layer]
-        C --&gt; D[4 - Trust Layer]
-    end
-</code></pre>
-<hr>
-<h2 id="1-interface-layer"><a class="header" href="#1-interface-layer">1. Interface Layer</a></h2>
-<p>APIs, CLIs, MCPs, skills. The front door that lets user agents enter the platform.</p>
-<p>Having an interface isn’t enough. It must be designed for agents, not humans who happen to type commands. Without context, agents guess and hallucinate. That’s what the next layer fixes.</p>
-<h2 id="2-semantic-layer"><a class="header" href="#2-semantic-layer">2. Semantic Layer</a></h2>
-<p>This is the one everyone skips. Companies think exposing an interface is enough. But an interface without meaning is a trap. Agents guess, retry blind, trigger side effects no one planned for.</p>
-<p>Good semantics tell agents what to expect, what’s reversible, what to avoid. The interface and the meaning. That’s what makes an agent reliable, not just capable.</p>
-<p>The specifics are covered above, in the CLI, API, MCP, and skills breakdown.</p>
-<h2 id="3-core-layer"><a class="header" href="#3-core-layer">3. Core Layer</a></h2>
-<p>The data model, automations, custom business logic. Everything that already exists in the platform and makes it valuable.</p>
-<p>This is the moat. Years of customer configuration, flows, Apex, integrations, all locked into Salesforce. That doesn’t disappear. It gets exposed to agents, cleanly, through the Semantic Layer above.</p>
-<p>But most orgs are monolithic jungles. A user clicks a button. That invokes Apex, which fires a trigger, which kicks off a flow, which updates another object, which fires another trigger, which waits for approvals, which sends notifications.</p>
-<p>The ideal: the core is detangled into composable units. The platform handles the low-level wiring. Agents pick what they need and chain at the right level of abstraction.</p>
-<p>The reality: most orgs carry that technical debt. That’s fine, as long as the agent can see the full chain clearly. Not guess it. See it. Then it can act deliberately.</p>
-<h2 id="4-trust-layer"><a class="header" href="#4-trust-layer">4. Trust Layer</a></h2>
-<p>Auditing, logging, error collecting. The platform’s record of everything user agents do.</p>
-<p>Most platforms stop at logging. But agents can do something humans never bothered with: submit rich diagnostics when something goes wrong. Exact inputs, the decision path, the error. Not a vague report. A full trace.</p>
-<p>For that to work, the platform needs to provide the channel. An API for agents to submit feedback directly. Not passive logs waiting to be scraped. Active submission, by design.</p>
-<p>Software doesn’t survive by grand roadmaps. It survives by evolving toward what users actually need, one fix at a time. Agents generate the richest signal of what’s failing and what matters. That trace is gold.</p>
-<h2 id="5-agentic-layer"><a class="header" href="#5-agentic-layer">5. Agentic Layer</a></h2>
-<p>This layer sits on top of everything else. It’s the platform watching itself.</p>
-<p>Agents that monitor incoming actions, track performance, run A/B tests, roll back automatically.</p>
-<p>These are the admins of the new world. Not replacements for human admins. They handle the scale and speed no human can.</p>
-<p>Diagnostic data arrives. They find the pattern. They trigger the fix. A new API version ships. They test, score, and roll back if needed. No delay.</p>
-<hr>
-<h2 id="wrap-up"><a class="header" href="#wrap-up">Wrap Up</a></h2>
-<p>The Semantic Layer and the Trust Layer are unlike anything the platform has built before. And they’re the easiest to ignore.</p>
-<p>Salesforce built its empire on CRM data and the GUI-first strategy. The data and the trust it carries remain the brand. The GUI-first paradigm on top of it is fading. Some adapt and thrive. Others become relics.</p>
-<p>Salesforce Headless 360 is a good move. But <strong>the vision is not enough. The implementation is the key.</strong> The real work is in the layers.</p>
-<p><img src="img/headless-360/wrap_up.png" alt="Platform agent welcoming user agents"></p>
-<div style="break-before: page; page-break-before: always;"></div>
-<h1 id="build-a-minimal-llm-code-agent-from-loop-to-harness"><a class="header" href="#build-a-minimal-llm-code-agent-from-loop-to-harness">Build a Minimal LLM Code Agent: From Loop to Harness</a></h1>
-<blockquote>
-<p>“You can outsource thinking, but not understanding.”</p>
-<ul>
-<li>Andrej Karpathy</li>
-</ul>
-</blockquote>
-<p>You’ve heard “code agent” and “harness” a hundred times this year, but do you know how it works? Could you build it in code?</p>
-<p>Most people can’t. The words are borrowed, not earned.</p>
-<p>This article earns them. We build a minimal LLM code agent from scratch in TypeScript, step by step. By the end, you won’t just know the vocabulary. You’ll know the skeleton underneath it.</p>
-<p>The code is built in 30 minutes. The understanding takes the whole article. That’s the point.</p>
-<hr>
-<p><strong>TLDR:</strong> A code agent is a loop. The loop calls a model, runs tools, and repeats until done. What makes it production-ready is the harness around it: boundaries for tools, context, memory, permissions, and validation. This article builds both from scratch, in TypeScript, milestone by milestone. Source code: <a href="https://github.com/xixiaofinland/lab/tree/main/minimal-agent">minimal-agent</a>.</p>
-<hr>
-<h2 id="milestone-1-the-loop"><a class="header" href="#milestone-1-the-loop">Milestone 1: The Loop</a></h2>
-<p>Strip everything away. What is a code agent at its core?</p>
-<p>A loop in <code>runAgent()</code>. That’s it.</p>
-<pre><code class="language-typescript">import OpenAI from "openai";
-
-const client = new OpenAI({
-  baseURL: process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1",
-  apiKey: process.env.OPENAI_API_KEY ?? "none",
-});
-
-const MODEL = process.env.MODEL ?? "gpt-4o-mini";
-
-async function runAgent(task: string) {
-  const messages: OpenAI.ChatCompletionMessageParam[] = [
-    { role: "user", content: task },
-  ];
-
-  console.log(`user: ${task}`);
-
-  for (let step = 0; step &lt; 5; step++) {
-    console.log(`\n── step ${step + 1}`);
-
-    // action 1;
-    const response = await client.chat.completions.create({
-      model: MODEL,
-      messages,
-    });
-
-    // action 2;
-    const message = response.choices[0].message;
-    messages.push(message);
-
-    // strip &lt;think&gt;...&lt;/think&gt; blocks for display only
-    const display = message.content
-      ?.replace(/&lt;think&gt;[\s\S]*?&lt;\/think&gt;/g, "")
-      .trim();
-    console.log("model:", display);
-
-    // action 3;
-    if (response.choices[0].finish_reason === "stop") {
-      return message.content;
-    }
-  }
-
-  return "Stopped: step limit reached.";
-}
-
-const task =
-  "What test files exist in this project, and does package.json have a test script?";
-
-runAgent(task);
-</code></pre>
-<p>It sends this exact task to the code agent, <code>"What test files exist in this project, and does package.json have a test script?"</code>, then calls <code>runAgent(task)</code> to start the loop.</p>
-<p>Three things happen in each iteration:</p>
-<ol>
-<li><code>action 1</code>: call the model with the current message history</li>
-<li><code>action 2</code>: push the reply into history, print a cleaned version to the terminal</li>
-<li><code>action 3</code>: if the model is done, return; if not, loop</li>
-</ol>
-<pre><code class="language-mermaid">flowchart TD
-    A([User Task]) --&gt; B[Call Model]
-    B --&gt; C[Push Reply to History]
-    C --&gt; D{finish_reason = stop?}
-    D -- yes --&gt; E([Return Answer])
-    D -- no --&gt; F{step &lt; 5?}
-    F -- yes --&gt; B
-    F -- no --&gt; G([Stopped])
-</code></pre>
-<p>The code above is not pseudocode. You can run it. I run against a local Qwen3.6 35B LLM, but any openai API compatible ones would go, such as gpt-4o-mini with your openai API key.</p>
-<p><img src="img/minimal-agent/run-output.png" alt=""></p>
-<p>Several subtle details worth mentioning:</p>
-<p>The task hints the model toward tools like <code>list_files</code> and <code>read_file</code>. But none are defined yet. So the model reasons from its own knowledge, does its best, and signals <code>stop</code> after one single step. No looping. Not yet. This is how ChatGPT browser version works.</p>
-<p><code>finish_reason</code> in action 3 isn’t always <code>"stop"</code>. <code>"length"</code> means output hit the token limit, cut off mid-thought. <code>"content_filter"</code> means it was blocked. Production handles all of them explicitly. In this demo, we assume it’s always the happy path.</p>
-<p>That <code>step &lt; 5</code> guard is not cosmetic. A confused model won’t stop itself. The step limit is the first harness piece, already baked in.</p>
-<hr>
-<h2 id="milestone-2-tools"><a class="header" href="#milestone-2-tools">Milestone 2: Tools</a></h2>
-<p>Now give it eyes (tools).</p>
-<p>Tools are not system prompt tricks. They’re a structured contract. The code agent passes a list of tool definitions alongside your messages. The model reads the descriptions and decides which one to call.</p>
-<pre><code class="language-typescript">// ... imports, client, MODEL same as before
-
-// ── Tool definitions (what the model sees)
-const tools: OpenAI.ChatCompletionTool[] = [
-  {
-    type: "function",
-    function: {
-      name: "list_files",
-      description: "List files and directories at a given path.",
-      parameters: {
-        type: "object",
-        properties: {
-          path: { type: "string", description: "Directory path to list." },
-        },
-        required: ["path"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "read_file",
-      description: "Read the contents of a file.",
-      parameters: {
-        type: "object",
-        properties: {
-          path: { type: "string", description: "File path to read." },
-        },
-        required: ["path"],
-      },
-    },
-  },
-];
-
-// ── Tool implementations (what actually runs)
-function list_files(filePath: string): string {
-  const entries = fs.readdirSync(filePath, { withFileTypes: true });
-  return entries
-    .map((e) =&gt; (e.isDirectory() ? `${e.name}/` : e.name))
-    .join("\n");
-}
-
-function read_file(filePath: string): string {
-  return fs.readFileSync(filePath, "utf-8");
-}
-
-function runTool(name: string, args: Record&lt;string, string&gt;): string {
-  if (name === "list_files") return list_files(args.path);
-  if (name === "read_file") return read_file(args.path);
-  return `Unknown tool: ${name}`;
-}
-
-// ── Agent loop
-async function runAgent(task: string) {
-  // ... messages setup same as before
-  for (let step = 0; step &lt; 5; step++) {
-    const response = await client.chat.completions.create({
-      model: MODEL,
-      messages,
-      tools, // &lt;-- added
-    });
-
-    const message = response.choices[0].message;
-    messages.push(message);
-
-    if (response.choices[0].finish_reason === "tool_calls") {
-      const toolCall = message.tool_calls![0];
-      const args = JSON.parse(toolCall.function.arguments);
-      const observation = runTool(toolCall.function.name, args);
-      messages.push({
-        role: "tool",
-        tool_call_id: toolCall.id,
-        content: observation,
-      });
-    } else {
-      // ... print and return same as before
-    }
-  }
-}
-
-// ... task and runAgent(task) same as before
-</code></pre>
-<p>Think about how you’d solve this yourself.</p>
-<p>You’d list the files first to get your bearings. Then open the specific file you need.</p>
-<p>The model does the same. It calls <code>list_files(".")</code>, scans the result, then calls <code>read_file("package.json")</code>. Two steps. Then it has what it needs and signals <code>stop</code>.</p>
-<p>The diagram shows exactly that.</p>
-<pre><code class="language-mermaid">sequenceDiagram
-    participant Tool
-    participant Agent
-    participant Model
-
-    Agent-&gt;&gt;Model: messages
-    Model--&gt;&gt;Agent: tool_calls
-    Agent-&gt;&gt;Tool: list_files(".")
-    Tool--&gt;&gt;Agent: response
-    Agent-&gt;&gt;Model: messages + observation
-    Model--&gt;&gt;Agent: tool_calls
-    Agent-&gt;&gt;Tool: read_file("package.json")
-    Tool--&gt;&gt;Agent: response
-    Agent-&gt;&gt;Model: messages + observation
-    Model--&gt;&gt;Agent: stop
-    Agent-&gt;&gt;Agent: done
-</code></pre>
-<p>The code running result is in the screenshot below:</p>
-<p>Steps 1 and 2 follow the same pattern: the model requests a tool call, the agent runs it and sends the observation back.</p>
-<p>Step 3 is different. No tool call. The model has enough context now and answers directly. That’s the <code>stop</code> signal, and the final answer prints.</p>
-<p><img src="img/minimal-agent/run-output-tools.png" alt=""></p>
-<p>Think of tools as sensors in an IoT system. They sample the environment and send readings back. The model, like a controller, makes decisions based on what it receives.</p>
-<p>Feed it accurate readings, it reasons correctly. Feed it wrong ones, it reasons confidently in the wrong direction. The model has no way to tell the difference. It just processes what arrives.</p>
-<p>You could return fake data. Wrong file contents. A made-up directory listing. The model would accept it, reason over it, and answer confidently. No verification.</p>
-<p>The quality of the agent’s output is only as good as the observations its tools return.</p>
-<hr>
-<h2 id="milestone-3-tool-boundary"><a class="header" href="#milestone-3-tool-boundary">Milestone 3: Tool Boundary</a></h2>
-<p>Now add <code>run_command</code>. The model can execute shell commands.</p>
-<p><code>list_files</code> and <code>read_file</code> use Node’s <code>fs</code> module. You’re calling well-defined Node APIs. Node handles the underlying OS interaction, and the security contract is clearly scoped: read the filesystem, nothing else.</p>
-<p><code>run_command</code> is different. It hands a string to the shell and lets the shell decide what happens. No guardrails. Any binary, any argument, any side effect. That’s a different layer entirely, and it needs a different trust model.</p>
-<pre><code class="language-typescript">// ... imports, client, MODEL, tools, list_files, read_file, runAgent same as before
-
-const ALLOWED_COMMANDS = ["ls", "cat", "echo", "node", "npm", "rg"];
-
-function run_command(command: string): string {
-  const binary = command.trim().split(/\s+/)[0];
-  if (!ALLOWED_COMMANDS.includes(binary)) {
-    return `Error: '${binary}' is not an allowed command.`;
-  }
-  return execSync(command, { encoding: "utf-8" });
-}
-
-const task =
-  "List the files in this directory, read package.json, and run `node --version`.";
-
-runAgent(task);
-</code></pre>
-<p>Notice the whitelist? It is the guardrail we build. The model can reach the shell, but only through these specific doors. If we send the task to run <code>rm AGENTS.md</code>, agent would refuse it as below.</p>
-<p><img src="img/minimal-agent/run-output-tool-boundary.png" alt=""></p>
-<p>The code run above has the task: “Run <code>rm AGENTS.md</code>”, and it has two steps.</p>
-<p>Step 1: the model calls <code>run_command("rm AGENTS.md")</code>. It doesn’t know <code>rm</code> is blocked. The whitelist fires, returns an error string as a normal observation. Step 2: the model reads it and reports back.</p>
-<p>Two subtle points I’d like to point out.</p>
-<p><strong>First: the model doesn’t build the guardrail. The agent does.</strong> The model still tried to run <code>rm</code>, no hesitation, no special awareness. Your code intercepted it. You can’t rely on the model to protect you from itself. The boundary has to live in the harness.</p>
-<p><strong>Second: real harnesses return richer observations.</strong> Our <code>run_command</code> returns a plain string. Production systems return exit codes, stderr separated from stdout, truncation markers. Without exit codes, the model can’t tell “command ran and produced nothing” from “command failed silently.” Feed it thin observations, it fills the gaps with guesses.</p>
-<hr>
-<h2 id="what-a-real-agent-needs"><a class="header" href="#what-a-real-agent-needs">What a Real Agent Needs</a></h2>
-<p>The loop is running. It can list files, read files, run commands. The demo works.</p>
-<p>But “works in a demo” is not the same as “works on real tasks.” Run this code agent on anything non-trivial and four specific things will break:</p>
-<ol>
-<li><strong>Context overflows.</strong> Long tool observations grow the message array. Hit the token limit, the API throws.</li>
-<li><strong>No memory.</strong> Close the terminal, restart, it knows nothing about your project.</li>
-<li><strong>Unchecked commands.</strong> No confirmation before running something irreversible.</li>
-<li><strong>False completion.</strong> The model says “done.” Nothing was actually written or tested.</li>
-</ol>
-<p>These aren’t hypothetical. Each one is a failure mode you will hit. The next four milestones add a boundary for each.</p>
-<hr>
-<h2 id="milestone-4-context-boundary"><a class="header" href="#milestone-4-context-boundary">Milestone 4: Context Boundary</a></h2>
-<p>Context isn’t just a technical limit. It’s everything the model can see right now.</p>
-<p>Transformers don’t attend equally across the context. The model pays more attention near the start and near the end. Bury something in the middle and the model struggles to reach it. The longer the context, the harder the attention. Researchers call this the “lost in the middle” problem.</p>
-<p>So the goal isn’t just “stay under the limit.” It’s “keep the right things visible.”</p>
-<p>That means three operations: pick what goes in, remove what’s useless, condense what’s redundant. Each is a judgment call. Each is hard. Together, they look a lot like the old embedded discipline: limited RAM, everything competing for it, no room for waste. The constraint is different. The problem shape is the same.</p>
-<p>In our demo, we take the simple approach: truncate anything too long.</p>
-<pre><code class="language-typescript">const raw = await runTool(toolCall.function.name, args);
-const observation =
-  raw.length &gt; 2000 ? raw.slice(0, 2000) + "\n[...truncated]" : raw;
-</code></pre>
-<p>This is a blunt instrument. It works for a demo. In production, you’d summarize instead: call the model again on just the observation, get a condensed version, push that. Tools like <a href="https://github.com/rtk-ai/rtk">RTK</a> solve this at the CLI layer, compressing the tool call result before it ever reaches the model.</p>
-<p>A side note, the screenshot below is my RTK session summary for ~2 week usage. 589 commands run, 392K tokens saved. That’s 46.8% of input tokens eliminated before the model ever saw them.</p>
-<p><img src="img/minimal-agent/rtk-token-savings.png" alt=""></p>
-<p>One broader observation worth making here: CLI tools are starting to evolve toward output that code agents can read efficiently. <code>ls</code> returning 200 lines of noise made sense when a human was reading it. When a code agent reads it, that’s wasted tokens. RTK is a shim for the transition period. Long-term, tools will output compact, structured data natively. The same shift happened to APIs when mobile came along.</p>
-<hr>
-<h2 id="milestone-5-memory-boundary"><a class="header" href="#milestone-5-memory-boundary">Milestone 5: Memory Boundary</a></h2>
-<p>Context is what’s in the <code>messages</code> array right now. Memory is what survives closing the terminal.</p>
-<p>Add an <code>AGENTS.md</code> to the project root:</p>
-<pre><code class="language-markdown"># Project Rules
-
-Always respond in Simplified Chinese (简体中文).
-</code></pre>
-<p>Load it as a system message at startup:</p>
-<pre><code class="language-typescript">function loadMemory(): OpenAI.ChatCompletionMessageParam[] {
-  try {
-    const rules = fs.readFileSync("AGENTS.md", "utf-8");
-    return [{ role: "system", content: rules }];
-  } catch {
-    return [];
-  }
-}
-
-const messages = [...loadMemory(), { role: "user", content: task }];
-</code></pre>
-<p>Run the same task as before. The model now responds in Chinese. Delete <code>AGENTS.md</code>, run again: English. The difference is visible in one line.</p>
-<p>Trust me, those are proper Chinese. The agent isn’t broken. 😄</p>
-<p><img src="img/minimal-agent/memory-agents.png" alt=""></p>
-<p>Continuity across sessions.</p>
-<p>For personal agents, memory isn’t a feature. It’s the whole point. Projects like <a href="https://openclaw.ai">OpenClaw</a> and <a href="https://github.com/NousResearch/Hermes">Hermes</a> are built around this: an assistant that knows your preferences, your history, your context. Context is temporary. Memory is what makes it yours.</p>
-<p>Which is why memory management is the harder problem. Context management asks: what should the model see right now? Memory management asks: what’s worth keeping at all? What to store. What to discard. When to surface it. How to retrieve the right piece without loading everything.</p>
-<p>Nobody has fully solved this. It’s one of the most active areas in agent research. Some draw the parallel to human sleep: one leading theory holds that sleep is when the brain consolidates the day’s experiences, strengthening useful patterns and discarding the rest. We don’t yet have that for LLMs. The framing is the same. The solution isn’t.</p>
-<hr>
-<h2 id="milestone-6-permission-boundary"><a class="header" href="#milestone-6-permission-boundary">Milestone 6: Permission Boundary</a></h2>
-<p><code>run_command</code> has a whitelist. That’s the outer gate. But some commands in the whitelist are still risky. <code>npm install</code>, <code>npm run build</code> — these change state.</p>
-<p>Add a second tier: commands that require confirmation before running.</p>
-<pre><code class="language-typescript">const AUTO_COMMANDS = ["ls", "cat", "echo", "node", "rg"];
-const CONFIRM_COMMANDS = ["npm"];
-
-async function run_command(command: string): Promise&lt;string&gt; {
-  const binary = command.trim().split(/\s+/)[0];
-  if (!AUTO_COMMANDS.includes(binary) &amp;&amp; !CONFIRM_COMMANDS.includes(binary)) {
-    return `Error: '${binary}' is not an allowed command.`;
-  }
-  if (CONFIRM_COMMANDS.includes(binary)) {
-    const approved = await ask(`Allow: ${command} ? (y/n) `);
-    if (!approved) return "User denied the command.";
-  }
-  return execSync(command, { encoding: "utf-8" });
-}
-</code></pre>
-<p>Three tiers: auto, confirm, deny. The model doesn’t know which tier a command is in. It just calls the tool. Your code decides what happens next.</p>
-<p>This is the same design Claude Code uses. Anthropic documented the tension: ask for every write and run command, and users get approval fatigue. Never ask, and you amplify risk. Their production answer involves a classifier that identifies truly risky actions. Our demo answer is a simple tier list. The principle is identical: the permission boundary keeps the model from being the last line of defense.</p>
-<hr>
-<h2 id="milestone-7-write-and-validate"><a class="header" href="#milestone-7-write-and-validate">Milestone 7: Write and Validate</a></h2>
-<p>A code agent that can only read and run is half an agent. It can answer questions. It can’t produce things. Add <code>write_file</code>.</p>
-<pre><code class="language-typescript">function write_file(filePath: string, content: string): string {
-  fs.writeFileSync(filePath, content, "utf-8");
-  return `Written: ${filePath}`;
-}
-</code></pre>
-<p>The signal is simple: the tool returns on success, throws on failure. <code>"Written: summary.txt"</code> means it worked. The loop closes. That’s the first layer of validation: the agent knows the write succeeded.</p>
-<p>The second layer runs after the agent finishes. Check independently.</p>
-<pre><code class="language-typescript">runAgent(task).then(() =&gt; {
-  const ok =
-    fs.existsSync("summary.txt") &amp;&amp;
-    fs.readFileSync("summary.txt", "utf-8").trim().length &gt; 0;
-  console.log(
-    ok
-      ? "\nValidation passed: summary.txt written."
-      : "\nValidation failed: summary.txt missing or empty.",
-  );
-});
-</code></pre>
-<p>Two tiers. The tool return closes the inner loop. The external check closes the outer one. “Done” is not a feeling. It’s evidence.</p>
-<p>Models are excellent at sounding confident. That confidence has no relationship to whether the work was actually done. Traditional CI fails loudly with logs. A code agent can succeed quietly and lie. Both checks are what makes completion mean something.</p>
-<p>How do Claude Code and Codex handle this on longer tasks? Same principle at scale: check exit codes, run the test suite, read back files they just wrote. Claude Code’s Todo system marks tasks complete only after the environment confirms, not after the model claims. The exact mechanisms for complex multi-step recovery are still an active area.</p>
-<p>This is the final version of the demo. Let’s run it.</p>
-<p><img src="img/minimal-agent/write-validate.png" alt=""></p>
-<p>The agent reads <code>package.json</code>, writes the summary to <code>summary.txt</code> in English, then responds in Chinese (AGENTS.md is still loaded). The external check confirms the file is written. Read, write, memory, validation: the full harness, working together.</p>
-<hr>
-<h2 id="the-model-inside-the-loop"><a class="header" href="#the-model-inside-the-loop">The Model Inside the Loop</a></h2>
-<p>The harness is fixed while we can swap the model like <a href="https://opencode.ai/">OpenCode</a> and <a href="https://pi.dev/">pi</a> do.</p>
-<p><code>Qwen3.6 35B</code> I use chains tools correctly, recovers from failures, and produces useful output. A weak 1B model hallucinates file paths, stops after one tool call, or returns empty content.</p>
-<p>That’s the separation this demo was built to show, and honestly it’s the thing I find most clarifying about building this yourself. The model defines the ceiling: how far it can reason, how well it recovers, how much ambiguity it can handle. The agent defines the floor: what’s allowed, what gets checked, what can’t go wrong even if the model tries.</p>
-<p><img src="img/minimal-agent/model-agent-boundary.png" alt=""></p>
-<p>You can’t train the expensive model. But you can build the code agent. The harness is just code. That boundary is worth holding onto.</p>
-<hr>
-<h2 id="wrap-up-1"><a class="header" href="#wrap-up-1">Wrap Up</a></h2>
-<p>Look at what we built:</p>
-<pre><code class="language-mermaid">flowchart LR
-    subgraph Minimal["Minimal Code Agent"]
-        L([Loop])
-    end
-
-    subgraph Harness["Harness"]
-        TB[Tool Boundary] --&gt; L
-        CB[Context Management] --&gt; L
-        MB[Memory Boundary] --&gt; L
-        PB[Permission Boundary] --&gt; L
-        VB[Validation Boundary] --&gt; L
-    end
-</code></pre>
-<p>Claude Code is this. Codex is this. Every serious code agent framework is this. The loop is always simple. The work is always in the boundaries.</p>
-<p>Build it yourself. Feel each piece land. Then when someone says “Claude Code uses a harness layer,” you won’t nod along. You’ll know exactly what they mean.</p>
-<p>That’s the understanding Karpathy was talking about. You can’t outsource it.</p>
-<p>Source code: <a href="https://github.com/xixiaofinland/lab/tree/main/minimal-agent">minimal-agent</a>.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="others"><a class="header" href="#others">Others</a></h1>
 <div style="break-before: page; page-break-before: always;"></div>

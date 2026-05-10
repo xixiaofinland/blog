@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Inspecting the California Housing Dataset (Before Preprocessing) - Personal blog - Xi Xiao</title>
+        <title>Archive 2026 - Personal blog - Xi Xiao</title>
 
 
         <!-- Custom HTML head -->
@@ -177,126 +177,20 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <h1 id="inspecting-the-california-housing-dataset-before-preprocessing"><a class="header" href="#inspecting-the-california-housing-dataset-before-preprocessing">Inspecting the California Housing Dataset (Before Preprocessing)</a></h1>
-<p>Before any preprocessing or modeling, we should first <strong>understand the raw dataset</strong>: its structure, data types, missing values, and basic statistical properties.
-This step prevents silent bugs and informs correct preprocessing decisions later.</p>
-<hr>
-<h2 id="load-the-dataset"><a class="header" href="#load-the-dataset">Load the Dataset</a></h2>
-<p>We download and load the California Housing dataset from Géron’s public repository.
-The dataset is cached locally to avoid repeated downloads.</p>
-<pre><code class="language-python">from pathlib import Path
-import pandas as pd
-import tarfile
-import urllib.request
-
-def load_housing_data():
-    tarball_path = Path("datasets/housing.tgz")
-    if not tarball_path.is_file():
-        Path("datasets").mkdir(parents=True, exist_ok=True)
-        url = "https://github.com/ageron/data/raw/main/housing.tgz"
-        urllib.request.urlretrieve(url, tarball_path)
-        with tarfile.open(tarball_path) as housing_tarball:
-            housing_tarball.extractall(path="datasets", filter="data")
-    return pd.read_csv(Path("datasets/housing/housing.csv"))
-
-housing_full = load_housing_data()
-housing_full.shape, housing_full.head()
-</code></pre>
-<p>This gives us a first look at:</p>
-<ul>
-<li>dataset size (rows × columns)</li>
-<li>feature names</li>
-<li>rough value ranges</li>
-</ul>
-<hr>
-<h2 id="dataset-structure-and-data-types"><a class="header" href="#dataset-structure-and-data-types">Dataset Structure and Data Types</a></h2>
-<p>We inspect column types and missing-value counts.</p>
-<pre><code class="language-python">housing_full.info()
-</code></pre>
-<p>This step answers:</p>
-<ul>
-<li>which features are numeric vs categorical</li>
-<li>whether any columns have missing values</li>
-<li>whether dtypes are suitable for downstream pipelines</li>
-</ul>
-<hr>
-<h2 id="descriptive-statistics-numeric-features"><a class="header" href="#descriptive-statistics-numeric-features">Descriptive Statistics (Numeric Features)</a></h2>
-<p>We compute summary statistics for numeric columns.</p>
-<pre><code class="language-python">housing_full.describe()
-</code></pre>
-<p>From this, we can quickly spot:</p>
-<ul>
-<li>skewed distributions (mean vs median)</li>
-<li>extreme min/max values (potential outliers)</li>
-<li>scale differences across features</li>
-</ul>
-<hr>
-<h2 id="categorical-feature-distribution"><a class="header" href="#categorical-feature-distribution">Categorical Feature Distribution</a></h2>
-<p>The dataset contains one categorical feature: <code>ocean_proximity</code>.</p>
-<pre><code class="language-python">housing_full["ocean_proximity"].value_counts()
-</code></pre>
-<p>This reveals:</p>
-<ul>
-<li>category balance</li>
-<li>whether rare categories exist</li>
-<li>whether one-hot encoding is appropriate</li>
-</ul>
-<hr>
-<h2 id="missing-value-analysis-counts"><a class="header" href="#missing-value-analysis-counts">Missing Value Analysis (Counts)</a></h2>
-<p>We check how many values are missing in each column.</p>
-<pre><code class="language-python">housing_full.isna().sum().sort_values(ascending=False).head(20)
-</code></pre>
-<p>This helps decide:</p>
-<ul>
-<li>which features require imputation</li>
-<li>whether any columns might be dropped entirely</li>
-</ul>
-<hr>
-<h2 id="missing-value-analysis-ratios"><a class="header" href="#missing-value-analysis-ratios">Missing Value Analysis (Ratios)</a></h2>
-<p>Absolute counts can be misleading, so we also inspect missing-value ratios.</p>
-<pre><code class="language-python">housing_full.isna().mean().sort_values(ascending=False).head(20)
-</code></pre>
-<p>As a rule of thumb:</p>
-<ul>
-<li>features with very high missing ratios deserve scrutiny</li>
-<li>low ratios are usually safe for median or mode imputation</li>
-</ul>
-<hr>
-<h2 id="correlation-with-target-variable"><a class="header" href="#correlation-with-target-variable">Correlation with Target Variable</a></h2>
-<p>We compute correlations for numeric features and focus on the target variable.</p>
-<pre><code class="language-python">num_df = housing_full.select_dtypes(include="number")
-corr = num_df.corr(numeric_only=True)
-corr["median_house_value"].sort_values(ascending=False)
-</code></pre>
-<p>This provides a <strong>quick signal check</strong>:</p>
-<ul>
-<li>which features are strongly correlated with the target</li>
-<li>which features may be redundant or weak predictors</li>
-</ul>
-<p>Correlation is not causation, but it is a useful early filter.</p>
-<hr>
-<h2 id="summary"><a class="header" href="#summary">Summary</a></h2>
-<p>In this section we:</p>
-<ul>
-<li>inspected dataset shape and schema</li>
-<li>identified numeric and categorical features</li>
-<li>analyzed missing values</li>
-<li>examined basic statistical properties</li>
-<li>checked correlations with the target variable</li>
-</ul>
-<p>With this understanding, we are now ready to design <strong>correct and informed preprocessing pipelines</strong> without guessing.</p>
-<p>🔗 <strong>Full runnable notebook:</strong></p>
-<p><a href="https://colab.research.google.com/github/xixiaofinland/blog/blob/main/notebooks/housing_data_inspection.ipynb">▶ Run this notebook on Google Colab</a></p>
+                        <h1 id="ai-archive-2026"><a class="header" href="#ai-archive-2026">AI Archive 2026</a></h1>
+<p>Older AI threads from 2026 land here after they rotate out of Latest.</p>
+<!-- AI_ARCHIVE_LINKS_START -->
+<!-- AI_ARCHIVE_LINKS_END -->
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="classification.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="llr.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
-                            <a rel="next prefetch" href="numeric_reg.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="coding.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
@@ -306,11 +200,11 @@ corr["median_house_value"].sort_values(ascending=False)
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="classification.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="llr.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
-                    <a rel="next prefetch" href="numeric_reg.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="coding.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>
