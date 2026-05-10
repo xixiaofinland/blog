@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-da955520.js";
+            window.path_to_searchindex_js = "searchindex-38bae8d3.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-e9b83f98.js"></script>
@@ -1535,7 +1535,7 @@ runAgent(task);
 </ol>
 <p>These aren’t hypothetical. Each one is a failure mode you will hit. The next four milestones add a boundary for each.</p>
 <hr>
-<h2 id="milestone-4-context-management"><a class="header" href="#milestone-4-context-management">Milestone 4: Context Management</a></h2>
+<h2 id="milestone-4-context-boundary"><a class="header" href="#milestone-4-context-boundary">Milestone 4: Context Boundary</a></h2>
 <p>Context isn’t just a technical limit. It’s everything the model can see right now.</p>
 <p>Transformers don’t attend equally across the context. The model pays more attention near the start and near the end. Bury something in the middle and the model struggles to reach it. The longer the context, the harder the attention. Researchers call this the “lost in the middle” problem.</p>
 <p>So the goal isn’t just “stay under the limit.” It’s “keep the right things visible.”</p>
@@ -1641,7 +1641,7 @@ async function run_command(command: string): Promise&lt;string&gt; {
 
     subgraph Harness["Harness"]
         TB[Tool Boundary] --&gt; L
-        CB[Context Boundary] --&gt; L
+        CB[Context Management] --&gt; L
         MB[Memory Boundary] --&gt; L
         PB[Permission Boundary] --&gt; L
         VB[Validation Boundary] --&gt; L
