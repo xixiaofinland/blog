@@ -284,14 +284,14 @@ Two subtle points I'd like to point out.
 
 ---
 
-## Why Four More Boundaries
+## What a Real Agent Needs
 
 The loop is running. It can list files, read files, run commands. The demo works.
 
-But "works in a demo" is not the same as "works on real tasks." Run this code agent on anything non-trivial and five specific things will break:
+But "works in a demo" is not the same as "works on real tasks." Run this code agent on anything non-trivial and four specific things will break:
 
 1. **Context overflows.** Long tool observations grow the message array. Hit the token limit, the API throws.
-2. **The code agent forgets everything.** Close the terminal, restart, it knows nothing about your project.
+2. **No memory.** Close the terminal, restart, it knows nothing about your project.
 3. **Unchecked commands.** No confirmation before running something irreversible.
 4. **False completion.** The model says "done." Nothing was actually written or tested.
 
@@ -299,9 +299,17 @@ These aren't hypothetical. Each one is a failure mode you will hit. The next fou
 
 ---
 
-## Milestone 4: Context Boundary
+## Milestone 4: Context Management
 
-The simplest fix for context overflow: truncate observations that are too long.
+Context isn't just a technical limit. It's everything the model can see right now.
+
+Transformers don't attend equally across the context. The model pays more attention near the start and near the end. Bury something in the middle and the model struggles to reach it. The longer the context, the harder the attention. Researchers call this the "lost in the middle" problem.
+
+So the goal isn't just "stay under the limit." It's "keep the right things visible."
+
+That means three operations: pick what goes in, remove what's useless, condense what's redundant. Each is a judgment call. Each is hard. Together, they look a lot like the old embedded discipline: limited RAM, everything competing for it, no room for waste. The constraint is different. The problem shape is the same.
+
+In our demo, we take the simple approach: truncate anything too long.
 
 ```typescript
 const raw = await runTool(toolCall.function.name, args);
@@ -309,9 +317,9 @@ const observation =
   raw.length > 2000 ? raw.slice(0, 2000) + "\n[...truncated]" : raw;
 ```
 
-This is a blunt instrument. It works for a demo. In production, you'd summarize instead: call the model again on just the observation, get a condensed version, push that. Tools like [RTK](https://github.com/rtk-ai/rtk) solve this at the CLI layer, compressing the tool call result before it ever reaches the model. 
+This is a blunt instrument. It works for a demo. In production, you'd summarize instead: call the model again on just the observation, get a condensed version, push that. Tools like [RTK](https://github.com/rtk-ai/rtk) solve this at the CLI layer, compressing the tool call result before it ever reaches the model.
 
-A side node, the screenshot below is my RTK session summary for ~2 week usage. 589 commands run, 392K tokens saved. That's 46.8% of input tokens eliminated before the model ever saw them.
+A side note, the screenshot below is my RTK session summary for ~2 week usage. 589 commands run, 392K tokens saved. That's 46.8% of input tokens eliminated before the model ever saw them.
 
 ![](img/minimal-agent/rtk-token-savings.png)
 
@@ -348,9 +356,17 @@ const messages = [...loadMemory(), { role: "user", content: task }];
 
 Run the same task as before. The model now responds in Chinese. Delete `AGENTS.md`, run again: English. The difference is visible in one line.
 
-That's what memory buys. Not smarter reasoning. Continuity across sessions.
+Trust me, those are proper Chinese. The agent isn't broken. 😄
 
-This is the minimal version. Real memory systems go further: layered storage (project rules, session summaries, learned preferences), keyword retrieval, eventually vector search when the volume demands it. But the principle is the same. Start with Markdown. Keep it readable. Add complexity when the pain is real, not before.
+![](img/minimal-agent/memory-agents.png)
+
+Continuity across sessions.
+
+For personal agents, memory isn't a feature. It's the whole point. Projects like [OpenClaw](https://openclaw.ai) and [Hermes](https://github.com/NousResearch/Hermes) are built around this: an assistant that knows your preferences, your history, your context. Context is temporary. Memory is what makes it yours.
+
+Which is why memory management is the harder problem. Context management asks: what should the model see right now? Memory management asks: what's worth keeping at all? What to store. What to discard. When to surface it. How to retrieve the right piece without loading everything.
+
+Nobody has fully solved this. It's one of the most active areas in agent research. Some draw the parallel to human sleep: one leading theory holds that sleep is when the brain consolidates the day's experiences, strengthening useful patterns and discarding the rest. We don't yet have that for LLMs. The framing is the same. The solution isn't.
 
 ---
 
@@ -385,7 +401,7 @@ This is the same design Claude Code uses. Anthropic documented the tension: ask 
 
 ## Milestone 7: Write and Validate
 
-Add `write_file`. Now the code agent can actually produce artifacts.
+A code agent that can only read and run is half an agent. It can answer questions. It can't produce things. Add `write_file`.
 
 ```typescript
 function write_file(filePath: string, content: string): string {
@@ -394,11 +410,9 @@ function write_file(filePath: string, content: string): string {
 }
 ```
 
-Change the task: "Read package.json, then write a short project summary to summary.txt."
+The signal is simple: the tool returns on success, throws on failure. `"Written: summary.txt"` means it worked. The loop closes. That's the first layer of validation: the agent knows the write succeeded.
 
-The code agent runs. It reads the file, writes the summary, says "done." Here's the question: did it actually work?
-
-Don't trust the model's word. Check independently.
+The second layer runs after the agent finishes. Check independently.
 
 ```typescript
 runAgent(task).then(() => {
@@ -407,31 +421,37 @@ runAgent(task).then(() => {
     fs.readFileSync("summary.txt", "utf-8").trim().length > 0;
   console.log(
     ok
-      ? "Validation passed: summary.txt written."
-      : "Validation failed: summary.txt missing or empty.",
+      ? "\nValidation passed: summary.txt written."
+      : "\nValidation failed: summary.txt missing or empty.",
   );
 });
 ```
 
-This is the validation boundary. "Done" is not a feeling. It's evidence. File exists. Content is non-empty. Test passed. Exit code zero.
+Two tiers. The tool return closes the inner loop. The external check closes the outer one. "Done" is not a feeling. It's evidence.
 
-Models are excellent at sounding confident. That confidence has no relationship to whether the work was actually done. Traditional CI fails loudly with logs. A code agent can succeed quietly and lie. The validation check is what makes completion mean something.
+Models are excellent at sounding confident. That confidence has no relationship to whether the work was actually done. Traditional CI fails loudly with logs. A code agent can succeed quietly and lie. Both checks are what makes completion mean something.
 
-How do Claude Code and Codex handle validation on longer tasks? They use the same principle at scale: check exit codes, run the test suite, read back files they just wrote. Claude Code's Todo system marks tasks complete only after the environment confirms, not after the model claims. The exact mechanisms for complex multi-step recovery are still an active area. We'll dig into that in a follow-up.
+How do Claude Code and Codex handle this on longer tasks? Same principle at scale: check exit codes, run the test suite, read back files they just wrote. Claude Code's Todo system marks tasks complete only after the environment confirms, not after the model claims. The exact mechanisms for complex multi-step recovery are still an active area.
+
+This is the final version of the demo. Let's run it.
+
+![](img/minimal-agent/write-validate.png)
+
+The agent reads `package.json`, writes the summary to `summary.txt` in English, then responds in Chinese (AGENTS.md is still loaded). The external check confirms the file is written. Read, write, memory, validation: the full harness, working together.
 
 ---
 
-## The LLM Difference
+## The Model Inside the Loop
 
-The harness is fixed. Swap the model and run the same task.
+The harness is fixed while we can swap the model like [OpenCode](https://opencode.ai/) and [pi](https://pi.dev/) do.
 
-A capable model (like `qwen3:32b`) navigates ambiguity, chains tools correctly, recovers from partial failures, produces useful output. A weaker 1B model may hallucinate a file path, stop after one tool call, or return empty content.
+`Qwen3.6 35B` I use chains tools correctly, recovers from failures, and produces useful output. A weak 1B model hallucinates file paths, stops after one tool call, or returns empty content.
 
-The loop is identical. The tool definitions are identical. The boundaries are identical. The difference is entirely in the model's judgment inside the loop.
+That's the separation this demo was built to show, and honestly it's the thing I find most clarifying about building this yourself. The model defines the ceiling: how far it can reason, how well it recovers, how much ambiguity it can handle. The agent defines the floor: what's allowed, what gets checked, what can't go wrong even if the model tries.
 
-This is the separation worth understanding: the harness sets what the code agent _can_ do. The model determines how often it _succeeds_. Stronger models get more out of the same harness. A better harness lets even average models operate safely.
+![](img/minimal-agent/model-agent-boundary.png)
 
-They're independently improvable. That's a useful property.
+You can't train the expensive model. But you can build the code agent. The harness is just code. That boundary is worth holding onto.
 
 ---
 
@@ -445,12 +465,12 @@ flowchart LR
         L([Loop])
     end
 
-    subgraph Harness["+ Harness"]
-        TB[Tool Boundary\nwhitelist] --> L
-        CB[Context Boundary\nstep limit + truncation] --> L
-        MB[Memory Boundary\nAGENTS.md] --> L
-        PB[Permission Boundary\nauto / confirm / deny] --> L
-        VB[Validation Boundary\nevidence not confidence] --> L
+    subgraph Harness["Harness"]
+        TB[Tool Boundary] --> L
+        CB[Context Management] --> L
+        MB[Memory Boundary] --> L
+        PB[Permission Boundary] --> L
+        VB[Validation Boundary] --> L
     end
 ```
 
