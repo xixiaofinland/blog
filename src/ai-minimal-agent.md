@@ -301,7 +301,7 @@ These aren't hypothetical. Each one is a failure mode you will hit. The next fou
 
 ---
 
-## Milestone 4: Context Management
+## Milestone 4: Context Boundary
 
 Context isn't just a technical limit. It's everything the model can see right now.
 
@@ -469,7 +469,7 @@ flowchart LR
 
     subgraph Harness["Harness"]
         TB[Tool Boundary] --> L
-        CB[Context Boundary] --> L
+        CB[Context Management] --> L
         MB[Memory Boundary] --> L
         PB[Permission Boundary] --> L
         VB[Validation Boundary] --> L
