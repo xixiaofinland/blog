@@ -15,6 +15,7 @@
 
 import re
 import sys
+import shutil
 import subprocess
 import tempfile
 from pathlib import Path
@@ -120,12 +121,25 @@ def main() -> None:
             replacements.append((full_block, f"[IMAGE: {fname}]"))
             render_jobs.append((lang, code, outpng))
 
-    # ── Pass 2: replace existing inline images with placeholders
+    # ── Pass 2: replace existing inline images with placeholders + collect copy jobs
     img_pattern = re.compile(r"!\[([^\]]*)\]\(([^)]+)\)")
+    copy_jobs: list[tuple[Path, Path]] = []  # (src, dst)
     for m in img_pattern.finditer(content):
         full_ref = m.group(0)
-        fname = Path(m.group(2)).name
+        img_path = Path(m.group(2))
+        fname = img_path.name
         replacements.append((full_ref, f"[IMAGE: {fname}]"))
+        src = infile.parent / img_path
+        if src.exists():
+            copy_jobs.append((src, outdir / fname))
+
+    # ── Copy existing screenshots
+    for src, dst in copy_jobs:
+        if dst.exists():
+            print(f"skip (exists): {dst.name}")
+            continue
+        shutil.copy2(src, dst)
+        print(f"copied: {dst.name}")
 
     # ── Render assets
     for lang, code, outpng in render_jobs:
@@ -145,10 +159,9 @@ def main() -> None:
     outfile.write_text(article_text)
 
     rendered = sum(1 for _, _, p in render_jobs if p.exists())
-    existing_imgs = len(img_pattern.findall(content))
-    print(f"\nDone.")
-    print(f"  {rendered} image(s) rendered to {outdir}/")
-    print(f"  {existing_imgs} existing image placeholder(s) — upload from src/img/{slug}/")
+    print(f"\nDone. Everything in {outdir}/")
+    print(f"  {rendered} image(s) rendered")
+    print(f"  {len(copy_jobs)} screenshot(s) copied")
     print(f"  Article text: {outfile}")
 
 
