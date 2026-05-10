@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-3fbbea94.js";
+            window.path_to_searchindex_js = "searchindex-da955520.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-e9b83f98.js"></script>
@@ -189,7 +189,7 @@
 <p>This article earns them. We build a minimal LLM code agent from scratch in TypeScript, step by step. By the end, you won’t just know the vocabulary. You’ll know the skeleton underneath it.</p>
 <p>The code is built in 30 minutes. The understanding takes the whole article. That’s the point.</p>
 <hr>
-<p><strong>TLDR:</strong> A code agent is a loop. The loop calls a model, runs tools, and repeats until done. What makes it production-ready is the harness around it: boundaries for tools, context, memory, permissions, and validation. This article builds both from scratch, in TypeScript, milestone by milestone.  Source code: <a href="https://github.com/xixiaofinland/lab/tree/main/minimal-agent">minimal-agent</a>.</p>
+<p><strong>TLDR:</strong> A code agent is a loop. The loop calls a model, runs tools, and repeats until done. What makes it production-ready is the harness around it: boundaries for tools, context, memory, permissions, and validation. This article builds both from scratch, in TypeScript, milestone by milestone. Source code: <a href="https://github.com/xixiaofinland/lab/tree/main/minimal-agent">minimal-agent</a>.</p>
 <hr>
 <h2 id="milestone-1-the-loop"><a class="header" href="#milestone-1-the-loop">Milestone 1: The Loop</a></h2>
 <p>Strip everything away. What is a code agent at its core?</p>
@@ -372,7 +372,7 @@ async function runAgent(task: string) {
     Model--&gt;&gt;Agent: stop
     Agent-&gt;&gt;Agent: done
 </code></pre>
-<p>The code running result:</p>
+<p>The code running result is in the screenshot below:</p>
 <p>Steps 1 and 2 follow the same pattern: the model requests a tool call, the agent runs it and sends the observation back.</p>
 <p>Step 3 is different. No tool call. The model has enough context now and answers directly. That’s the <code>stop</code> signal, and the final answer prints.</p>
 <p><img src="img/minimal-agent/run-output-tools.png" alt=""></p>
@@ -527,7 +527,7 @@ async function run_command(command: string): Promise&lt;string&gt; {
 
     subgraph Harness["Harness"]
         TB[Tool Boundary] --&gt; L
-        CB[Context Management] --&gt; L
+        CB[Context Boundary] --&gt; L
         MB[Memory Boundary] --&gt; L
         PB[Permission Boundary] --&gt; L
         VB[Validation Boundary] --&gt; L
