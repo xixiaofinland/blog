@@ -1,8 +1,6 @@
 # Build a Minimal LLM Code Agent: From Loop to Harness
 
-> "You can outsource thinking, but not understanding."
->
-> - Andrej Karpathy
+> "You can outsource thinking, but not understanding." - Andrej Karpathy
 
 You've heard "code agent" and "harness" a hundred times this year, but do you know how it works? Could you build it in code?
 
