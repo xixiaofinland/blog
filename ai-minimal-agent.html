@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-f9069f68.js";
+            window.path_to_searchindex_js = "searchindex-ec54e5af.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-e9b83f98.js"></script>
@@ -188,9 +188,7 @@
 <p>Most people can’t. The words are borrowed, not earned.</p>
 <p>This article earns them. We build a minimal LLM code agent from scratch in TypeScript, step by step, milestone by milestone. By the end, you won’t just know the vocabulary. You’ll know the skeleton underneath it.</p>
 <p>The code is built in 30 minutes. The understanding takes the whole article. That’s the point.</p>
-<blockquote>
-<p>Full source: <a href="https://github.com/xixiaofinland/lab/tree/main/minimal-agent">minimal-agent</a></p>
-</blockquote>
+<p><strong>TLDR:</strong> A code agent is a loop. The loop calls a model, runs tools, and repeats until done. What makes it production-ready is the harness around it: boundaries for tools, context, memory, permissions, and validation. This article builds both from scratch, in TypeScript, milestone by milestone. Full source: <a href="https://github.com/xixiaofinland/lab/tree/main/minimal-agent">minimal-agent</a>.</p>
 <hr>
 <h2 id="milestone-1-the-loop"><a class="header" href="#milestone-1-the-loop">Milestone 1: The Loop</a></h2>
 <p>Strip everything away. What is a code agent at its core?</p>
