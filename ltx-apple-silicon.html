@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Others - Personal blog - Xi Xiao</title>
+        <title>What I Learned Trying to Run LTX-Video 2.3 on Apple Silicon - Personal blog - Xi Xiao</title>
 
 
         <!-- Custom HTML head -->
@@ -177,17 +177,79 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <h1 id="others"><a class="header" href="#others">Others</a></h1>
+                        <h1 id="what-i-learned-trying-to-run-ltx-video-23-on-apple-silicon"><a class="header" href="#what-i-learned-trying-to-run-ltx-video-23-on-apple-silicon">What I Learned Trying to Run LTX-Video 2.3 on Apple Silicon</a></h1>
+<p>As a beginner, I just wanted to try LTX-Video 2.3 on my Apple Silicon Mac Mini and see whether I could get a serious video model running at all. The full <code>bf16</code> setup was already too big to fit comfortably in 64GB of RAM, but <code>fp8</code> looked like the perfect compromise. Smaller files, almost the same quality, at least according to the code agent. So I downloaded everything I thought I needed, one file after another, until I had burned nearly 80GB of disk space. That was where the story actually started.</p>
+<p>Then I ran it. After downloading all those files, it failed immediately.</p>
+<p>I did not understand the error at first. The code agent had to explain what the message was really telling me. The answer was not encouraging: there was no practical way to make this setup work on my Mac Mini in its current form. But I learned something new from the failure, and that is what I am writing down here.</p>
+<h2 id="the-error"><a class="header" href="#the-error">The Error</a></h2>
+<p>This was the error:</p>
+<pre><code class="language-text">TypeError: Trying to convert Float8_e4m3fn to the MPS backend
+but it does not have support for that dtype.
+</code></pre>
+<p>At first, that meant nothing to me. Once I dug into it, the message became clear.</p>
+<p>This was not an out-of-memory problem. Not a broken workflow. Not a missing node. The backend itself could not handle the datatype the model was stored in.</p>
+<p>That changed the investigation.</p>
+<h2 id="what-i-dug-into"><a class="header" href="#what-i-dug-into">What I Dug Into</a></h2>
+<p>I had to separate three things that are easy to blur together:</p>
+<ol>
+<li>file size</li>
+<li>memory pressure</li>
+<li>backend support</li>
+</ol>
+<p>The smaller file was what misled me.</p>
+<p><code>fp8</code> means each model weight uses 8 bits instead of 16. So the checkpoint gets much smaller on disk.</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Format</th><th>Bits</th><th>Rough size for 22B</th></tr>
+</thead>
+<tbody>
+<tr><td><code>bf16</code></td><td>16</td><td>~44GB</td></tr>
+<tr><td><code>fp8</code></td><td>8</td><td>~22GB</td></tr>
+<tr><td><code>q4</code></td><td>4</td><td>~11GB</td></tr>
+</tbody>
+</table>
+</div>
+<p>At first glance, that looked like the whole story. The code agent told me <code>fp8</code> should be suitable, with only a small quality drop compared with <code>bf16</code>. So I assumed this smaller checkpoint would be the right fit for my Mac Mini.</p>
+<p>Not quite.</p>
+<p>Apple’s GPU path goes through <code>MPS</code>, Metal Performance Shaders. PyTorch uses that backend to talk to the GPU. And <code>MPS</code> does not support <code>Float8_e4m3fn</code>, the <code>fp8</code> dtype this checkpoint uses.</p>
+<p>So the real blocker was not “can I fit this model in RAM?” The real blocker was “can this backend even execute this dtype?” In this setup, the answer was no.</p>
+<p>That is a much more useful lesson than a generic “it did not run.”</p>
+<h2 id="why-ollama-feels-different"><a class="header" href="#why-ollama-feels-different">Why Ollama Feels Different</a></h2>
+<p>This also explained something else.</p>
+<p>Why can I run quantized LLMs on a Mac, but this video model falls over instantly?</p>
+<p>Because the stack is different.</p>
+<p>Tools like Ollama and <code>llama.cpp</code> do not lean on PyTorch <code>MPS</code> in the same way. They use custom Metal kernels and stream work in a way that fits Apple Silicon much better. The Apple path there is more mature.</p>
+<p>ComfyUI, for this workflow, is much closer to the generic PyTorch world. And large video diffusion models have not had the same Apple-focused optimization effort that LLM tooling has.</p>
+<p>So “LLMs run on Mac” does not automatically mean “large video models run on Mac too.”</p>
+<p>That assumption did not survive contact with reality.</p>
+<h2 id="what-i-learned"><a class="header" href="#what-i-learned">What I Learned</a></h2>
+<p>First, smaller checkpoint does not mean runnable checkpoint.</p>
+<p>Second, backend support beats RAM math. You can spend time estimating whether a model might fit, only to hit a dtype wall before memory becomes the real problem.</p>
+<p>Third, Apple Silicon is capable when the tooling is built for it. That last part matters. If the ecosystem is CUDA-first and PyTorch support is partial, you hit edges much sooner.</p>
+<p>Fourth, the realistic Apple Silicon path for a model like this is probably not <code>fp8</code> in ComfyUI today. It is more likely one of these:</p>
+<ul>
+<li>a smaller model</li>
+<li>a <code>GGUF</code> or <code>q4</code> conversion with Apple-friendly tooling</li>
+<li>future backend work that dequantizes <code>fp8</code> in a way <code>MPS</code> can actually handle</li>
+<li>or an NVIDIA box for this class of workload</li>
+</ul>
+<h2 id="the-practical-takeaway"><a class="header" href="#the-practical-takeaway">The Practical Takeaway</a></h2>
+<p>What sent me down this rabbit hole was a simple thought: the smaller checkpoint might fit.</p>
+<p>The real answer was harsher and more useful: the checkpoint size was not the blocker. The backend was.</p>
+<p>If you are trying to run large video models on Apple Silicon, check dtype and backend support before you download tens of gigabytes and start tuning workflows. That is the first filter, not the last one.</p>
+<p>Maybe this changes later. A <code>GGUF</code> conversion could change the picture. Better Apple Silicon support in ComfyUI could change it too.</p>
+<p>But today, this failure taught me something concrete: on Mac, compatibility is not just about how much RAM you have. It is about whether the stack was actually built for the model format you are holding.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="cross_compile_rpi.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="ai-latest.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
-                            <a rel="next prefetch" href="keyboard.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="ai-minimal-agent.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
@@ -197,11 +259,11 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="cross_compile_rpi.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="ai-latest.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
-                    <a rel="next prefetch" href="keyboard.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="ai-minimal-agent.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>
