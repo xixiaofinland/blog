@@ -3,6 +3,7 @@
 Start here for the newest AI posts. The sidebar keeps the latest seven threads visible, then rotates older ones into yearly archives.
 
 <!-- AI_LATEST_LINKS_START -->
+- [What I Learned Trying to Run LTX-Video 2.3 on Apple Silicon](ltx-apple-silicon.md)
 - [Build a Minimal LLM Code Agent: From Loop to Harness](ai-minimal-agent.md)
 - [Salesforce Headless 360: Agent-First or Just Hype?](headless-360.md)
 - [Classification](classification.md)
