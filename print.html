@@ -37,7 +37,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-110865a8.js";
+            window.path_to_searchindex_js = "searchindex-1c209aeb.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-79e05cf4.js"></script>
@@ -252,9 +252,9 @@ but it does not have support for that dtype.
 <p>On CUDA with NVIDIA H100-class hardware, <code>fp8</code> is a supported compute path. The hardware has FP8 Tensor Cores, and the software stack is built around that feature. Raw <code>fp8</code> model in, supported <code>fp8</code> execution path out.</p>
 <p>On this 64GB Apple Silicon machine, <code>fp8</code> looked like the right size. But size was not enough. The backend could not execute the dtype, so the model format I was holding was not actually runnable in this stack.</p>
 <p>After all this, the next version I would try is something like <a href="https://huggingface.co/vantagewithai/Sulphur-2-Base-GGUF">Sulphur 2 Base GGUF</a>. That is closer to the practical path: a quantized model file made for this model family, plus a runtime that knows how to execute that format on Apple Silicon.</p>
-<p>The open question is quality. GGUF versions use <code>Q</code> formats, quantized weights, instead of the <code>fp8</code> float format I tried first. Maybe the tradeoff is acceptable. Maybe video diffusion makes the loss too visible. That is something I can only find out by trying it.</p>
-<p>Because this machine has 64GB of RAM, I would start with <code>Q8_0</code> if it loads. It is larger than <code>Q4_K_M</code>, but it keeps more precision. If <code>Q8_0</code> is too slow or too memory-heavy, I would step down to <code>Q6_K</code>, then <code>Q5_K_M</code>, and only then <code>Q4_K_M</code>.</p>
-<p>For video quality, <code>Q4_K_M</code> is the fallback, not the first test.</p>
+<p>The open question is quality. GGUF versions use <code>Q</code> formats, quantized weights, instead of the <code>fp8</code> float format I tried first. That does not automatically mean the output will look bad. Large diffusion models may tolerate quantization better than I expected.</p>
+<p>Because this machine has 64GB of RAM, I would start with <code>Q8_0</code> if it loads. If it is too slow or too memory-heavy, I would step down to <code>Q6_K</code>, then <code>Q5_K_M</code>, then <code>Q4_K_M</code>.</p>
+<p>The real test is visual: same prompt, same resolution, same frame count, same seed. Then compare <code>Q8_0</code>, <code>Q6_K</code>, and <code>Q4_K_M</code> side by side.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="build-a-minimal-llm-code-agent-from-loop-to-harness"><a class="header" href="#build-a-minimal-llm-code-agent-from-loop-to-harness">Build a Minimal LLM Code Agent: From Loop to Harness</a></h1>
 <blockquote>
