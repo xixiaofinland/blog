@@ -52,11 +52,11 @@ def ensure_archive_page(path: Path, year: int) -> None:
         path,
         "\n".join(
             [
-                f"# AI Archive {year}",
+                f"# AI & Machine Learning Archive {year}",
                 "",
                 (
-                    f"Older AI threads from {year} land here after they rotate "
-                    "out of Latest."
+                    f"Older AI and machine learning threads from {year} land "
+                    "here after they rotate out of the sidebar."
                 ),
                 "",
                 ARCHIVE_START,
@@ -191,9 +191,9 @@ def write_links_block(path: Path, start_marker: str, end_marker: str, links: lis
 
 
 def write_summary(latest_links: list[Link], archive_links: dict[int, list[Link]]) -> None:
-    summary_lines = ["- [AI](ai.md)", "  - [Latest](ai-latest.md)"]
+    summary_lines = ["- [AI & Machine Learning](ai.md)"]
     for link in latest_links:
-        summary_lines.append(f"    - [{link.title}]({link.path})")
+        summary_lines.append(f"  - [{link.title}]({link.path})")
 
     for year in sorted(archive_links, reverse=True):
         links = archive_links[year]
@@ -214,7 +214,10 @@ def main() -> int:
     )
     parser.add_argument(
         "--add",
-        help="New AI post to add to the top of Latest, relative to the repo root or src/.",
+        help=(
+            "New AI or machine learning post to add to the top of the sidebar, "
+            "relative to the repo root or src/."
+        ),
     )
     args = parser.parse_args()
 

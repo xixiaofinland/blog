@@ -6,8 +6,8 @@ title = "Personal blog - Xi Xiao"
 
 [output.html]
 git-repository-url = "https://github.com/xixiaofinland/blog"
+additional-css = ["sidebar.css"]
 additional-js = ["mermaid.min.js", "mermaid-init.js"]
 
 # [preprocessor.mermaid]
 # command = "mdbook-mermaid"
-

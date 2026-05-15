@@ -1,6 +1,6 @@
-# Latest AI Threads
+# Latest AI & Machine Learning Threads
 
-Start here for the newest AI posts. The sidebar keeps the latest seven threads visible, then rotates older ones into yearly archives.
+This page stores the newest AI and machine learning posts for the navigation refresh script. The sidebar keeps the latest seven threads visible, then rotates older ones into yearly archives.
 
 <!-- AI_LATEST_LINKS_START -->
 - [What I Learned Trying to Run LTX-Video 2.3 on Apple Silicon](ltx-apple-silicon.md)
