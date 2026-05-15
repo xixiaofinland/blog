@@ -85,8 +85,8 @@ On this 64GB Apple Silicon machine, `fp8` looked like the right size. But size w
 
 After all this, the next version I would try is something like [Sulphur 2 Base GGUF](https://huggingface.co/vantagewithai/Sulphur-2-Base-GGUF). That is closer to the practical path: a quantized model file made for this model family, plus a runtime that knows how to execute that format on Apple Silicon.
 
-The open question is quality. GGUF versions use `Q` formats, quantized weights, instead of the `fp8` float format I tried first. Maybe the tradeoff is acceptable. Maybe video diffusion makes the loss too visible. That is something I can only find out by trying it.
+The open question is quality. GGUF versions use `Q` formats, quantized weights, instead of the `fp8` float format I tried first. That does not automatically mean the output will look bad. Large diffusion models may tolerate quantization better than I expected.
 
-Because this machine has 64GB of RAM, I would start with `Q8_0` if it loads. It is larger than `Q4_K_M`, but it keeps more precision. If `Q8_0` is too slow or too memory-heavy, I would step down to `Q6_K`, then `Q5_K_M`, and only then `Q4_K_M`.
+Because this machine has 64GB of RAM, I would start with `Q8_0` if it loads. If it is too slow or too memory-heavy, I would step down to `Q6_K`, then `Q5_K_M`, then `Q4_K_M`.
 
-For video quality, `Q4_K_M` is the fallback, not the first test.
+The real test is visual: same prompt, same resolution, same frame count, same seed. Then compare `Q8_0`, `Q6_K`, and `Q4_K_M` side by side.
