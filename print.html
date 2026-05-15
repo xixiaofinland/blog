@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-b52728d6.js";
+            window.path_to_searchindex_js = "searchindex-b8867297.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-22dbee53.js"></script>
@@ -210,16 +210,14 @@ type, matching content appears instantly.</p>
 <!-- AI_LATEST_LINKS_END -->
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="what-i-learned-trying-to-run-ltx-video-23-on-apple-silicon"><a class="header" href="#what-i-learned-trying-to-run-ltx-video-23-on-apple-silicon">What I Learned Trying to Run LTX-Video 2.3 on Apple Silicon</a></h1>
-<p>As a beginner, I just wanted to try LTX-Video 2.3 on my Apple Silicon Mac Mini and see whether I could get a serious video model running at all. The full <code>bf16</code> setup was already too big to fit comfortably in 64GB of RAM, but <code>fp8</code> looked like the perfect compromise. Smaller files, almost the same quality, at least according to the code agent. So I downloaded everything I thought I needed, one file after another, until I had burned nearly 80GB of disk space. That was where the story actually started.</p>
-<p>Then I ran it. After downloading all those files, it failed immediately.</p>
-<p>I did not understand the error at first. The code agent had to explain what the message was really telling me. The answer was not encouraging: there was no practical way to make this setup work on my Mac Mini in its current form. But I learned something new from the failure, and that is what I am writing down here.</p>
-<h2 id="the-error"><a class="header" href="#the-error">The Error</a></h2>
-<p>This was the error:</p>
+<p>I wanted to learn video generation, picked the <code>fp8</code> version of <a href="https://huggingface.co/SulphurAI/Sulphur-2-base">Sulphur 2 Base</a> because it looked like it would fit in RAM, downloaded and set up nearly 80GB of files, and then found out it would not run on my Mac Mini M4 Pro with 64GB of RAM.</p>
 <pre><code class="language-text">TypeError: Trying to convert Float8_e4m3fn to the MPS backend
 but it does not have support for that dtype.
 </code></pre>
+<p>I did not understand the error at first. The code agent had to explain what the message was really telling me. The answer was not encouraging: there was no practical way to make this setup work on my Mac Mini in its current form. But I learned something new from the failure, and that is what I am writing down here.</p>
+<h2 id="the-error"><a class="header" href="#the-error">The Error</a></h2>
 <p>At first, that meant nothing to me. Once I dug into it, the message became clear.</p>
-<p>This was not an out-of-memory problem. Not a broken workflow. Not a missing node. The backend itself could not handle the datatype the model was stored in.</p>
+<p>The problem was not memory, the workflow, or a missing node. The backend itself could not handle the datatype the model was stored in.</p>
 <p>That changed the investigation.</p>
 <h2 id="what-i-dug-into"><a class="header" href="#what-i-dug-into">What I Dug Into</a></h2>
 <p>I had to separate three things that are easy to blur together:</p>
@@ -229,49 +227,47 @@ but it does not have support for that dtype.
 <li>backend support</li>
 </ol>
 <p>The smaller file was what misled me.</p>
-<p><code>fp8</code> means each model weight uses 8 bits instead of 16. So the checkpoint gets much smaller on disk.</p>
+<p><code>fp8</code> means each model weight uses 8 bits instead of 16. That matters because the model should need less RAM to load and run. The model file is smaller on disk too, but RAM was the part I cared about.</p>
 <div class="table-wrapper">
 <table>
 <thead>
-<tr><th>Format</th><th>Bits</th><th>Rough size for 22B</th></tr>
+<tr><th>Format</th><th style="text-align: right">Bits</th><th style="text-align: right">Rough size for 22B</th><th>Practical meaning</th></tr>
 </thead>
 <tbody>
-<tr><td><code>bf16</code></td><td>16</td><td>~44GB</td></tr>
-<tr><td><code>fp8</code></td><td>8</td><td>~22GB</td></tr>
-<tr><td><code>q4</code></td><td>4</td><td>~11GB</td></tr>
+<tr><td><code>bf16</code></td><td style="text-align: right">16</td><td style="text-align: right">~44GB</td><td>Common high-quality model format, but too large here</td></tr>
+<tr><td><code>fp8</code></td><td style="text-align: right">8</td><td style="text-align: right">~22GB</td><td>Smaller float model file, but blocked by MPS dtype support</td></tr>
+<tr><td><code>q4</code></td><td style="text-align: right">4</td><td style="text-align: right">~11GB</td><td>Storage estimate only, would need a supported quantized runtime</td></tr>
 </tbody>
 </table>
 </div>
-<p>At first glance, that looked like the whole story. The code agent told me <code>fp8</code> should be suitable, with only a small quality drop compared with <code>bf16</code>. So I assumed this smaller checkpoint would be the right fit for my Mac Mini.</p>
+<p>At first glance, that looked like the whole story. The code agent told me <code>fp8</code> should be suitable, with only a small quality drop compared with <code>bf16</code>. So I assumed this smaller model version would be the right fit for my Mac Mini.</p>
 <p>Not quite.</p>
-<p>Apple’s GPU path goes through <code>MPS</code>, Metal Performance Shaders. PyTorch uses that backend to talk to the GPU. And <code>MPS</code> does not support <code>Float8_e4m3fn</code>, the <code>fp8</code> dtype this checkpoint uses.</p>
+<p>Apple’s GPU path goes through <code>MPS</code>, Metal Performance Shaders. PyTorch uses that backend to talk to the GPU. And <code>MPS</code> does not support <code>Float8_e4m3fn</code>, the <code>fp8</code> dtype this model uses.</p>
 <p>So the real blocker was not “can I fit this model in RAM?” The real blocker was “can this backend even execute this dtype?” In this setup, the answer was no.</p>
 <p>That is a much more useful lesson than a generic “it did not run.”</p>
-<h2 id="why-ollama-feels-different"><a class="header" href="#why-ollama-feels-different">Why Ollama Feels Different</a></h2>
+<h2 id="why-llamacpp-feels-different"><a class="header" href="#why-llamacpp-feels-different">Why Llama.cpp Feels Different</a></h2>
 <p>This also explained something else.</p>
 <p>Why can I run quantized LLMs on a Mac, but this video model falls over instantly?</p>
 <p>Because the stack is different.</p>
-<p>Tools like Ollama and <code>llama.cpp</code> do not lean on PyTorch <code>MPS</code> in the same way. They use custom Metal kernels and stream work in a way that fits Apple Silicon much better. The Apple path there is more mature.</p>
-<p>ComfyUI, for this workflow, is much closer to the generic PyTorch world. And large video diffusion models have not had the same Apple-focused optimization effort that LLM tooling has.</p>
+<p>When I run local LLMs with <code>llama.cpp</code>, I am usually using a converted <code>GGUF</code> file, not the original PyTorch model file.</p>
+<p><code>GGUF</code> is the packaging format used by <code>llama.cpp</code>. It stores the model weights, tokenizer metadata, architecture details, and the quantization format in one file. The model might be <code>Q4_K_M</code>, <code>Q5_K_M</code>, or <code>Q8_0</code>.</p>
+<p>That last one is easy to misread. <code>Q8_0</code> is an 8-bit GGUF quantization format. It stores weights as compact integer-like values with scale factors. It is not the same thing as PyTorch <code>Float8_e4m3fn</code>, the <code>fp8</code> dtype this LTX model uses.</p>
+<p>Same 8 bits. Different meaning.</p>
+<p><code>llama.cpp</code> works on Apple Silicon because its GGUF model files, quantized weight formats, scale factors, and Metal kernels are designed to work together. It uses a different path from the PyTorch <code>MPS</code> <code>fp8</code> path that failed here.</p>
+<p>Video generation has another problem: it is a diffusion model.</p>
+<p>That means it starts from noise and repeatedly denoises toward frames that match the prompt. Each step depends on the previous one. Small numeric errors can accumulate into visible artifacts: flicker, mushy detail, broken motion, or frames that drift away from each other.</p>
+<p>Text models can often tolerate aggressive weight quantization. Video diffusion has less room for that kind of error. Quality is the output.</p>
+<p>With LTX, I was asking PyTorch <code>MPS</code> to execute an <code>fp8</code> model path it does not support. The model never reached a point where I could trade quality for memory or speed. It failed at the dtype boundary.</p>
 <p>So “LLMs run on Mac” does not automatically mean “large video models run on Mac too.”</p>
 <p>That assumption did not survive contact with reality.</p>
-<h2 id="what-i-learned"><a class="header" href="#what-i-learned">What I Learned</a></h2>
-<p>First, smaller checkpoint does not mean runnable checkpoint.</p>
-<p>Second, backend support beats RAM math. You can spend time estimating whether a model might fit, only to hit a dtype wall before memory becomes the real problem.</p>
-<p>Third, Apple Silicon is capable when the tooling is built for it. That last part matters. If the ecosystem is CUDA-first and PyTorch support is partial, you hit edges much sooner.</p>
-<p>Fourth, the realistic Apple Silicon path for a model like this is probably not <code>fp8</code> in ComfyUI today. It is more likely one of these:</p>
-<ul>
-<li>a smaller model</li>
-<li>a <code>GGUF</code> or <code>q4</code> conversion with Apple-friendly tooling</li>
-<li>future backend work that dequantizes <code>fp8</code> in a way <code>MPS</code> can actually handle</li>
-<li>or an NVIDIA box for this class of workload</li>
-</ul>
 <h2 id="the-practical-takeaway"><a class="header" href="#the-practical-takeaway">The Practical Takeaway</a></h2>
-<p>What sent me down this rabbit hole was a simple thought: the smaller checkpoint might fit.</p>
-<p>The real answer was harsher and more useful: the checkpoint size was not the blocker. The backend was.</p>
-<p>If you are trying to run large video models on Apple Silicon, check dtype and backend support before you download tens of gigabytes and start tuning workflows. That is the first filter, not the last one.</p>
-<p>Maybe this changes later. A <code>GGUF</code> conversion could change the picture. Better Apple Silicon support in ComfyUI could change it too.</p>
-<p>But today, this failure taught me something concrete: on Mac, compatibility is not just about how much RAM you have. It is about whether the stack was actually built for the model format you are holding.</p>
+<p>On Mac, compatibility is not just about how much RAM you have. It is about whether the vendor, hardware, runtime, and model format line up.</p>
+<p>On CUDA with NVIDIA H100-class hardware, <code>fp8</code> is a supported compute path. The hardware has FP8 Tensor Cores, and the software stack is built around that feature. Raw <code>fp8</code> model in, supported <code>fp8</code> execution path out.</p>
+<p>On this 64GB Apple Silicon machine, <code>fp8</code> looked like the right size. But size was not enough. The backend could not execute the dtype, so the model format I was holding was not actually runnable in this stack.</p>
+<p>After all this, the next version I would try is something like <a href="https://huggingface.co/vantagewithai/Sulphur-2-Base-GGUF">Sulphur 2 Base GGUF</a>. That is closer to the practical path: a quantized model file made for this model family, plus a runtime that knows how to execute that format on Apple Silicon.</p>
+<p>The open question is quality. GGUF versions use <code>Q</code> formats, quantized weights, instead of the <code>fp8</code> float format I tried first. Maybe the tradeoff is acceptable. Maybe video diffusion makes the loss too visible. That is something I can only find out by trying it.</p>
+<p>Because this machine has 64GB of RAM, I would start with <code>Q8_0</code> if it loads. It is larger than <code>Q4_K_M</code>, but it keeps more precision. If <code>Q8_0</code> is too slow or too memory-heavy, I would step down to <code>Q6_K</code>, then <code>Q5_K_M</code>, and only then <code>Q4_K_M</code>.</p>
+<p>For video quality, <code>Q4_K_M</code> is the fallback, not the first test.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="build-a-minimal-llm-code-agent-from-loop-to-harness"><a class="header" href="#build-a-minimal-llm-code-agent-from-loop-to-harness">Build a Minimal LLM Code Agent: From Loop to Harness</a></h1>
 <blockquote>
