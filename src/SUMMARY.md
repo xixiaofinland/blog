@@ -21,6 +21,8 @@
     - [Cargo Workspace](workspace.md)
     - [Cross-Compiling for Raspberry Pi on NixOS](cross_compile_rpi.md)
 
+- [Books](books.md)
+
 - [Others](others.md)
   - [Keyboard](keyboard.md)
   - [Salesforce developer training](sf_dev_training.md)

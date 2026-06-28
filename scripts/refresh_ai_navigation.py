@@ -67,15 +67,14 @@ def ensure_archive_page(path: Path, year: int) -> None:
 
 
 def extract_block(text: str, start_marker: str, end_marker: str) -> str:
-    try:
-        start_index = text.index(start_marker) + len(start_marker)
-        end_index = text.index(end_marker, start_index)
-    except ValueError as exc:
-        raise ValueError(
-            f"Missing marker block: {start_marker} ... {end_marker}"
-        ) from exc
-
-    return text[start_index:end_index].strip()
+    pattern = re.compile(
+        rf"{re.escape(start_marker)}(.*?)\s*{re.escape(end_marker)}",
+        re.DOTALL,
+    )
+    match = pattern.search(text)
+    if not match:
+        raise ValueError(f"Missing marker block: {start_marker} ... {end_marker}")
+    return match.group(1).strip()
 
 
 def replace_block(
@@ -83,8 +82,9 @@ def replace_block(
 ) -> str:
     body = "\n".join(lines)
     replacement = f"{start_marker}\n{body}\n{end_marker}"
+    # Allow optional leading horizontal whitespace before end_marker (formatter may indent it)
     pattern = re.compile(
-        rf"{re.escape(start_marker)}.*?{re.escape(end_marker)}",
+        rf"{re.escape(start_marker)}.*?[ \t]*{re.escape(end_marker)}",
         re.DOTALL,
     )
     if not pattern.search(text):
