@@ -92,14 +92,14 @@ viikkoja, so it needs its own refresh script and cron entry.
      -d "{\"grant_type\":\"client_credential\",\"appid\":\"$BOOKS_APPID\",\"secret\":\"$BOOKS_APPSECRET\",\"force_refresh\":true}" \
      | jq -r .access_token)
    [ -n "$TOKEN" ] && [ "$TOKEN" != "null" ] || { echo "token fetch failed" >&2; exit 1; }
-   gh secret set WECHAT_TOKEN --repo xixiaofinland/blog --body "$TOKEN"
+   gh secret set WECHAT_TOKEN --repo <owner>/blog --body "$TOKEN"
    ```
 
 3. Add to the VM crontab (stable_token has ~2h TTL; refresh well inside that):
 
    ```
-   17 */1 * * * BOOKS_APPID=wx58a2a09b2cb42870 BOOKS_APPSECRET=... /home/ubuntu/refresh-wechat-token-books.sh >> /home/ubuntu/wechat-books-token.log 2>&1
+   17 */1 * * * BOOKS_APPID=<your-appid> BOOKS_APPSECRET=<your-appsecret> /home/ubuntu/refresh-wechat-token-books.sh >> /home/ubuntu/wechat-books-token.log 2>&1
    ```
 
-`gh` on the VM is already authed as `xixiaofinland`, which owns this repo, so no
+`gh` on the VM is already authed as the repo owner, so no
 extra auth is needed.
