@@ -79,16 +79,27 @@ def main() -> int:
                 else f"Cover: no Open Library match for '{book}', using default"
             )
 
+    cover_body_url = None
     if cover_url:
         thumb = wc.upload_cover_from_url(token, cover_url)
+        cover_body_url = wc.upload_body_image_from_url(token, cover_url)
     elif cover_file and cover_file.is_file():
         thumb = wc.upload_cover_from_file(token, str(cover_file))
+        cover_body_url = wc.upload_body_image_from_file(token, str(cover_file))
     elif DEFAULT_COVER.is_file():
         print("Cover: using default channel icon")
         thumb = wc.upload_cover_from_file(token, str(DEFAULT_COVER))
     else:
         print(f"error: no cover resolved and default missing: {DEFAULT_COVER}", file=sys.stderr)
         return 1
+
+    if cover_body_url:
+        cover_img_html = (
+            f'<p style="text-align:center;margin:0 0 24px;">'
+            f'<img src="{cover_body_url}" style="max-width:260px;border-radius:4px;"/>'
+            f"</p>"
+        )
+        content = cover_img_html + content
 
     slug = path.stem
     source_url = f"{BASE_URL}/{slug}.html?utm_source=wechat"

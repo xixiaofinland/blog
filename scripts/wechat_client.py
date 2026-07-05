@@ -95,6 +95,30 @@ def _upload(token: str, filename: str, content: bytes, ctype: str) -> str:
     return data["media_id"]
 
 
+def _upload_body(token: str, filename: str, content: bytes, ctype: str) -> str:
+    """Upload an image for embedding in article body. Returns a permanent URL."""
+    url = f"{WECHAT_API}/media/uploadimg?access_token={token}"
+    data = _post_multipart_image(url, filename, content, ctype)
+    if "url" not in data:
+        raise RuntimeError(f"WeChat body image upload error: {data}")
+    return data["url"]
+
+
+def upload_body_image_from_url(token: str, image_url: str) -> str:
+    with urllib.request.urlopen(image_url, timeout=30) as img:
+        content = img.read()
+        ct = img.headers.get("content-type", "image/jpeg")
+    ext = "jpg" if ("jpeg" in ct or "jpg" in ct) else "png"
+    return _upload_body(token, f"cover.{ext}", content, ct)
+
+
+def upload_body_image_from_file(token: str, path: str) -> str:
+    with open(path, "rb") as f:
+        content = f.read()
+    ctype = "image/png" if path.lower().endswith(".png") else "image/jpeg"
+    return _upload_body(token, os.path.basename(path), content, ctype)
+
+
 def create_draft(
     token: str,
     title: str,
