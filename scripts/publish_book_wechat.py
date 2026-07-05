@@ -9,6 +9,7 @@ Each run creates a NEW draft, so delete superseded ones. Never auto-publishes.
 
 import argparse
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -19,6 +20,11 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 BASE_URL = "https://xixiaofinland.com"
 AUTHOR = "Xi Xiao"
 DEFAULT_COVER = REPO_ROOT / "src" / "img" / "wechat" / "book-cover.png"
+
+
+def _book_from_h1(h1: str) -> str:
+    """Book title = text before the first colon (ascii or full-width), else whole H1."""
+    return re.split(r"[:：]", h1, 1)[0].strip()
 
 
 def main() -> int:
@@ -35,6 +41,7 @@ def main() -> int:
     meta = md.parse_metadata(source)
     title, content = md.render(source)
 
+    h1 = title  # the raw H1, before any title override
     if meta.get("title"):
         title = meta["title"]
     if not title:
@@ -50,13 +57,37 @@ def main() -> int:
 
     token = wc.get_token()
 
+    # ── Cover resolution: cover: override -> inline blog image -> Open Library
+    #    lookup by book/H1 -> default channel icon.
     cover_url = meta.get("cover")
+    cover_file = None
+    if not cover_url:
+        img = md.first_image(source)
+        if img and img.startswith(("http://", "https://")):
+            cover_url = img
+            print(f"Cover: inline blog image {img}")
+        elif img:
+            cover_file = (path.parent / img).resolve()
+            print(f"Cover: inline blog image {img}")
+    if not cover_url and not cover_file:
+        book = meta.get("book") or _book_from_h1(h1)
+        if book:
+            cover_url = wc.find_cover_url(book)
+            print(
+                f"Cover: Open Library match for '{book}'"
+                if cover_url
+                else f"Cover: no Open Library match for '{book}', using default"
+            )
+
     if cover_url:
         thumb = wc.upload_cover_from_url(token, cover_url)
+    elif cover_file and cover_file.is_file():
+        thumb = wc.upload_cover_from_file(token, str(cover_file))
     elif DEFAULT_COVER.is_file():
+        print("Cover: using default channel icon")
         thumb = wc.upload_cover_from_file(token, str(DEFAULT_COVER))
     else:
-        print(f"error: no cover URL in thread and default missing: {DEFAULT_COVER}", file=sys.stderr)
+        print(f"error: no cover resolved and default missing: {DEFAULT_COVER}", file=sys.stderr)
         return 1
 
     slug = path.stem

@@ -2,6 +2,8 @@
 
 _Eric Schmidt, Jonathan Rosenberg, Alan Eagle_
 
+![Trillion Dollar Coach book cover](img/trillion-dollar-coach/cover.jpg)
+
 I picked this up expecting a leadership playbook. What I got was a question I couldn't shake.
 
 The question isn't in the book directly. It's implied by Bill Campbell's memorial. Hundreds of people stood up. CEOs, engineers, athletes, assistants. Not to talk about deals he closed or companies he saved. To say: he made me better. He saw something in me I didn't see yet. He cared about me when it cost him nothing to look away.

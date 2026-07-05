@@ -12,10 +12,30 @@ token and pushes it to this repo's WECHAT_TOKEN secret (see scripts/README.md).
 
 import json
 import os
+import urllib.parse
 import urllib.request
 import uuid
 
 WECHAT_API = "https://api.weixin.qq.com/cgi-bin"
+
+
+def find_cover_url(book_title: str) -> str | None:
+    """Look up a book cover on Open Library by title. Returns an image URL or None.
+
+    Free, no API key. Good coverage for English books, spotty for Chinese ones,
+    hence the caller falls back to the default cover when this returns None.
+    """
+    q = urllib.parse.urlencode({"title": book_title, "limit": "1", "fields": "cover_i"})
+    try:
+        with urllib.request.urlopen(f"https://openlibrary.org/search.json?{q}", timeout=15) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+    except Exception:
+        return None
+    docs = data.get("docs") or []
+    cover_i = docs[0].get("cover_i") if docs else None
+    if not cover_i:
+        return None
+    return f"https://covers.openlibrary.org/b/id/{cover_i}-L.jpg"
 
 
 def get_token() -> str:

@@ -16,20 +16,36 @@ import re
 
 # ── Metadata flag ──────────────────────────────────────────────────────────
 
-_FLAG_RE = re.compile(r"<!--\s*wechat:\s*(.*?)\s*-->", re.DOTALL)
+_COMMENT_RE = re.compile(r"<!--(.*?)-->", re.DOTALL)
+_META_KEYS = {"book", "cover", "title"}
+_IMG_RE = re.compile(r"!\[[^\]]*\]\(([^)]+)\)")
+
+
+def first_image(md: str) -> str | None:
+    """Return the src of the first inline Markdown image, or None.
+
+    Used as the WeChat cover source: the same cover shown in the blog thread.
+    """
+    m = _IMG_RE.search(md)
+    return m.group(1).strip() if m else None
 
 
 def parse_metadata(md: str) -> dict:
-    """Return {cover, title} from the wechat comment, if present."""
-    m = _FLAG_RE.search(md)
-    if not m:
-        return {}
+    """Read flat metadata from HTML comments (all optional, all invisible in mdBook):
+
+        <!-- book: Trillion Dollar Coach -->
+        <!-- cover: https://example.com/jacket.jpg -->
+        <!-- title: A shorter WeChat title -->
+
+    Separate comments or one ';'-separated comment both work. Only book/cover/title
+    keys are read; any other comment is ignored.
+    """
     out: dict = {}
-    for part in m.group(1).split(";"):
-        if ":" not in part:
-            continue
-        key, _, val = part.partition(":")
-        out[key.strip().lower()] = val.strip()
+    for body in _COMMENT_RE.findall(md):
+        for part in body.split(";"):
+            key, sep, val = part.partition(":")
+            if sep and key.strip().lower() in _META_KEYS:
+                out[key.strip().lower()] = val.strip()
     return out
 
 
@@ -70,6 +86,8 @@ def _divider() -> str:
 
 def _inline(text: str) -> str:
     text = html.escape(text, quote=False)
+    # images are handled as the cover, not shown inline in the WeChat body
+    text = _IMG_RE.sub("", text)
     # links: no <a> allowed, render as "text (url)"
     text = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r"\1 (\2)", text)
     text = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", text)
@@ -85,7 +103,7 @@ def _inline(text: str) -> str:
 
 def render(md: str) -> tuple[str, str]:
     """Return (title, content_html). Title comes from the first H1."""
-    body = _FLAG_RE.sub("", md)
+    body = _COMMENT_RE.sub("", md)
     lines = body.splitlines()
 
     title = ""
@@ -106,6 +124,9 @@ def render(md: str) -> tuple[str, str]:
         if stripped in ("---", "***", "___"):
             flush()
             blocks.append(_divider())
+            continue
+        if stripped.startswith("!["):  # image line -> cover, not body
+            flush()
             continue
         if stripped.startswith("# "):
             flush()

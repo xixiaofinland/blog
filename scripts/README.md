@@ -7,18 +7,47 @@ draft-only pattern as viikkoja.
 ## Flow
 
 1. Write and commit a book thread `src/<book>.md`.
-2. (Optional) add a metadata comment at the very top for the cover / a short
-   title override:
+2. Show the book cover in the thread with a normal Markdown image near the top.
+   The **same image becomes the WeChat draft cover**, so you set it once and it
+   works in both places:
 
    ```markdown
-   <!-- wechat: cover: https://images.example.com/book.jpg; title: Short Title -->
+   # Trillion Dollar Coach: The Ruler I Didn't Know I Was Missing
 
-   # Full H1 Title Of The Post
+   _Eric Schmidt, Jonathan Rosenberg, Alan Eagle_
+
+   ![Trillion Dollar Coach book cover](img/trillion-dollar-coach/cover.jpg)
+
+   First paragraph...
    ```
 
-   - `cover` optional. Present → that image is downloaded and used as the WeChat
-     cover. Absent → falls back to `src/img/wechat/book-cover.png`.
-   - `title` optional. Use it when the H1 is longer than WeChat's 64-char limit.
+   The image can be a committed local file (`img/<slug>/cover.jpg`, renders in
+   the blog and is uploaded to WeChat) or a remote URL. The image is used only
+   as the cover; it is not repeated in the WeChat article body.
+
+   Grab a cover fast from Open Library:
+
+   ```bash
+   curl -sL "https://covers.openlibrary.org/b/id/<cover_id>-L.jpg" \
+     -o src/img/<slug>/cover.jpg
+   ```
+
+   **Cover resolution order** (first match wins):
+   1. `<!-- cover: https://... -->` metadata comment (explicit override)
+   2. first inline Markdown image in the thread (the recommended path above)
+   3. Open Library lookup by book title: `<!-- book: Exact Title -->`, or if that
+      comment is absent, the H1 text before the first colon
+   4. default `src/img/wechat/book-cover.png` (the channel icon)
+
+   Optional metadata comments (invisible in the rendered blog):
+   - `<!-- cover: URL -->` force a specific cover image.
+   - `<!-- book: Exact Title -->` book title for the Open Library fallback, when
+     no inline image is present and the H1 is not a clean title.
+   - `<!-- title: Shorter Title -->` WeChat article title, when the H1 exceeds
+     WeChat's 64-char limit.
+
+   For Chinese books (often missing from Open Library) just commit a local cover
+   image, or paste a 豆瓣 image URL in `<!-- cover: ... -->`.
 
 3. Trigger the draft (locally or in CI):
 
