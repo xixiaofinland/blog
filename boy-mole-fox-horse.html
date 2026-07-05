@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Cross-Compiling for Raspberry Pi on NixOS - Personal blog - Xi Xiao</title>
+        <title>男孩、鼹鼠、狐狸和马 - Personal blog - Xi Xiao</title>
 
 
         <!-- Custom HTML head -->
@@ -178,134 +178,45 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <h1 id="cross-compiling-zeroclaw-for-raspberry-pi-on-nixos"><a class="header" href="#cross-compiling-zeroclaw-for-raspberry-pi-on-nixos">Cross-Compiling ZeroClaw for Raspberry Pi on NixOS</a></h1>
-<p><em>2026-02-19</em></p>
-<p>I have <a href="https://github.com/zeroclaw-labs/zeroclaw">zeroclaw</a> that I wanted to run on a Raspberry Pi
-5 (Ubuntu 24.04 LTS, aarch64). My development machine is a NixOS x86_64 desktop.
-The goal: compile on the desktop, deploy to the Pi—without touching the Pi’s
-package manager or installing a Rust toolchain there.</p>
-<p>This post documents how I got it working using a Nix <strong>devShell</strong>, and the
-several issues that came up along the way.</p>
+                        <h1 id="男孩鼹鼠狐狸和马我把相伴的标准定得太窄了"><a class="header" href="#男孩鼹鼠狐狸和马我把相伴的标准定得太窄了">男孩、鼹鼠、狐狸和马：我把「相伴」的标准定得太窄了</a></h1>
+<p><em>[英] 查理·麦克西 著，汪晗雪 译</em></p>
+<p><img src="img/boy-mole-fox-horse/cover.jpg" alt="男孩、鼹鼠、狐狸和马 封面"></p>
+<p>这本书薄得令人发指。站在书店里就能翻完。比《小王子》还好读。</p>
+<p>《小王子》好歹是个故事。有玫瑰，有星球，有要你去解的谜。这本几乎没有情节。就是四个家伙一路走，一路说些很小的话。</p>
+<p>可它告诉我的，比很多厚书都多。</p>
 <hr>
-<h2 id="the-plan-devshell-not-a-nix-derivation"><a class="header" href="#the-plan-devshell-not-a-nix-derivation">The Plan: devShell, not a Nix derivation</a></h2>
-<p>The first design decision was <em>how</em> to drive the cross-compilation inside Nix.
-Two options exist:</p>
-<ul>
-<li><strong>Nix derivation/package</strong> — let Nix build and manage the output as a store
-path.</li>
-<li><strong>devShell</strong> — enter a shell that has the cross-toolchain on <code>PATH</code> and run
-<code>cargo build</code> manually.</li>
-</ul>
-<p>I chose the devShell approach. zeroclaw is not a Nix-managed package, it lives
-at <code>~/zeroclaw/</code> as a normal checkout. I just needed the right compiler
-environment available when I ran <code>cargo build</code>.</p>
+<h2 id="它太空了所以装得下你"><a class="header" href="#它太空了所以装得下你">它太空了，所以装得下你</a></h2>
+<p>书里的话简单到你会怀疑。「你长大后想成为什么？」「善良。」就这样。一句，剩下大片留白。</p>
+<p>你以为没什么。直到你把自己的日子放进去。</p>
+<p>它不往你脑子里塞东西。它让万物穿过自己。你穿过它，看见的是跟自己对上号的那一面。</p>
+<p>一百个人读，读出一百种。因为它照的从来不是它自己，是各自的人生。你读到的深刻，其实是你自己的倒影。</p>
 <hr>
-<h2 id="setting-up-the-devshell"><a class="header" href="#setting-up-the-devshell">Setting Up the devShell</a></h2>
-<p>I added a <code>zeroclaw-cross</code> entry to the <code>devShells</code> output in <code>flake.nix</code>. The
-key ingredients:</p>
-<ul>
-<li><code>pkgsCross</code> instantiated for <code>aarch64-multiplatform</code> via
-<code>lib.systems.examples.aarch64-multiplatform</code></li>
-<li><code>rust-overlay</code> overlays threaded through so <code>rust-bin.stable."1.92.0"</code> (the
-version pinned in zeroclaw’s <code>rust-toolchain.toml</code>) is available</li>
-<li>The aarch64 GCC cross-toolchain from <code>pkgsCross.stdenv.cc</code></li>
-<li><code>openssl</code> and <code>postgresql</code> from <code>pkgsCross.pkgsStatic</code> for static linking</li>
-</ul>
-<p>The relevant env vars exposed in the shell:</p>
-<pre><code class="language-nix">CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER =
-  "${pkgsCross.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc";
-CC_aarch64_unknown_linux_gnu =
-  "${pkgsCross.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc";
-CXX_aarch64_unknown_linux_gnu =
-  "${pkgsCross.stdenv.cc}/bin/aarch64-unknown-linux-gnu-g++";
-AR_aarch64_unknown_linux_gnu =
-  "${pkgsCross.stdenv.cc}/bin/aarch64-unknown-linux-gnu-ar";
-</code></pre>
-<p>Because <code>forAllSystems</code> in my flake only covers <code>x86_64-linux</code> and
-<code>x86_64-darwin</code>, the shell was added outside that helper using a <code>//</code> merge on
-the <code>devShells</code> output:</p>
-<pre><code class="language-nix">devShells = forAllSystems (...) // {
-  "x86_64-linux" = devShells."x86_64-linux" // {
-    zeroclaw-cross = pkgs.mkShell { ... };
-  };
-};
-</code></pre>
-<p>the full flake.nix is <a href="https://github.com/xixiaofinland/dotfiles-nix/blob/f643acbd8df60065689e2380f5684f15e015e82b/flake.nix#L391">here</a>.</p>
-<p>Then entering the shell and building is just:</p>
-<pre><code class="language-bash">nix develop .#zeroclaw-cross
-cd ~/zeroclaw
-cargo build --release --target aarch64-unknown-linux-gnu
-</code></pre>
+<h2 id="差得那么远却这么要好"><a class="header" href="#差得那么远却这么要好">差得那么远，却这么要好</a></h2>
+<p>男孩一直在问，一直在怕。鼹鼠贪吃蛋糕，话最多。狐狸很久不说话，受过伤，把牙齿留给太靠近的人。马什么都懂，却从不抢着说。</p>
+<p>四个物种。四种脾气。几乎没有共同点。</p>
+<p>可他们就是彼此最好的朋友。</p>
+<p>让我想起《老友记》那群人。差得那么远，凑在一起就是一家。不同不是麻烦。不同，就是这段陪伴的底色。</p>
 <hr>
-<h2 id="issue-1-c-crates-ignoring-the-cross-compiler"><a class="header" href="#issue-1-c-crates-ignoring-the-cross-compiler">Issue 1: C crates ignoring the cross-compiler</a></h2>
-<p>The first build attempt failed midway with ARM assembly errors inside <code>blake3</code>
-and <code>aws-lc-sys</code>. The error looked roughly like:</p>
-<pre><code>error: unknown directive
-  .arch armv8-a
-</code></pre>
-<p>This is the classic sign that the <strong>C compiler used by the <code>cc</code> crate is the
-host <code>gcc</code></strong>, not the cross <code>gcc</code>. Setting only
-<code>CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER</code> is not enough. That variable
-tells Cargo which linker to use for the final link step, but crates that compile
-C/C++/asm via the <code>cc</code> crate look at a different set of env vars:</p>
-<pre><code>CC_aarch64_unknown_linux_gnu
-CXX_aarch64_unknown_linux_gnu
-AR_aarch64_unknown_linux_gnu
-</code></pre>
-<p>Adding all four variables to the devShell fixed the issue. The build then
-completed in about 3.5 minutes.</p>
+<h2 id="形影相随这件事"><a class="header" href="#形影相随这件事">形影相随这件事</a></h2>
+<p>有一句一直没散：他们总在一起，肩并肩，谁也不落下。</p>
+<p>我二三十岁的时候，特别想要这种朋友。想死死抓住小时候的玩伴。他们说句什么、做件什么，我都看得很重。生怕散了。</p>
+<p>现在反而松了。</p>
+<p>有机会在一起，当然开心。很久没联系，也不妨害什么。那份关系还在，只是不必天天拿出来证明。</p>
+<p>这本书替我发现了一件事：那种朋友没消失。是我以前把「相伴」的标准定得太窄。非要形影相随，才算数。</p>
 <hr>
-<h2 id="issue-2-binary-hardcoded-to-the-nix-store-interpreter"><a class="header" href="#issue-2-binary-hardcoded-to-the-nix-store-interpreter">Issue 2: Binary hardcoded to the Nix store interpreter</a></h2>
-<p>With the binary built, I copied it to the Pi:</p>
-<pre><code class="language-bash">scp ~/zeroclaw/target/aarch64-unknown-linux-gnu/release/zeroclaw \
-    ubuntu@192.168.1.109:~/.cargo/bin/zeroclaw
-</code></pre>
-<p>Running it on the Pi gave:</p>
-<pre><code>bash: /home/ubuntu/.cargo/bin/zeroclaw: cannot execute: required file not found
-</code></pre>
-<p>Checking the ELF interpreter with <code>readelf</code> revealed the problem:</p>
-<pre><code>[Requesting program interpreter: /nix/store/ghvpbda663vmf62g22d9y47z55yh43xn-glibc-aarch64-unknown-linux-gnu-2.42-47/lib/ld-linux-aarch64.so.1]
-</code></pre>
-<p>The binary was built against the <strong>Nix glibc</strong>, so its dynamic linker path
-points into <code>/nix/store/</code>—a path that simply doesn’t exist on Ubuntu. The fix is
-<code>patchelf</code>, which rewrites the ELF header in-place:</p>
-<pre><code class="language-bash">nix shell nixpkgs#patchelf -- patchelf \
-  --set-interpreter /lib/ld-linux-aarch64.so.1 \
-  --set-rpath "" \
-  ~/zeroclaw/target/aarch64-unknown-linux-gnu/release/zeroclaw
-</code></pre>
-<p>After patching, <code>readelf -l</code> showed the standard Ubuntu interpreter path, and
-the binary ran on the Pi straight away:</p>
-<pre><code>$ zeroclaw --version
-zeroclaw 0.1.0
-</code></pre>
-<hr>
-<h2 id="summary"><a class="header" href="#summary">Summary</a></h2>
-<p>The full flow that worked:</p>
-<ol>
-<li>Add a <code>zeroclaw-cross</code> devShell to <code>flake.nix</code> with <code>pkgsCross</code> for
-<code>aarch64-multiplatform</code> and all four cross-compiler env vars set.</li>
-<li>Enter the shell and run <code>cargo build --release --target aarch64-unknown-linux-gnu</code> inside the project directory.</li>
-<li>Patch the ELF interpreter with <code>patchelf --set-interpreter /lib/ld-linux-aarch64.so.1</code>.</li>
-<li><code>scp</code> the patched binary to the Pi.</li>
-</ol>
-<p>Two non-obvious gotchas to keep in mind:</p>
-<ul>
-<li>The <code>cc</code> crate uses <code>CC_&lt;target&gt;</code> / <code>CXX_&lt;target&gt;</code> / <code>AR_&lt;target&gt;</code>, not the
-Cargo linker variable—you need all of them for crates with C/asm code.</li>
-<li>Nix-built binaries embed the Nix store path as the ELF interpreter. Always
-<code>patchelf</code> before deploying to a non-Nix system.</li>
-</ul>
+<p>其实不用。</p>
+<p>一本薄薄的书，我翻了两遍，大概一个小时，也告诉了我好多。</p>
+<p>这也是相伴。过了那个年纪，照样有。</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="workspace.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="books.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
-                            <a rel="next prefetch" href="books.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="trillion-dollar-coach.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
@@ -315,11 +226,11 @@ Cargo linker variable—you need all of them for crates with C/asm code.</li>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="workspace.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="books.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
-                    <a rel="next prefetch" href="books.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="trillion-dollar-coach.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>
