@@ -1,0 +1,32 @@
+name: WeChat book draft
+
+# Manually create a WeChat DRAFT from one book thread.
+# Trigger from the Actions tab, or via CLI:
+#   gh workflow run wechat-books.yml -f thread=src/trillion-dollar-coach.md
+# The draft is never auto-published — approve it in the MP backend.
+
+on:
+  workflow_dispatch:
+    inputs:
+      thread:
+        description: "Path to the book thread markdown (e.g. src/trillion-dollar-coach.md)"
+        required: true
+        type: string
+
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Create WeChat draft
+        env:
+          WECHAT_TOKEN: ${{ secrets.WECHAT_TOKEN }}
+        run: |
+          python3 scripts/publish_book_wechat.py --thread "${{ inputs.thread }}"
