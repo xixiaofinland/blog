@@ -22,8 +22,17 @@ draft-only pattern as viikkoja.
    ```
 
    The image can be a committed local file (`img/<slug>/cover.jpg`, renders in
-   the blog and is uploaded to WeChat) or a remote URL. The image is used only
-   as the cover; it is not repeated in the WeChat article body.
+   the blog and is uploaded to WeChat) or a remote URL. It doubles as the WeChat
+   draft cover (the card thumbnail).
+
+   **Inline images carry through to the draft.** Every standalone Markdown image
+   in the thread (`![alt](img/<slug>/pic.jpg)`, one per line) is uploaded and
+   embedded in the WeChat body at the same spot it sits in the blog. The first
+   image renders in-body at its markdown position, so it is not additionally
+   pinned to the top. If the thread has no inline image at all (cover came from
+   a `cover:` override or an Open Library match), that cover is prepended once to
+   the body as before. Local images must be committed so CI can read them; remote
+   image URLs are downloaded and re-uploaded to WeChat.
 
    Grab a cover fast from Open Library:
 
@@ -48,6 +57,27 @@ draft-only pattern as viikkoja.
 
    For Chinese books (often missing from Open Library) just commit a local cover
    image, or paste a 豆瓣 image URL in `<!-- cover: ... -->`.
+
+   **Adding images while drafting.** Every standalone Markdown image line
+   (`![alt](img/<slug>/pic.jpg)`, one per line) flows into the WeChat body at the
+   same spot, so the convenient loop is:
+   - While writing, mark each spot an image belongs with a comment marker.
+     mdBook ignores it, so the blog still builds and it acts as a to-do:
+
+     ```markdown
+     Some paragraph about the ruler.
+
+     <!-- IMG: the ruler diagram, before the "why it matters" section -->
+
+     Why it matters...
+     ```
+
+   - Get the file onto disk (save/screenshot into `src/img/<slug>/`, drop it in
+     `~/Downloads`, or, for a web image, just use its URL), then say where it
+     goes ("the screenshot in Downloads goes at the first IMG marker").
+   - The `<!-- IMG: ... -->` marker is replaced with a real
+     `![alt](img/<slug>/name.ext)` link. Commit the image so CI can read it;
+     remote URLs are downloaded and re-uploaded to WeChat.
 
 3. Trigger the draft (locally or in CI):
 

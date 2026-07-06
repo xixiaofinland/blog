@@ -39,7 +39,7 @@ def main() -> int:
 
     source = path.read_text(encoding="utf-8")
     meta = md.parse_metadata(source)
-    title, content = md.render(source)
+    title, content, images = md.render(source)
 
     h1 = title  # the raw H1, before any title override
     if meta.get("title"):
@@ -79,13 +79,19 @@ def main() -> int:
                 else f"Cover: no Open Library match for '{book}', using default"
             )
 
+    # When the thread has inline images, the cover already shows in-body at its
+    # markdown position, so only prepend a body cover when there are none (e.g. a
+    # cover: override or an Open Library match with no image in the thread).
+    prepend_cover = not images
     cover_body_url = None
     if cover_url:
         thumb = wc.upload_cover_from_url(token, cover_url)
-        cover_body_url = wc.upload_body_image_from_url(token, cover_url)
+        if prepend_cover:
+            cover_body_url = wc.upload_body_image_from_url(token, cover_url)
     elif cover_file and cover_file.is_file():
         thumb = wc.upload_cover_from_file(token, str(cover_file))
-        cover_body_url = wc.upload_body_image_from_file(token, str(cover_file))
+        if prepend_cover:
+            cover_body_url = wc.upload_body_image_from_file(token, str(cover_file))
     elif DEFAULT_COVER.is_file():
         print("Cover: using default channel icon")
         thumb = wc.upload_cover_from_file(token, str(DEFAULT_COVER))
@@ -100,6 +106,24 @@ def main() -> int:
             f"</p>"
         )
         content = cover_img_html + content
+
+    # ── Inline body images: upload each in document order, swap the placeholder
+    #    marker for the WeChat-hosted URL. A failed upload drops that one image
+    #    rather than breaking the whole draft.
+    for idx, src in enumerate(images):
+        placeholder = md.img_placeholder(idx)
+        try:
+            if src.startswith(("http://", "https://")):
+                body_url = wc.upload_body_image_from_url(token, src)
+            else:
+                img_path = (path.parent / src).resolve()
+                body_url = wc.upload_body_image_from_file(token, str(img_path))
+        except Exception as exc:
+            print(f"warning: body image upload failed for {src}: {exc}", file=sys.stderr)
+            content = content.replace(placeholder, "")
+            continue
+        content = content.replace(placeholder, body_url)
+        print(f"Body image: {src}")
 
     slug = path.stem
     source_url = f"{BASE_URL}/{slug}.html?utm_source=wechat"

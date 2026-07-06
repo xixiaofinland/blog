@@ -81,6 +81,24 @@ def _divider() -> str:
     )
 
 
+def img_placeholder(idx: int) -> str:
+    """Placeholder src emitted for the idx-th inline body image.
+
+    render() cannot upload images to WeChat (no token here), so it emits this
+    marker as the <img src>. The publish step uploads each image in order and
+    swaps the marker for the WeChat-hosted URL.
+    """
+    return f"%%WXIMG{idx}%%"
+
+
+def _img(idx: int) -> str:
+    return (
+        '<p style="text-align:center;margin:0 0 20px;">'
+        f'<img src="{img_placeholder(idx)}" style="max-width:100%;border-radius:4px;"/>'
+        "</p>"
+    )
+
+
 # ── Inline markup: escape first, then add tags ───────────────────────────────
 
 
@@ -101,14 +119,20 @@ def _inline(text: str) -> str:
 # ── Block parser ─────────────────────────────────────────────────────────────
 
 
-def render(md: str) -> tuple[str, str]:
-    """Return (title, content_html). Title comes from the first H1."""
+def render(md: str) -> tuple[str, str, list[str]]:
+    """Return (title, content_html, image_srcs).
+
+    Title comes from the first H1. `image_srcs` lists the inline body images in
+    document order; the content carries an ``img_placeholder(i)`` marker for
+    each, which the publish step swaps for the uploaded WeChat URL.
+    """
     body = _COMMENT_RE.sub("", md)
     lines = body.splitlines()
 
     title = ""
     blocks: list[str] = []
     para: list[str] = []
+    images: list[str] = []
 
     def flush() -> None:
         if para:
@@ -125,8 +149,12 @@ def render(md: str) -> tuple[str, str]:
             flush()
             blocks.append(_divider())
             continue
-        if stripped.startswith("!["):  # image line -> cover, not body
+        if stripped.startswith("!["):  # standalone image line -> inline body image
             flush()
+            m = _IMG_RE.search(stripped)
+            if m:
+                blocks.append(_img(len(images)))
+                images.append(m.group(1).strip())
             continue
         if stripped.startswith("# "):
             flush()
@@ -150,4 +178,4 @@ def render(md: str) -> tuple[str, str]:
     )
     # strip any residual inline tags from the plain-text title
     plain_title = re.sub(r"<[^>]+>", "", title)
-    return plain_title, content
+    return plain_title, content, images
