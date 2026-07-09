@@ -14,6 +14,10 @@ draft-only pattern as viikkoja.
    ```markdown
    # Trillion Dollar Coach: The Ruler I Didn't Know I Was Missing
 
+   > **Rating** ★★★★☆
+   > **Read on** Audiobook · Libby
+   > **Language** English
+
    _Eric Schmidt, Jonathan Rosenberg, Alan Eagle_
 
    ![Trillion Dollar Coach book cover](img/trillion-dollar-coach/cover.jpg)
@@ -24,6 +28,13 @@ draft-only pattern as viikkoja.
    The image can be a committed local file (`img/<slug>/cover.jpg`, renders in
    the blog and is uploaded to WeChat) or a remote URL. It doubles as the WeChat
    draft cover (the card thumbnail).
+
+   **At-a-glance metadata card.** The `>` blockquote right under the H1 becomes
+   a warm-toned metadata box in the WeChat draft and a normal blockquote in the
+   blog. Use it for rating, where you read it (Kindle / paper / audiobook + app),
+   and the thread's language. Labels match the thread language (`推荐` / `读于` /
+   `语言` for Chinese). Keep each field on its own `>` line; consecutive lines are
+   collected into one card.
 
    **Inline images carry through to the draft.** Every standalone Markdown image
    in the thread (`![alt](img/<slug>/pic.jpg)`, one per line) is uploaded and

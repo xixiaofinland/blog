@@ -81,6 +81,24 @@ def _divider() -> str:
     )
 
 
+def _meta(rows: list[str]) -> str:
+    """Render the top-of-thread blockquote (rating / medium / language) as a card.
+
+    In mdBook these are ``>`` lines; WeChat has no blockquote, so collect the
+    rows into one warm-toned box that reads as a book's at-a-glance metadata.
+    """
+    inner = "".join(
+        '<p style="margin:0 0 6px;font-size:14px;color:#666;'
+        f'line-height:1.75;">{_inline(r)}</p>'
+        for r in rows
+    )
+    return (
+        '<section style="margin:0 0 24px;padding:12px 16px 6px;'
+        'background:#faf6f0;border-left:3px solid #e87b1a;'
+        f'border-radius:4px;">{inner}</section>'
+    )
+
+
 def img_placeholder(idx: int) -> str:
     """Placeholder src emitted for the idx-th inline body image.
 
@@ -132,12 +150,16 @@ def render(md: str) -> tuple[str, str, list[str]]:
     title = ""
     blocks: list[str] = []
     para: list[str] = []
+    meta: list[str] = []
     images: list[str] = []
 
     def flush() -> None:
         if para:
             blocks.append(_p(_inline(" ".join(para).strip())))
             para.clear()
+        if meta:
+            blocks.append(_meta(list(meta)))
+            meta.clear()
 
     for raw in lines:
         line = raw.rstrip()
@@ -148,6 +170,14 @@ def render(md: str) -> tuple[str, str, list[str]]:
         if stripped in ("---", "***", "___"):
             flush()
             blocks.append(_divider())
+            continue
+        if stripped.startswith(">"):  # blockquote -> metadata card; keep accruing rows
+            if para:
+                blocks.append(_p(_inline(" ".join(para).strip())))
+                para.clear()
+            row = stripped[1:].strip()
+            if row:
+                meta.append(row)
             continue
         if stripped.startswith("!["):  # standalone image line -> inline body image
             flush()
