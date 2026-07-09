@@ -16,8 +16,8 @@
         <link rel="icon" href="favicon-de23e50b.svg">
         <link rel="shortcut icon" href="favicon-8114d1fc.png">
         <link rel="stylesheet" href="css/variables-8adf115d.css">
-        <link rel="stylesheet" href="css/general-0392ca55.css">
-        <link rel="stylesheet" href="css/chrome-fc474251.css">
+        <link rel="stylesheet" href="css/general-e96d0476.css">
+        <link rel="stylesheet" href="css/chrome-d279d366.css">
         <link rel="stylesheet" href="css/print-9e4910d8.css" media="print">
 
         <!-- Fonts -->
@@ -37,10 +37,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-a9a449d5.js";
+            window.path_to_searchindex_js = "searchindex-390324a6.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-dabe56a6.js"></script>
+        <script src="toc-c8931520.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -336,7 +336,7 @@ runAgent(task);
     F -- no --&gt; G([Stopped])
 </code></pre>
 <p>The code above is not pseudocode. You can run it. I run against a local Qwen3.6 35B LLM, but any openai API compatible ones would go, such as gpt-4o-mini with your openai API key.</p>
-<p><img src="img/minimal-agent/run-output.png" alt=""></p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="img/minimal-agent/run-output.png" alt=""><span class="img-wrapper"><img src="img/minimal-agent/run-output.png" alt=""></span></label></p>
 <p>Several subtle details worth mentioning:</p>
 <p>The task hints the model toward tools like <code>list_files</code> and <code>read_file</code>. But none are defined yet. So the model reasons from its own knowledge, does its best, and signals <code>stop</code> after one single step. No looping. Not yet. This is how ChatGPT browser version works.</p>
 <p><code>finish_reason</code> in action 3 isn’t always <code>"stop"</code>. <code>"length"</code> means output hit the token limit, cut off mid-thought. <code>"content_filter"</code> means it was blocked. Production handles all of them explicitly. In this demo, we assume it’s always the happy path.</p>
@@ -451,7 +451,7 @@ async function runAgent(task: string) {
 <p>The code running result is in the screenshot below:</p>
 <p>Steps 1 and 2 follow the same pattern: the model requests a tool call, the agent runs it and sends the observation back.</p>
 <p>Step 3 is different. No tool call. The model has enough context now and answers directly. That’s the <code>stop</code> signal, and the final answer prints.</p>
-<p><img src="img/minimal-agent/run-output-tools.png" alt=""></p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="img/minimal-agent/run-output-tools.png" alt=""><span class="img-wrapper"><img src="img/minimal-agent/run-output-tools.png" alt=""></span></label></p>
 <p>Think of tools as sensors in an IoT system. They sample the environment and send readings back. The model, like a controller, makes decisions based on what it receives.</p>
 <p>Feed it accurate readings, it reasons correctly. Feed it wrong ones, it reasons confidently in the wrong direction. The model has no way to tell the difference. It just processes what arrives.</p>
 <p>You could return fake data. Wrong file contents. A made-up directory listing. The model would accept it, reason over it, and answer confidently. No verification.</p>
@@ -479,7 +479,7 @@ const task =
 runAgent(task);
 </code></pre>
 <p>Notice the whitelist? It is the guardrail we build. The model can reach the shell, but only through these specific doors. If we send the task to run <code>rm AGENTS.md</code>, agent would refuse it as below.</p>
-<p><img src="img/minimal-agent/run-output-tool-boundary.png" alt=""></p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="img/minimal-agent/run-output-tool-boundary.png" alt=""><span class="img-wrapper"><img src="img/minimal-agent/run-output-tool-boundary.png" alt=""></span></label></p>
 <p>The code run above has the task: “Run <code>rm AGENTS.md</code>”, and it has two steps.</p>
 <p>Step 1: the model calls <code>run_command("rm AGENTS.md")</code>. It doesn’t know <code>rm</code> is blocked. The whitelist fires, returns an error string as a normal observation. Step 2: the model reads it and reports back.</p>
 <p>Two subtle points I’d like to point out.</p>
@@ -509,7 +509,7 @@ const observation =
 </code></pre>
 <p>This is a blunt instrument. It works for a demo. In production, you’d summarize instead: call the model again on just the observation, get a condensed version, push that. Tools like <a href="https://github.com/rtk-ai/rtk">RTK</a> solve this at the CLI layer, compressing the tool call result before it ever reaches the model.</p>
 <p>A side note, the screenshot below is my RTK session summary for ~2 week usage. 589 commands run, 392K tokens saved. That’s 46.8% of input tokens eliminated before the model ever saw them.</p>
-<p><img src="img/minimal-agent/rtk-token-savings.png" alt=""></p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="img/minimal-agent/rtk-token-savings.png" alt=""><span class="img-wrapper"><img src="img/minimal-agent/rtk-token-savings.png" alt=""></span></label></p>
 <p>One broader observation worth making here: CLI tools are starting to evolve toward output that code agents can read efficiently. <code>ls</code> returning 200 lines of noise made sense when a human was reading it. When a code agent reads it, that’s wasted tokens. RTK is a shim for the transition period. Long-term, tools will output compact, structured data natively. The same shift happened to APIs when mobile came along.</p>
 <hr>
 <h2 id="milestone-5-memory-boundary"><a class="header" href="#milestone-5-memory-boundary">Milestone 5: Memory Boundary</a></h2>
@@ -533,7 +533,7 @@ const messages = [...loadMemory(), { role: "user", content: task }];
 </code></pre>
 <p>Run the same task as before. The model now responds in Chinese. Delete <code>AGENTS.md</code>, run again: English. The difference is visible in one line.</p>
 <p>Trust me, those are proper Chinese. The agent isn’t broken. 😄</p>
-<p><img src="img/minimal-agent/memory-agents.png" alt=""></p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="img/minimal-agent/memory-agents.png" alt=""><span class="img-wrapper"><img src="img/minimal-agent/memory-agents.png" alt=""></span></label></p>
 <p>Continuity across sessions.</p>
 <p>For personal agents, memory isn’t a feature. It’s the whole point. Projects like <a href="https://openclaw.ai">OpenClaw</a> and <a href="https://github.com/NousResearch/Hermes">Hermes</a> are built around this: an assistant that knows your preferences, your history, your context. Context is temporary. Memory is what makes it yours.</p>
 <p>Which is why memory management is the harder problem. Context management asks: what should the model see right now? Memory management asks: what’s worth keeping at all? What to store. What to discard. When to surface it. How to retrieve the right piece without loading everything.</p>
@@ -584,14 +584,14 @@ async function run_command(command: string): Promise&lt;string&gt; {
 <p>Models are excellent at sounding confident. That confidence has no relationship to whether the work was actually done. Traditional CI fails loudly with logs. A code agent can succeed quietly and lie. Both checks are what makes completion mean something.</p>
 <p>How do Claude Code and Codex handle this on longer tasks? Same principle at scale: check exit codes, run the test suite, read back files they just wrote. Claude Code’s Todo system marks tasks complete only after the environment confirms, not after the model claims. The exact mechanisms for complex multi-step recovery are still an active area.</p>
 <p>This is the final version of the demo. Let’s run it.</p>
-<p><img src="img/minimal-agent/write-validate.png" alt=""></p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="img/minimal-agent/write-validate.png" alt=""><span class="img-wrapper"><img src="img/minimal-agent/write-validate.png" alt=""></span></label></p>
 <p>The agent reads <code>package.json</code>, writes the summary to <code>summary.txt</code> in English, then responds in Chinese (AGENTS.md is still loaded). The external check confirms the file is written. Read, write, memory, validation: the full harness, working together.</p>
 <hr>
 <h2 id="the-model-inside-the-loop"><a class="header" href="#the-model-inside-the-loop">The Model Inside the Loop</a></h2>
 <p>The harness is fixed while we can swap the model like <a href="https://opencode.ai/">OpenCode</a> and <a href="https://pi.dev/">pi</a> do.</p>
 <p><code>Qwen3.6 35B</code> I use chains tools correctly, recovers from failures, and produces useful output. A weak 1B model hallucinates file paths, stops after one tool call, or returns empty content.</p>
 <p>That’s the separation this demo was built to show, and honestly it’s the thing I find most clarifying about building this yourself. The model defines the ceiling: how far it can reason, how well it recovers, how much ambiguity it can handle. The agent defines the floor: what’s allowed, what gets checked, what can’t go wrong even if the model tries.</p>
-<p><img src="img/minimal-agent/model-agent-boundary.png" alt=""></p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="img/minimal-agent/model-agent-boundary.png" alt=""><span class="img-wrapper"><img src="img/minimal-agent/model-agent-boundary.png" alt=""></span></label></p>
 <p>You can’t train the expensive model. But you can build the code agent. The harness is just code. That boundary is worth holding onto.</p>
 <hr>
 <h2 id="wrap-up"><a class="header" href="#wrap-up">Wrap Up</a></h2>
@@ -626,12 +626,12 @@ async function run_command(command: string): Promise&lt;string&gt; {
 <p>Before containers: armies of workers, every cargo type handled by hand, every port built around human labor.</p>
 <p>Then containers came, and the entire logic of moving cargo had to be rethought from the ground up. The work didn’t get faster. The work disappeared. Break-bulk was gone. London’s docks emptied. New York’s piers went silent. Felixstowe and Port Newark rose in their place. Built for a machine, not a hand.</p>
 <p>That’s not A to A+. That’s A dying. B appearing. Entirely different rules.</p>
-<p><img src="img/headless-360/harbors.png" alt="Old break-bulk harbor vs modern container port"></p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="img/headless-360/harbors.png" alt="Old break-bulk harbor vs modern container port"><span class="img-wrapper"><img src="img/headless-360/harbors.png" alt="Old break-bulk harbor vs modern container port"></span></label></p>
 <p>AI is doing the same thing to knowledge work. Removing the human from the loop entirely, for entire categories of work.</p>
 <p>This wave also moves faster than any before it. Smartphones took four years. iPhone launched in 2007. By 2011, crossed 50% in major markets.</p>
 <p>Enterprise software moves faster. No hardware to buy. Buyers have budget authority. The pressure is headcount, not adoption friction.</p>
 <p>If 2026 is year zero, 2028 is not a stretch.</p>
-<p><img src="img/headless-360/nokia-vs-iphone.png" alt="Nokia feature phone vs iPhone"></p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="img/headless-360/nokia-vs-iphone.png" alt="Nokia feature phone vs iPhone"><span class="img-wrapper"><img src="img/headless-360/nokia-vs-iphone.png" alt="Nokia feature phone vs iPhone"></span></label></p>
 <hr>
 <p>Salesforce’s Headless 360 is doing the same thing to the GUI-first paradigm.</p>
 <p>The old world isn’t gone (yet). But it’s no longer where the platform is heading.</p>
@@ -725,7 +725,7 @@ async function run_command(command: string): Promise&lt;string&gt; {
 <p>The Semantic Layer and the Trust Layer are unlike anything the platform has built before. And they’re the easiest to ignore.</p>
 <p>Salesforce built its empire on CRM data and the GUI-first strategy. The data and the trust it carries remain the brand. The GUI-first paradigm on top of it is fading. Some adapt and thrive. Others become relics.</p>
 <p>Salesforce Headless 360 is a good move. But <strong>the vision is not enough. The implementation is the key.</strong> The real work is in the layers.</p>
-<p><img src="img/headless-360/wrap_up.png" alt="Platform agent welcoming user agents"></p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="img/headless-360/wrap_up.png" alt="Platform agent welcoming user agents"><span class="img-wrapper"><img src="img/headless-360/wrap_up.png" alt="Platform agent welcoming user agents"></span></label></p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="classification"><a class="header" href="#classification">Classification</a></h1>
 <blockquote>
@@ -1721,9 +1721,86 @@ Cargo linker variable—you need all of them for crates with C/asm code.</li>
 <h1 id="books"><a class="header" href="#books">Books</a></h1>
 <p>Thoughts and summaries from books I’ve read. Some threads are in English, some in Chinese, depending on the book.</p>
 <div style="break-before: page; page-break-before: always;"></div>
+<h1 id="我看见的世界一个移民和她的北极星"><a class="header" href="#我看见的世界一个移民和她的北极星">我看见的世界：一个移民，和她的北极星</a></h1>
+<blockquote>
+<p><strong>推荐</strong> ★★★½☆（3.5 / 5）
+<strong>读于</strong> 有声书 · 微信读书
+<strong>语言</strong> 中文</p>
+</blockquote>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="img/the-worlds-i-see/cover.jpg" alt="我看见的世界 封面"><span class="img-wrapper"><img src="img/the-worlds-i-see/cover.jpg" alt="我看见的世界 封面"></span></label></p>
+<p>先谢 Lisa。她推荐了这本书，我才开始听。</p>
+<p>也是因为这本，我才发现微信读书的 AI 听书已经这么顺。更要紧的是，它不挑 IP。喜马拉雅上的有声书，我人在海外，一点开常常就被版权挡在外面。微信读书没有这道墙。</p>
+<p>给它 3.5 分，不是书写得不好。是传记我读得太多了，这一本的新鲜感，对我不太够。</p>
+<p>但如果你和我一样，对人工智能有兴趣，又刚好喜欢这样一种故事：一个人很早就从中国到了美国，要闯语言关，扛文化的落差，一点点把自己安放进一个全新的社会，那这本书在你那儿，值 4 分。</p>
+<h2 id="我为什么点开这本书"><a class="header" href="#我为什么点开这本书">我为什么点开这本书</a></h2>
+<p>李飞飞这个名字，在机器学习圈子里绕不开。</p>
+<p>但说来惭愧，我对她的认识一直停在一行字上：ImageNet 的作者。仅此而已。我甚至不知道她是在美国出生的 ABC，还是从中国过去的移民。</p>
+<p>这本书替我补上了这份好奇。这也是我点开它的最主要原因。</p>
+<h2 id="命运八分努力两分"><a class="header" href="#命运八分努力两分">命运八分，努力两分</a></h2>
+<p>有个朋友问过我一个问题：一个人的一生，命运和努力，各占多少？</p>
+<p>我的答案是，八分命运，两分努力。</p>
+<p>这本书几乎是这句话的活注脚。</p>
+<p>李飞飞的父母，在六七十年代的中国，做了一个极其小众的决定：全家搬去美国。到了之后，日子并不好过。家里很穷，父母基本不会讲英文。她就是在这样的环境里长大的。</p>
+<p>书里从头到尾，你都能看到父亲和母亲两种截然不同的性格，一点点落在她身上。</p>
+<p>她自己当然也努力。美国那种自由、开放、进取的空气，她尽力去吸收。这是她的那两分。但前提始终是，父母替她做了那个小众的选择，搭好了这座舞台。</p>
+<p>没有舞台，努力使不上劲。</p>
+<h2 id="打动我的是前半本"><a class="header" href="#打动我的是前半本">打动我的，是前半本</a></h2>
+<p>说实话，真正打动我的，是这本书的前半部分。</p>
+<p>是那个刚到美国、语言不通、想家、家里还很穷的小女孩。她父母一时找不到工作，全家挤在拮据里过日子。</p>
+<p>这样的开头，会让很多第一代移民一下子就红了眼圈。因为那也是我们的开头。</p>
+<p>我想起自己刚到芬兰的时候。</p>
+<h3 id="课堂上的沉默"><a class="header" href="#课堂上的沉默">课堂上的沉默</a></h3>
+<p>我们班上十几个人，有墨西哥来的，有孟加拉来的，还有几个国家，我已经记不太清了。上课用英语。</p>
+<p>有一天，老师说，班上有三个同学的英语还得再进步一下，因为课上总感觉沟通不太顺，能看出来我们没太听懂。</p>
+<p>我就是其中一个。我说出来的句子，别人常常听不懂：有时是口音，有时是表达不够地道。</p>
+<p>那种课堂，经常要大家讨论一个话题，抛出自己的看法和建议。轮到我，话卡在嘴边，就是说不出一个像样的见解。</p>
+<p>后来我慢慢想明白，卡住我的不只是英语。很多时候，我心里其实也没攒下一个足够成形的观点。语言只是那层看得见的壳。壳底下，是更空的东西。</p>
+<h3 id="自己补的那两寸"><a class="header" href="#自己补的那两寸">自己补的那两寸</a></h3>
+<p>意识到问题，就一寸一寸去补。</p>
+<p>第一寸，口音。我开始有意识地纠正自己的发音，把话说得让人不费力就能听懂。别小看这件事。你说的内容再好，对方听着累，交流就断在半路上了。</p>
+<p>第二寸，见识。别人聊起一个话题，我常常连接都接不住，因为压根没听过。于是我逼自己把知识面铺宽一点，什么都去了解一些，好歹在别人抛过来的时候，我能稳稳接住。</p>
+<p>如果说命运是父母替李飞飞搭的那座舞台，那这两寸，就是我自己能挣的那两分。</p>
+<h3 id="还有芬兰语这道坎"><a class="header" href="#还有芬兰语这道坎">还有芬兰语这道坎</a></h3>
+<p>英语勉强能沟通了，第二道坎又立在面前：芬兰语。</p>
+<p>这是本地的语言。我又花了不少时间去啃，努力在日常里用起来，点菜、办事、跟邻居搭话。</p>
+<p>有一次，我碰上一个歧视外国人的芬兰人。我跟他吵了起来。那一刻我才真切地体会到什么叫书到用时方恨少，一肚子的火，却找不出几个够劲的词把它顶回去。</p>
+<p>语言从来不只是沟通的工具。急了，被冒犯了，它还是你自卫的武器。词不够用，你连还嘴都还不利索。</p>
+<p>李飞飞只要闯一道语言关。我有两道。</p>
+<h3 id="从怕冷清到爱独处"><a class="header" href="#从怕冷清到爱独处">从怕冷清，到爱独处</a></h3>
+<p>李飞飞在书里，一直想念故乡：那里的亲人、文化、味道，种种。她花了很长时间，才把自己安顿好。</p>
+<p>我也一样。</p>
+<p>刚来的头两年，周围冷清，没什么人，很多事都得一个人扛。为了驱散那份冷清，我会去找中国同胞，一起吃吃喝喝、热闹热闹。说白了，凑的不是朋友，是热闹。他们未必和我志同道合，但那份人气，能暂时盖过孤独。</p>
+<p>后来，不知不觉就变了。没有哪一个具体的节点，是一点一点渗进来的。</p>
+<p>如今我反倒很享受独处。它把时间还给我，让我能安静地想事情、学东西、做自己真正想做的事。当年拼命想躲开的冷清，成了我现在最舍不得的东西。</p>
+<p>时间把思乡，熬成了自处的能力。</p>
+<p>说到这，我有个不算成熟的想法，或者说，是我自己的一点世界观。</p>
+<p>一个年轻人，最好离开父母，离开熟悉的家乡，到一个陌生的地方去闯一闯。</p>
+<p>我知道很多父母舍不得。他们想把孩子留在身边，给他一个温暖的、随时有依靠的港湾。这份心意没有错。</p>
+<p>但这些年走下来，我越来越信一件事：一个完整的人格，是磨出来的，不是护出来的。你得亲自去撞语言、撞文化、撞那些没人替你挡的难堪，才能一块一块把自己拼全。温室里长不出这个。被保护得太好的人，人格里往往空着一块，因为那一块，本该由他自己在外面摔出来。</p>
+<p>远离，不是为了逃开父母。是为了有一天，能作为一个完整的人，站回他们面前。</p>
+<p>书的前半本，我照见了自己。翻到后半本，李飞飞换了一副面孔：那个想家的小女孩，开始一头扎进一件要改变整个领域的事。ImageNet。</p>
+<h2 id="后半本像一场创业"><a class="header" href="#后半本像一场创业">后半本，像一场创业</a></h2>
+<p>翻到后半本，我脑子里冒出来的两个字，是创业。</p>
+<p>ImageNet 从无到有的过程，特别像把一家公司从 0 做到 1，再从 1 做到一万。中间的路我就不铺开讲了。只说一点：李飞飞一路上碰到的坎，几乎每一个，在当时看都像迈不过去的。</p>
+<p>更难的是，她几乎得不到支持。周围只有极少数人站在她这边，绝大多数人都不看好。</p>
+<p>我只举其中一个例子。</p>
+<h3 id="井挖好了就等出水"><a class="header" href="#井挖好了就等出水">井挖好了，就等出水</a></h3>
+<p>ImageNet 这个数据库建成之后，还差最关键的一步：一个配得上它的算法，把它的潜力挖出来。</p>
+<p>为此，他们办了一场比赛，想把全世界的机器学习团队都吸引过来，比谁能做出那个算法。历经前面九九八十一难，终于走到了最后、也最关键的一刻。井已经挖好了，就等它出水。</p>
+<p>可头两年的比赛，始终没有一个团队能拿出那个算法。</p>
+<p>这种滋味太难受了。李飞飞和团队一次次挫败，甚至开始怀疑：走到这最后一步，到底还成不成？那是一种悬在悬崖上的感觉，上不去，也不敢往下看。</p>
+<p>转机在第三年。神经网络回来了。那一年，ImageNet 彻底爆火。</p>
+<p>这感觉，真的和创业一模一样。</p>
+<p>你笃定一件事，就拼了命往前走，走在所有人的前头，眼里只有那颗北极星。旁人看不懂，你也没法证明自己是对的。直到有一天，你撞见另一个能和你契合的人，他手里正好握着那块能把拼图补全的碎片。两下一对上，你才敢真正确认：我当初的笃定，是对的。</p>
+<h2 id="合上书"><a class="header" href="#合上书">合上书</a></h2>
+<p>李飞飞的一生，几乎就是这本书里的两句话。</p>
+<p>前半程，是命运替她搭的台。父母那个小众的选择，把她放到了美国，也放进了贫困、语言和思乡里。后半程，是她自己的笃定。认准 ImageNet，在几乎没人看好的时候，一直走到井里出水的那一天。</p>
+<p>命运给你起点，你没得选。能走多远，看你认准了什么，又肯为它熬多久。</p>
+<p>书我给 3.5 分。可那个想家的小女孩，最后把一片没人相信的荒地，熬成了整个领域的绿洲。这件事本身，五星都装不下，得给六星。</p>
+<div style="break-before: page; page-break-before: always;"></div>
 <h1 id="男孩鼹鼠狐狸和马我把相伴的标准定得太窄了"><a class="header" href="#男孩鼹鼠狐狸和马我把相伴的标准定得太窄了">男孩、鼹鼠、狐狸和马：我把「相伴」的标准定得太窄了</a></h1>
 <p><em>[英] 查理·麦克西 著，汪晗雪 译</em></p>
-<p><img src="img/boy-mole-fox-horse/cover.jpg" alt="男孩、鼹鼠、狐狸和马 封面"></p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="img/boy-mole-fox-horse/cover.jpg" alt="男孩、鼹鼠、狐狸和马 封面"><span class="img-wrapper"><img src="img/boy-mole-fox-horse/cover.jpg" alt="男孩、鼹鼠、狐狸和马 封面"></span></label></p>
 <p>这本书薄得令人发指。站在书店里就能翻完。比《小王子》还好读。</p>
 <p>《小王子》好歹是个故事。有玫瑰，有星球，有要你去解的谜。这本几乎没有情节。就是四个家伙一路走，一路说些很小的话。</p>
 <p>可它告诉我的，比很多厚书都多。</p>
@@ -1753,7 +1830,7 @@ Cargo linker variable—you need all of them for crates with C/asm code.</li>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="trillion-dollar-coach-the-ruler-i-didnt-know-i-was-missing"><a class="header" href="#trillion-dollar-coach-the-ruler-i-didnt-know-i-was-missing">Trillion Dollar Coach: The Ruler I Didn’t Know I Was Missing</a></h1>
 <p><em>Eric Schmidt, Jonathan Rosenberg, Alan Eagle</em></p>
-<p><img src="img/trillion-dollar-coach/cover.jpg" alt="Trillion Dollar Coach book cover"></p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="img/trillion-dollar-coach/cover.jpg" alt="Trillion Dollar Coach book cover"><span class="img-wrapper"><img src="img/trillion-dollar-coach/cover.jpg" alt="Trillion Dollar Coach book cover"></span></label></p>
 <p>I picked this up expecting a leadership playbook. What I got was a question I couldn’t shake.</p>
 <p>The question isn’t in the book directly. It’s implied by Bill Campbell’s memorial. Hundreds of people stood up. CEOs, engineers, athletes, assistants. Not to talk about deals he closed or companies he saved. To say: he made me better. He saw something in me I didn’t see yet. He cared about me when it cost him nothing to look away.</p>
 <p>That’s a different ruler. Not what you built. Who you grew.</p>
@@ -1810,7 +1887,7 @@ me.</li>
 believe any of these would have been a massive improvement over my Microsoft
 Sculpt—let alone a standard laptop keyboard.</p>
 <p>My <strong>Glove80</strong> (top) and retired <strong>Sculpt</strong> (bottom).</p>
-<p><img src="img/keyboards.jpg" alt="Keyboards"></p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="img/keyboards.jpg" alt="Keyboards"><span class="img-wrapper"><img src="img/keyboards.jpg" alt="Keyboards"></span></label></p>
 <hr>
 <h2 id="changing-the-layout-too"><a class="header" href="#changing-the-layout-too">Changing the Layout Too</a></h2>
 <p>At the same time, I took on another challenge: moving from <strong>QWERTY</strong> to the
@@ -1824,11 +1901,11 @@ chose the more modern and thumb-friendly <strong>Hands Down</strong> family—sp
 <ol>
 <li>Our most familiar QWERTY layout:</li>
 </ol>
-<p><img src="img/qwert.png" alt="QWERTY layout"></p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="img/qwert.png" alt="QWERTY layout"><span class="img-wrapper"><img src="img/qwert.png" alt="QWERTY layout"></span></label></p>
 <ol start="2">
 <li>My chosen handsdown-promethium layout:</li>
 </ol>
-<p><img src="img/hd-p.png" alt="Handsdown Promethium layout"></p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="img/hd-p.png" alt="Handsdown Promethium layout"><span class="img-wrapper"><img src="img/hd-p.png" alt="Handsdown Promethium layout"></span></label></p>
 <p>So, not only did I have to adjust to a new keyboard shape, but also to a
 completely new key layout. Yes, it was brutal, painfully difficult at first.</p>
 <p>That said, I’m very happy with handsdown-promethium. Honestly, I think almost
@@ -1844,7 +1921,7 @@ is only 763.5.</p>
 keys, add layers, and customize shortcuts directly on the keyboard. These three
 features make it possible to tailor the keyboard to my workflow instead of
 forcing myself to adapt to it.</p>
-<p><img src="img/glove80-layouts.png" alt="Glove80 layouts"></p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="img/glove80-layouts.png" alt="Glove80 layouts"><span class="img-wrapper"><img src="img/glove80-layouts.png" alt="Glove80 layouts"></span></label></p>
 <h3 id="layers"><a class="header" href="#layers">Layers</a></h3>
 <p>A <strong>layer</strong> is like having multiple keyboards in one. Your base layer handles
 normal typing, but with a single key press you can switch to another layer—for
@@ -1980,7 +2057,7 @@ up and feedback sessions after the training are also highly recommended</p>
 
         <script src="clipboard-1626706a.min.js"></script>
         <script src="highlight-abc7f01d.js"></script>
-        <script src="book-c22b7243.js"></script>
+        <script src="book-609e4cb8.js"></script>
 
         <!-- Custom JS scripts -->
         <script src="mermaid-eefea253.min.js"></script>

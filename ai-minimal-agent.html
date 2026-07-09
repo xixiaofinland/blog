@@ -15,8 +15,8 @@
         <link rel="icon" href="favicon-de23e50b.svg">
         <link rel="shortcut icon" href="favicon-8114d1fc.png">
         <link rel="stylesheet" href="css/variables-8adf115d.css">
-        <link rel="stylesheet" href="css/general-0392ca55.css">
-        <link rel="stylesheet" href="css/chrome-fc474251.css">
+        <link rel="stylesheet" href="css/general-e96d0476.css">
+        <link rel="stylesheet" href="css/chrome-d279d366.css">
         <link rel="stylesheet" href="css/print-9e4910d8.css" media="print">
 
         <!-- Fonts -->
@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-a9a449d5.js";
+            window.path_to_searchindex_js = "searchindex-390324a6.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-dabe56a6.js"></script>
+        <script src="toc-c8931520.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -258,7 +258,7 @@ runAgent(task);
     F -- no --&gt; G([Stopped])
 </code></pre>
 <p>The code above is not pseudocode. You can run it. I run against a local Qwen3.6 35B LLM, but any openai API compatible ones would go, such as gpt-4o-mini with your openai API key.</p>
-<p><img src="img/minimal-agent/run-output.png" alt=""></p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="img/minimal-agent/run-output.png" alt=""><span class="img-wrapper"><img src="img/minimal-agent/run-output.png" alt=""></span></label></p>
 <p>Several subtle details worth mentioning:</p>
 <p>The task hints the model toward tools like <code>list_files</code> and <code>read_file</code>. But none are defined yet. So the model reasons from its own knowledge, does its best, and signals <code>stop</code> after one single step. No looping. Not yet. This is how ChatGPT browser version works.</p>
 <p><code>finish_reason</code> in action 3 isn’t always <code>"stop"</code>. <code>"length"</code> means output hit the token limit, cut off mid-thought. <code>"content_filter"</code> means it was blocked. Production handles all of them explicitly. In this demo, we assume it’s always the happy path.</p>
@@ -373,7 +373,7 @@ async function runAgent(task: string) {
 <p>The code running result is in the screenshot below:</p>
 <p>Steps 1 and 2 follow the same pattern: the model requests a tool call, the agent runs it and sends the observation back.</p>
 <p>Step 3 is different. No tool call. The model has enough context now and answers directly. That’s the <code>stop</code> signal, and the final answer prints.</p>
-<p><img src="img/minimal-agent/run-output-tools.png" alt=""></p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="img/minimal-agent/run-output-tools.png" alt=""><span class="img-wrapper"><img src="img/minimal-agent/run-output-tools.png" alt=""></span></label></p>
 <p>Think of tools as sensors in an IoT system. They sample the environment and send readings back. The model, like a controller, makes decisions based on what it receives.</p>
 <p>Feed it accurate readings, it reasons correctly. Feed it wrong ones, it reasons confidently in the wrong direction. The model has no way to tell the difference. It just processes what arrives.</p>
 <p>You could return fake data. Wrong file contents. A made-up directory listing. The model would accept it, reason over it, and answer confidently. No verification.</p>
@@ -401,7 +401,7 @@ const task =
 runAgent(task);
 </code></pre>
 <p>Notice the whitelist? It is the guardrail we build. The model can reach the shell, but only through these specific doors. If we send the task to run <code>rm AGENTS.md</code>, agent would refuse it as below.</p>
-<p><img src="img/minimal-agent/run-output-tool-boundary.png" alt=""></p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="img/minimal-agent/run-output-tool-boundary.png" alt=""><span class="img-wrapper"><img src="img/minimal-agent/run-output-tool-boundary.png" alt=""></span></label></p>
 <p>The code run above has the task: “Run <code>rm AGENTS.md</code>”, and it has two steps.</p>
 <p>Step 1: the model calls <code>run_command("rm AGENTS.md")</code>. It doesn’t know <code>rm</code> is blocked. The whitelist fires, returns an error string as a normal observation. Step 2: the model reads it and reports back.</p>
 <p>Two subtle points I’d like to point out.</p>
@@ -431,7 +431,7 @@ const observation =
 </code></pre>
 <p>This is a blunt instrument. It works for a demo. In production, you’d summarize instead: call the model again on just the observation, get a condensed version, push that. Tools like <a href="https://github.com/rtk-ai/rtk">RTK</a> solve this at the CLI layer, compressing the tool call result before it ever reaches the model.</p>
 <p>A side note, the screenshot below is my RTK session summary for ~2 week usage. 589 commands run, 392K tokens saved. That’s 46.8% of input tokens eliminated before the model ever saw them.</p>
-<p><img src="img/minimal-agent/rtk-token-savings.png" alt=""></p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="img/minimal-agent/rtk-token-savings.png" alt=""><span class="img-wrapper"><img src="img/minimal-agent/rtk-token-savings.png" alt=""></span></label></p>
 <p>One broader observation worth making here: CLI tools are starting to evolve toward output that code agents can read efficiently. <code>ls</code> returning 200 lines of noise made sense when a human was reading it. When a code agent reads it, that’s wasted tokens. RTK is a shim for the transition period. Long-term, tools will output compact, structured data natively. The same shift happened to APIs when mobile came along.</p>
 <hr>
 <h2 id="milestone-5-memory-boundary"><a class="header" href="#milestone-5-memory-boundary">Milestone 5: Memory Boundary</a></h2>
@@ -455,7 +455,7 @@ const messages = [...loadMemory(), { role: "user", content: task }];
 </code></pre>
 <p>Run the same task as before. The model now responds in Chinese. Delete <code>AGENTS.md</code>, run again: English. The difference is visible in one line.</p>
 <p>Trust me, those are proper Chinese. The agent isn’t broken. 😄</p>
-<p><img src="img/minimal-agent/memory-agents.png" alt=""></p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="img/minimal-agent/memory-agents.png" alt=""><span class="img-wrapper"><img src="img/minimal-agent/memory-agents.png" alt=""></span></label></p>
 <p>Continuity across sessions.</p>
 <p>For personal agents, memory isn’t a feature. It’s the whole point. Projects like <a href="https://openclaw.ai">OpenClaw</a> and <a href="https://github.com/NousResearch/Hermes">Hermes</a> are built around this: an assistant that knows your preferences, your history, your context. Context is temporary. Memory is what makes it yours.</p>
 <p>Which is why memory management is the harder problem. Context management asks: what should the model see right now? Memory management asks: what’s worth keeping at all? What to store. What to discard. When to surface it. How to retrieve the right piece without loading everything.</p>
@@ -506,14 +506,14 @@ async function run_command(command: string): Promise&lt;string&gt; {
 <p>Models are excellent at sounding confident. That confidence has no relationship to whether the work was actually done. Traditional CI fails loudly with logs. A code agent can succeed quietly and lie. Both checks are what makes completion mean something.</p>
 <p>How do Claude Code and Codex handle this on longer tasks? Same principle at scale: check exit codes, run the test suite, read back files they just wrote. Claude Code’s Todo system marks tasks complete only after the environment confirms, not after the model claims. The exact mechanisms for complex multi-step recovery are still an active area.</p>
 <p>This is the final version of the demo. Let’s run it.</p>
-<p><img src="img/minimal-agent/write-validate.png" alt=""></p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="img/minimal-agent/write-validate.png" alt=""><span class="img-wrapper"><img src="img/minimal-agent/write-validate.png" alt=""></span></label></p>
 <p>The agent reads <code>package.json</code>, writes the summary to <code>summary.txt</code> in English, then responds in Chinese (AGENTS.md is still loaded). The external check confirms the file is written. Read, write, memory, validation: the full harness, working together.</p>
 <hr>
 <h2 id="the-model-inside-the-loop"><a class="header" href="#the-model-inside-the-loop">The Model Inside the Loop</a></h2>
 <p>The harness is fixed while we can swap the model like <a href="https://opencode.ai/">OpenCode</a> and <a href="https://pi.dev/">pi</a> do.</p>
 <p><code>Qwen3.6 35B</code> I use chains tools correctly, recovers from failures, and produces useful output. A weak 1B model hallucinates file paths, stops after one tool call, or returns empty content.</p>
 <p>That’s the separation this demo was built to show, and honestly it’s the thing I find most clarifying about building this yourself. The model defines the ceiling: how far it can reason, how well it recovers, how much ambiguity it can handle. The agent defines the floor: what’s allowed, what gets checked, what can’t go wrong even if the model tries.</p>
-<p><img src="img/minimal-agent/model-agent-boundary.png" alt=""></p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="img/minimal-agent/model-agent-boundary.png" alt=""><span class="img-wrapper"><img src="img/minimal-agent/model-agent-boundary.png" alt=""></span></label></p>
 <p>You can’t train the expensive model. But you can build the code agent. The harness is just code. That boundary is worth holding onto.</p>
 <hr>
 <h2 id="wrap-up"><a class="header" href="#wrap-up">Wrap Up</a></h2>
@@ -584,7 +584,7 @@ async function run_command(command: string): Promise&lt;string&gt; {
 
         <script src="clipboard-1626706a.min.js"></script>
         <script src="highlight-abc7f01d.js"></script>
-        <script src="book-c22b7243.js"></script>
+        <script src="book-609e4cb8.js"></script>
 
         <!-- Custom JS scripts -->
         <script src="mermaid-eefea253.min.js"></script>
