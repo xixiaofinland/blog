@@ -23,6 +23,7 @@
     - [Cross-Compiling for Raspberry Pi on NixOS](cross_compile_rpi.md)
 
 - [Books](books.md)
+  - [我看见的世界](the-worlds-i-see.md)
   - [男孩、鼹鼠、狐狸和马](boy-mole-fox-horse.md)
   - [Trillion Dollar Coach](trillion-dollar-coach.md)
 
