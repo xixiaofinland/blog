@@ -36,6 +36,15 @@ draft-only pattern as viikkoja.
    `语言` for Chinese). Keep each field on its own `>` line; consecutive lines are
    collected into one card.
 
+   **Put a `---` divider between H2 sections.** A horizontal rule (`---` on its
+   own line) renders as a `· · ·` separator in the WeChat draft and a normal rule
+   in the blog. House style: one `---` before each `##` section (not before H3
+   subsections) so sections don't butt straight into the next heading.
+
+   **H2 vs H3 styling.** `##` is the orange section title (with a bottom border);
+   `###` is a softer-orange subsection. Use H3 for subsections inside a section,
+   H2 for the top-level beats.
+
    **Inline images carry through to the draft.** Every standalone Markdown image
    in the thread (`![alt](img/<slug>/pic.jpg)`, one per line) is uploaded and
    embedded in the WeChat body at the same spot it sits in the blog. The first
