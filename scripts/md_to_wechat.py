@@ -68,9 +68,11 @@ def _h2(inner: str) -> str:
 
 
 def _h3(inner: str) -> str:
+    # Softer orange than the H2 (#e87b1a): reads as a subordinate heading,
+    # not just bold body text, without competing with the section title.
     return (
         '<p style="margin:22px 0 10px;font-size:16px;font-weight:700;'
-        f'color:#1a1a1a;line-height:1.6;">{inner}</p>'
+        f'color:#c9873a;line-height:1.6;">{inner}</p>'
     )
 
 
