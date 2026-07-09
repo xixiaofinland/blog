@@ -3,3 +3,5 @@ book
 tidy_first.txt
 .obsidian/
 linkedin/
+__pycache__/
+*.pyc
