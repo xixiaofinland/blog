@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800" font-family="Noto Sans CJK SC, sans-serif">
+  <rect width="800" height="800" fill="#ffffff"/>
+
+  <!-- 世界 (outermost) -->
+  <circle cx="400" cy="400" r="340" fill="#eaf1f8" stroke="#ffffff" stroke-width="2"/>
+  <!-- 情绪 -->
+  <circle cx="400" cy="400" r="250" fill="#cfe0f0" stroke="#ffffff" stroke-width="2"/>
+  <!-- 念头 / 声音 -->
+  <circle cx="400" cy="400" r="165" fill="#a9c8e6" stroke="#ffffff" stroke-width="2"/>
+  <!-- 觉知 (center) -->
+  <circle cx="400" cy="400" r="85" fill="#3f6fa3" stroke="#ffffff" stroke-width="2"/>
+
+  <!-- band labels (top of each ring) -->
+  <text x="400" y="112" text-anchor="middle" font-size="30" fill="#2c5580">世界</text>
+  <text x="400" y="200" text-anchor="middle" font-size="30" fill="#2c5580">情绪</text>
+  <text x="400" y="284" text-anchor="middle" font-size="28" fill="#1f4a76">念头 · 声音</text>
+
+  <!-- center -->
+  <text x="400" y="392" text-anchor="middle" font-size="34" fill="#ffffff" font-weight="bold">觉知</text>
+  <text x="400" y="426" text-anchor="middle" font-size="21" fill="#e6eef7">真正的我</text>
+</svg>
