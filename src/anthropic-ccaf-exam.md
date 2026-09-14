@@ -3,6 +3,8 @@
 This article is manually created by me, without AI assistance :).
 I passed the CCAF exam on 14th of September, 2026 with score (857/1000). I write down the points that are useful for you if you are preparing for it in the future.
 
+![Claude Certified Architect - Foundations badge issued by Anthropic](img/anthropic-ccaf-exam/badge.png)
+
 ---
 
 ## How I Prepared
