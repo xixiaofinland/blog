@@ -3,6 +3,7 @@
 This page stores the newest AI and machine learning posts for the navigation refresh script. The sidebar keeps the latest seven threads visible, then rotates older ones into yearly archives.
 
 <!-- AI_LATEST_LINKS_START -->
+- [Passing the CCDV-F Exam](anthropic-ccdv-f-exam.md)
 - [Passing the CCAF Exam](anthropic-ccaf-exam.md)
 - [What I Learned Trying to Run LTX-Video 2.3 on Apple Silicon](ltx-apple-silicon.md)
 - [Build a Minimal LLM Code Agent: From Loop to Harness](ai-minimal-agent.md)

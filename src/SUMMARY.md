@@ -4,6 +4,7 @@
 
 <!-- AI_NAV_START -->
 - [AI & Machine Learning](ai.md)
+  - [Passing the CCDV-F Exam](anthropic-ccdv-f-exam.md)
   - [Passing the CCAF Exam](anthropic-ccaf-exam.md)
   - [What I Learned Trying to Run LTX-Video 2.3 on Apple Silicon](ltx-apple-silicon.md)
   - [Build a Minimal LLM Code Agent: From Loop to Harness](ai-minimal-agent.md)
