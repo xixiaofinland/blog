@@ -8,11 +8,7 @@ First, a fact many people miss: you can't sign up as an individual. The exams ar
 
 The cost was still mine. I paid for all three myself, $425 in total.
 
-| Exam                                               | Passed      | Score | Prep               | Price |
-| -------------------------------------------------- | ----------- | ----- | ------------------ | ----- |
-| Claude Certified Architect - Foundations (CCAF)    | 14 Sep 2026 | 857   | ~15 days, 2-3h/day | $125  |
-| Claude Certified Developer - Foundations (CCDV-F)  | 19 Sep 2026 | 926   | 5 days, ~3h/day    | $125  |
-| Claude Certified Architect - Professional (CCAR-P) | 21 Sep 2026 | 860   | 2 days, ~4h/day    | $175  |
+![Exam comparison: CCAF passed 14 Sep 2026, 857, about 15 days prep, $125. CCDV-F passed 19 Sep 2026, 926, 5 days prep, $125. CCAR-P passed 21 Sep 2026, 860, 2 days prep, $175.](img/anthropic-claude-certs/exams.png)
 
 Notice the last row. The Professional exam costs the most.
 
