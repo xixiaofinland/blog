@@ -4,14 +4,15 @@
 
 <!-- AI_NAV_START -->
 - [AI & Machine Learning](ai.md)
+  - [Three Claude Certs in One Month](anthropic-claude-certs.md)
   - [Passing the CCDV-F Exam](anthropic-ccdv-f-exam.md)
   - [Passing the CCAF Exam](anthropic-ccaf-exam.md)
   - [What I Learned Trying to Run LTX-Video 2.3 on Apple Silicon](ltx-apple-silicon.md)
   - [Build a Minimal LLM Code Agent: From Loop to Harness](ai-minimal-agent.md)
   - [Salesforce Headless 360: Agent-First or Just Hype?](headless-360.md)
   - [Classification](classification.md)
-  - [Inspecting the California Housing Dataset (Before Preprocessing)](data_inspection.md)
   - [Archive 2026](ai-archive-2026.md)
+    - [Inspecting the California Housing Dataset (Before Preprocessing)](data_inspection.md)
     - [End-to-End Regression with scikit-learn (Numeric Features Only)](numeric_reg.md)
   - [Archive 2025](ai-archive-2025.md)
     - [Linear and Logistic Regression](llr.md)
