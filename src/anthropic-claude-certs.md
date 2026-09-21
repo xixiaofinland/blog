@@ -18,7 +18,7 @@ Notice the last row. The Professional exam costs the most.
 
 There's a fourth cert: Claude Certified Associate - Foundations (CCAO-F), $99. I skipped it. It isn't technical, and for my own money it wouldn't add much. (Is it useless? No. It's a decent way to learn Claude's product lines and the features built for business users.)
 
-This post covers what each exam felt like, the prep loop that worked for all three, and what I'd do differently.
+This post covers what each exam felt like, which order to take them in, and the prep loop that worked for all three.
 
 ## Why the Prep Time Kept Dropping
 
