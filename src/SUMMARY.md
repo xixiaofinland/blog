@@ -1,8 +1,10 @@
 # Summary
 
 - [Introduction](intro.md)
+- [Services I Offer](services.md)
 
 <!-- AI_NAV_START -->
+
 - [AI & Machine Learning](ai.md)
   - [Three Claude Certs in One Month](anthropic-claude-certs.md)
   - [Passing the CCDV-F Exam](anthropic-ccdv-f-exam.md)
@@ -16,6 +18,7 @@
     - [End-to-End Regression with scikit-learn (Numeric Features Only)](numeric_reg.md)
   - [Archive 2025](ai-archive-2025.md)
     - [Linear and Logistic Regression](llr.md)
+
 <!-- AI_NAV_END -->
 
 - [Coding](coding.md)

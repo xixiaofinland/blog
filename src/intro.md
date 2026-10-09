@@ -5,6 +5,8 @@ Hi there! I am Xi, a freelancer software engineer in Finland.
 My [LinkedIn](https://www.linkedin.com/in/xixiaofinland/),
 [Github](https://github.com/xixiaofinland)
 
+Looking for help? See [services I offer](services.md).
+
 ## How to read
 
 I love reading with a dark color theme. You can change themes by clicking the
