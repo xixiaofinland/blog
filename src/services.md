@@ -24,11 +24,13 @@ I help you decide, then build it. I wrote down my current view in [Salesforce He
 
 A demo is easy. A system that runs every day is not.
 
-I build LLM systems end to end. [Viikkoja.fi](https://viikkoja.fi) summarizes Finnish news into Chinese and generates a daily podcast, and it runs in production. I also prototyped a vision agent on Azure that prices used musical instruments from photos.
+I build LLM systems end to end. I co-build [Parent Recap](https://github.com/kinlace/parent-recap) with its original author. It's an open-source Claude Code plugin. Every evening it reads school, club and parent-group messages and emails each parent a short Brief in their own language. It runs locally on a Mac, and your data goes nowhere else.
 
-Proof: three Anthropic certifications. Here is [what I learned getting all three](anthropic-claude-certs.md).
+I also run [Viikkoja.fi](https://viikkoja.fi). It summarizes Finnish news into Chinese and generates a daily podcast, and it runs in production.
 
-I also co-build [Parent Recap](https://github.com/kinlace/parent-recap) with its original author. It's an open-source Claude Code plugin. Every evening it reads school, club and parent-group messages and emails each parent a short Brief in their own language. It runs locally on a Mac, and your data goes nowhere else.
+Proof: three Anthropic certifications, including [Claude Certified Architect – Professional](https://www.credly.com/badges/043967cb-c2b0-4830-81d2-67673baf963d). Here is [what I learned getting all three](https://www.linkedin.com/pulse/three-tech-claude-certs-one-month-xi-xiao-bydvf/).
+
+On the prototype side, I built a vision agent on Azure that prices used musical instruments from photos.
 
 ### AI coding workflows for dev teams
 
