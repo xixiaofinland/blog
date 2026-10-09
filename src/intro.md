@@ -3,7 +3,8 @@
 Hi there! I am Xi, a freelancer software engineer in Finland.
 
 My [LinkedIn](https://www.linkedin.com/in/xixiaofinland/),
-[Github](https://github.com/xixiaofinland)
+[Github](https://github.com/xixiaofinland),
+[CV (PDF)](cv.pdf)
 
 Looking for help? See [services I offer](services.md).
 

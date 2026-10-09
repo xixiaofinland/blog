@@ -58,5 +58,6 @@ Tell me the problem. Two or three lines is enough.
 
 - LinkedIn: [message me](https://www.linkedin.com/in/xixiaofinland/)
 - Email: xi.xiao007@gmail.com
+- CV: [PDF](cv.pdf)
 
 I reply within a day or two.
