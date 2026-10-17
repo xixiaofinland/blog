@@ -6,11 +6,13 @@ _English version below._
 
 现在同样三门，€107（约 $120）。只到 11 月底。
 
+👉 [立即报名](https://claude.neoanaloglab.com/zh/exam/?referral=Xi%20Xiao)
+
 （我的考证经历、分数和备考方法，都写在这篇 [LinkedIn 文章](https://www.linkedin.com/pulse/three-tech-claude-certs-one-month-xi-xiao-bydvf/)里。）
 
 ## 个人考 Claude 证书，有两道门槛
 
-你想考 Claude 证书。第一道门槛：考试只对 Claude Partner Network 里的公司开放。你得挂在一家 partner 公司下面，才有考试资格。个人没法直接报名。
+第一道门槛：考试只对 Claude Partner Network 里的公司开放。你得挂在一家 partner 公司下面，才有考试资格。个人没法直接报名。
 
 我能考，是因为我和 [Neo Analog Lab](https://neoanaloglab.com) 合作。这是一家东京的 AI 咨询公司，在 partner 网络里，也做 Claude 培训。
 
@@ -46,7 +48,7 @@ $425 对 €107。差不多是原来的四分之一。
 
 ## 怎么报名
 
-1. 打开[报名页](https://claude.neoanaloglab.com/zh/exam/)。
+1. 打开[报名页](https://claude.neoanaloglab.com/zh/exam/?referral=Xi%20Xiao)。
 2. 填姓名和邮箱。姓名必须和你考试时出示的证件一致。
 3. 同意条款，用 Stripe 付款。成功后你会收到考试说明。
 
@@ -93,6 +95,8 @@ I paid for them myself. List price, $425 in total.
 
 Right now the same three cost €107 (about $120). Only until the end of November.
 
+👉 [Sign up here](https://claude.neoanaloglab.com/en/exam/?referral=Xi%20Xiao)
+
 (The full story, scores and prep method are in my [LinkedIn article](https://www.linkedin.com/pulse/three-tech-claude-certs-one-month-xi-xiao-bydvf/).)
 
 ## Two Barriers
@@ -115,9 +119,9 @@ Exams under partner companies are free during a promotion that ends in November.
 
 ## How to Sign Up
 
-1. Open the [exam page](https://claude.neoanaloglab.com/en/exam/).
+1. Open the [exam page](https://claude.neoanaloglab.com/en/exam/?referral=Xi%20Xiao).
 2. Enter your name exactly as on your photo ID, and your email.
-3. In "Referred by", enter **Xi Xiao**.
+3. "Referred by" is already filled in with **Xi Xiao**.
 4. Accept the terms and pay with Stripe.
 
 ## How to Prepare
