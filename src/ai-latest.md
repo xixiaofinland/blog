@@ -3,7 +3,7 @@
 This page stores the newest AI and machine learning posts for the navigation refresh script. The sidebar keeps the latest seven threads visible, then rotates older ones into yearly archives.
 
 <!-- AI_LATEST_LINKS_START -->
-- [€107 考齐三个 Claude 证书（11 月底截止）](claude-certs-offer.md)
+- [约 $120 考齐三个 Claude 证书（11 月底截止）](claude-certs-offer.md)
 - [Three Claude Certs in One Month](anthropic-claude-certs.md)
 - [Passing the CCDV-F Exam](anthropic-ccdv-f-exam.md)
 - [Passing the CCAF Exam](anthropic-ccaf-exam.md)

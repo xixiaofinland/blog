@@ -1,10 +1,10 @@
-# €107 考齐三个 Claude 证书（11 月底截止）
+# 约 $120 考齐三个 Claude 证书（11 月底截止）
 
 _English version below._
 
 九月，我用一个月考了 Anthropic 的三个 Claude 技术证书。 钱是我自己出的。原价，一共 $425。
 
-现在同样三门，€107（约 $120）。只到 11 月底。
+现在同样三门，约 $120（€107）。只到 11 月底！
 
 👉 [立即报名](https://claude.neoanaloglab.com/zh/exam/?referral=Xi%20Xiao)
 
@@ -30,7 +30,7 @@ _English version below._
 
 现在是优惠期，partner 公司名下的考试免费，到 11 月底结束。
 
-Neo Analog Lab 把这个机会开放给个人。€107，三门全包：
+Neo Analog Lab 把这个机会开放给个人。约 $120（€107），三门全包：
 
 - Claude Certified Developer – Foundations（CCDV-F）
 - Claude Certified Architect – Foundations（CCAF）
@@ -44,7 +44,7 @@ Neo Analog Lab 把这个机会开放给个人。€107，三门全包：
 - **全英文**：考试由 Anthropic 组织，题目全是英文。
 - **地区限制**：中国大陆居民不能参加。
 
-$425 对 €107。差不多是原来的四分之一。
+$425 对 $120。差不多是原来的四分之一。
 
 ## 怎么报名
 
@@ -81,19 +81,17 @@ CCAF 和 CCDV-F，我还买过付费模拟题。不是真题。但它帮我找�
 
 我是 Neo Analog Lab 的合作伙伴。你用文中的链接报名，系统会自动把我填为介绍人，我会收到一小笔推荐费。
 
-这篇文章也是在帮他们招学员。我不藏着。
-
 文中的分数、日期和价格，都能在我的 LinkedIn 文章里核对。
 
 ---
 
-# Three Claude Certs for €107 (Until End of November)
+# Three Claude Certs for About $120 (Until End of November)
 
 In September I took three Anthropic Claude certs in one month. I passed all three.
 
 I paid for them myself. List price, $425 in total.
 
-Right now the same three cost €107 (about $120). Only until the end of November.
+Right now the same three cost about $120 (€107). Only until the end of November!
 
 👉 [Sign up here](https://claude.neoanaloglab.com/en/exam/?referral=Xi%20Xiao)
 
@@ -107,7 +105,7 @@ The second barrier is price: $125 for CCAF, $125 for CCDV-F, $175 for CCAR-P.
 
 ## The Offer
 
-Exams under partner companies are free during a promotion that ends in November. Neo Analog Lab is opening that up to individuals. €107 covers all three exams.
+Exams under partner companies are free during a promotion that ends in November. Neo Analog Lab is opening that up to individuals. About $120 (€107) covers all three exams.
 
 - **Register by:** 27 November 2026 (US Pacific Time).
 - **Finish exams by:** 30 November 2026 (US Pacific Time).
@@ -136,8 +134,6 @@ For CCAF and CCDV-F I also bought paid mock exams. Not real exam questions, but 
 ## Disclosure
 
 I partner with Neo Analog Lab. Sign up through the links in this post and I'm filled in as your referrer automatically. I get a small referral fee.
-
-This post helps them find students. I'd rather say so.
 
 Register by 27 November. Take your first exam by 16 November.
 
