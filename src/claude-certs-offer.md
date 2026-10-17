@@ -79,7 +79,7 @@ CCAF 和 CCDV-F，我还买过付费模拟题。不是真题。但它帮我找�
 
 ## 公开说明
 
-我是 Neo Analog Lab 的合作伙伴。你在"介绍人"里填我的名字，我会拿到一笔推荐费。
+我是 Neo Analog Lab 的合作伙伴。你用文中的链接报名，系统会自动把我填为介绍人，我会收到一小笔推荐费。
 
 这篇文章也是在帮他们招学员。我不藏着。
 
@@ -101,9 +101,7 @@ Right now the same three cost €107 (about $120). Only until the end of Novembe
 
 ## Two Barriers
 
-You want a Claude cert. You look for the sign-up page. There isn't one for you.
-
-The exams are only open to people at companies in the Claude Partner Network. I got in through [Neo Analog Lab](https://neoanaloglab.com), a Tokyo AI consultancy in that network that also runs Claude training.
+The first barrier: the exams are only open to people at companies in the Claude Partner Network. I got in through [Neo Analog Lab](https://neoanaloglab.com), a Tokyo AI consultancy in that network that also runs Claude training.
 
 The second barrier is price: $125 for CCAF, $125 for CCDV-F, $175 for CCAR-P.
 
@@ -121,8 +119,9 @@ Exams under partner companies are free during a promotion that ends in November.
 
 1. Open the [exam page](https://claude.neoanaloglab.com/en/exam/?referral=Xi%20Xiao).
 2. Enter your name exactly as on your photo ID, and your email.
-3. "Referred by" is already filled in with **Xi Xiao**.
-4. Accept the terms and pay with Stripe.
+3. Accept the terms and pay with Stripe. You'll then receive your exam instructions.
+
+Take any of the three, in any order.
 
 ## How to Prepare
 
@@ -136,7 +135,7 @@ For CCAF and CCDV-F I also bought paid mock exams. Not real exam questions, but 
 
 ## Disclosure
 
-I partner with Neo Analog Lab. If you enter my name as referrer, I get a referral fee.
+I partner with Neo Analog Lab. Sign up through the links in this post and I'm filled in as your referrer automatically. I get a small referral fee.
 
 This post helps them find students. I'd rather say so.
 
