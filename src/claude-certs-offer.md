@@ -4,7 +4,7 @@ _English version below._
 
 九月，我用一个月考了 Anthropic 的三个 Claude 技术证书。 钱是我自己出的。原价，一共 $425。
 
-现在同样三门，约 $120（€107）。只到 11 月底！
+现在同样三门，一共 $120（€107）。只到 11 月底！
 
 👉 [立即报名](https://claude.neoanaloglab.com/zh/exam/?referral=Xi%20Xiao)
 
