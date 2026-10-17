@@ -112,7 +112,6 @@ Exams under partner companies are free during a promotion that ends in November.
 - **Free retake:** after a two-week wait. Take your first attempt by **16 November** to keep that option.
 - **Language:** the exams are run by Anthropic, in English.
 - **Not available** to residents of mainland China.
-- **Refund:** full refund until your exam instructions are sent, none after.
 
 ## How to Sign Up
 
@@ -120,8 +119,6 @@ Exams under partner companies are free during a promotion that ends in November.
 2. Enter your name exactly as on your photo ID, and your email.
 3. In "Referred by", enter **Xi Xiao**.
 4. Accept the terms and pay with Stripe.
-
-Exam instructions arrive within two business days.
 
 ## How to Prepare
 
